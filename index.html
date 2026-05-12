@@ -245,6 +245,27 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
 .book-step{display:flex;gap:12px;align-items:flex-start;font-size:13.5px;color:#334155;line-height:1.6}
 .book-step-num{width:26px;height:26px;border-radius:50%;background:var(--blue-grad);color:white;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:11px;flex-shrink:0;margin-top:1px}
 
+/* ===== ORI ASSISTENTE IA ===== */
+.ori-sugest{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:white;border:1.5px solid var(--gray2);border-radius:12px;
+  cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;
+  transition:all .18s;text-align:left
+}
+.ori-sugest:hover{border-color:#7c3aed;background:#faf5ff;color:#5b21b6;transform:translateY(-2px);box-shadow:0 4px 12px rgba(124,58,237,.12)}
+.ori-sugest-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center}
+
+/* ===== ORI ASSISTENTE IA ===== */
+.ori-sugest{
+  display:flex;align-items:center;gap:10px;padding:10px 14px;
+  background:white;border:1.5px solid var(--gray2);border-radius:12px;
+  cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;
+  transition:all .18s;text-align:left
+}
+.ori-sugest:hover{border-color:#7c3aed;background:#faf5ff;color:#5b21b6;transform:translateY(-2px);box-shadow:0 4px 12px rgba(124,58,237,.12)}
+.ori-sugest-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center}
+
+
 /* ===== REAÇÕES ===== */
 .react-btn {
   display:flex;align-items:center;gap:5px;padding:5px 14px;
@@ -665,6 +686,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Menu Principal</div>
+      <div class="nav-item" data-page="assistente" onclick="showPage('assistente')" style="background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(37,99,194,.15));border:1px solid rgba(124,58,237,.3)"><span class="nav-icon">🔮</span>Ori — IA</div>
       <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
       <div class="nav-item active" data-page="novidades" onclick="showPage('novidades')"><span class="nav-icon">📢</span>Novidades</div>
       <div class="nav-item" data-page="faq" onclick="showPage('faq')"><span class="nav-icon">❓</span>FAQ</div>
@@ -672,7 +694,6 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       <div class="nav-item" data-page="precos" onclick="showPage('precos')"><span class="nav-icon">💰</span>Tabela de Valores</div>
       <div class="nav-item" data-page="campanhas" onclick="showPage('campanhas')"><span class="nav-icon">📣</span>Campanhas</div>
       <div class="nav-item" data-page="sistemas" onclick="showPage('sistemas')"><span class="nav-icon">🖥️</span>Sistemas</div>
-      <div class="nav-item" data-page="assistente" onclick="showPage('assistente')" style="background:linear-gradient(135deg,rgba(37,99,194,.2),rgba(124,58,237,.15));border:1px solid rgba(124,58,237,.25)"><span class="nav-icon">🤖</span>Assistente IA</div>
       <div class="nav-section-label" data-section="comercial" style="margin-top:8px">Comercial</div>
       <div class="nav-item" data-page="leads" onclick="showPage('leads')"><span class="nav-icon">🏢</span>Leads</div>
       <div class="nav-item" data-page="agendamentos" onclick="showPage('agendamentos')"><span class="nav-icon">📋</span>Agendamentos</div>
@@ -1943,6 +1964,106 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       </div>
     </div>
 
+    <!-- ===== ORI — ASSISTENTE IA ===== -->
+    <div class="page" id="page-assistente">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2 style="display:flex;align-items:center;gap:10px">
+            <span style="width:38px;height:38px;background:linear-gradient(135deg,#7c3aed,#2563c2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🔮</span>
+            Ori — Assistente IA
+          </h2>
+          <p>Tire dúvidas sobre FAQ, produtos, argumentação e processos</p>
+        </div>
+        <div id="ai-status-area" style="display:flex;align-items:center;gap:8px">
+          <span id="ai-key-dot" style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;transition:background .3s"></span>
+          <span id="ai-key-label" style="font-size:12.5px;color:var(--gray3)">API não configurada</span>
+          <button id="ai-cfg-btn" onclick="configurarChaveIA()" style="background:var(--blue-light);color:var(--blue2);border:none;border-radius:6px;padding:4px 10px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;cursor:pointer">⚙️ Configurar</button>
+        </div>
+      </div>
+
+      <!-- Config chave (só admin vê) -->
+      <div id="ai-config-box" class="hidden" style="background:linear-gradient(135deg,#f5f3ff,#eff6ff);border:1.5px solid rgba(124,58,237,.2);border-radius:14px;padding:1.3rem 1.5rem;margin-bottom:1.4rem">
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;margin-bottom:6px;color:#5b21b6">🔑 Chave da API Gemini</div>
+        <div style="font-size:12.5px;color:#6d28d9;margin-bottom:12px">Obtenha gratuitamente em <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--blue3);font-weight:700">aistudio.google.com</a> · A chave ficará disponível para todos do portal</div>
+        <div style="display:flex;gap:8px">
+          <input type="password" id="ai-key-input" placeholder="AIzaSy..."
+            style="flex:1;padding:10px 14px;border:1.5px solid rgba(124,58,237,.3);border-radius:9px;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;background:white">
+          <button class="btn-primary" style="background:linear-gradient(135deg,#7c3aed,#4f46e5)" onclick="salvarChaveIA()">💾 Salvar para todos</button>
+          <button class="btn-secondary" onclick="document.getElementById('ai-config-box').classList.add('hidden')">Cancelar</button>
+        </div>
+      </div>
+
+      <!-- Sugestões visuais em cards -->
+      <div style="margin-bottom:1.4rem">
+        <div style="font-size:11.5px;color:var(--gray3);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">✦ Pergunte ao Ori</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+          <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Como responder quando o cliente diz que está caro?">
+            <span class="ori-sugest-icon">💰</span>
+            <span>Cliente diz que está caro</span>
+          </button>
+          <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Quais são os planos de SEO disponíveis e seus valores?">
+            <span class="ori-sugest-icon">📦</span>
+            <span>Planos e valores de SEO</span>
+          </button>
+          <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="O que fazer quando o cliente quer cancelar o contrato?">
+            <span class="ori-sugest-icon">🛡️</span>
+            <span>Cliente quer cancelar</span>
+          </button>
+          <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Como funciona a curva de resultados do SEO mês a mês?">
+            <span class="ori-sugest-icon">📈</span>
+            <span>Curva de resultados SEO</span>
+          </button>
+          <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Qual é o fluxo padrão para agendar uma reunião?">
+            <span class="ori-sugest-icon">📅</span>
+            <span>Fluxo de agendamento</span>
+          </button>
+          <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Como calcular o ROI para apresentar ao cliente?">
+            <span class="ori-sugest-icon">🎯</span>
+            <span>Como calcular ROI</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat container -->
+      <div style="background:white;border-radius:18px;box-shadow:var(--shadow-md);border:1px solid rgba(226,232,240,.7);display:flex;flex-direction:column;height:480px;overflow:hidden">
+        <!-- Header do chat -->
+        <div style="padding:.9rem 1.2rem;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#faf5ff,#eff6ff)">
+          <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#2563c2);display:flex;align-items:center;justify-content:center;font-size:18px">🔮</div>
+          <div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:13.5px;color:var(--black)">Ori</div>
+            <div style="font-size:11px;color:#7c3aed;font-weight:600;display:flex;align-items:center;gap:4px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#10b981;display:inline-block"></span>
+              Assistente da Busca Orgânica
+            </div>
+          </div>
+          <button onclick="limparChatIA()" style="margin-left:auto;background:none;border:1px solid var(--gray2);border-radius:7px;padding:4px 10px;font-size:11.5px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--gray3);cursor:pointer;transition:all .15s" onmouseover="this.style.background='var(--gray)'" onmouseout="this.style.background='none'">
+            🗑️ Limpar
+          </button>
+        </div>
+        <!-- Mensagens -->
+        <div id="ai-msgs" style="flex:1;overflow-y:auto;padding:1.2rem;display:flex;flex-direction:column;gap:14px;scroll-behavior:smooth">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#2563c2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🔮</div>
+            <div style="background:#f5f3ff;border-radius:0 14px 14px 14px;padding:12px 16px;max-width:82%;font-size:14px;line-height:1.75;color:#1e293b;border:1px solid rgba(124,58,237,.1)">
+              Olá! Sou o <strong>Ori</strong>, assistente da <strong>Busca Orgânica</strong>. 🔮<br><br>
+              Fui alimentado com todo o conteúdo do portal — FAQ, Book de Argumentação, Tabela de Valores, Campanhas e Sistemas cadastrados.<br><br>
+              Como posso te ajudar hoje?
+            </div>
+          </div>
+        </div>
+        <!-- Input -->
+        <div style="padding:.9rem 1.2rem;border-top:1px solid var(--gray2);display:flex;gap:10px;align-items:flex-end;background:#fafafa">
+          <textarea id="ai-input" placeholder="Pergunte algo ao Ori... (Enter envia)" rows="1"
+            style="flex:1;padding:10px 14px;border:1.5px solid var(--gray2);border-radius:12px;font-size:14px;font-family:'DM Sans',sans-serif;outline:none;resize:none;line-height:1.5;max-height:100px;overflow-y:auto;box-sizing:border-box;transition:border-color .2s;background:white"
+            onfocus="this.style.borderColor='#7c3aed'" onblur="this.style.borderColor='var(--gray2)'"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensagemIA()}"
+            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
+          <button onclick="enviarMensagemIA()" id="ai-send-btn"
+            style="width:44px;height:44px;background:linear-gradient(135deg,#7c3aed,#2563c2);color:white;border:none;border-radius:12px;cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity .2s">➤</button>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /main-content -->
 
   <!-- ===== MODAL NOVIDADE ===== -->
@@ -1969,56 +2090,6 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
     </div>
   </div>
 
-    <!-- ===== ASSISTENTE IA ===== -->
-    <div class="page" id="page-assistente">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h2>🤖 Assistente IA</h2>
-          <p>Tire dúvidas sobre FAQ, produtos, argumentação e processos</p>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span id="ai-key-dot" style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block"></span>
-          <span id="ai-key-label" style="font-size:12.5px;color:var(--gray3)">API não configurada</span>
-          <button onclick="configurarChaveIA()" style="background:var(--blue-light);color:var(--blue2);border:none;border-radius:6px;padding:4px 10px;font-size:12px;font-family:Plus Jakarta Sans,sans-serif;font-weight:700;cursor:pointer">⚙️ Configurar</button>
-        </div>
-      </div>
-      <div id="ai-config-box" class="hidden" style="background:#f8fafc;border:1.5px solid var(--gray2);border-radius:12px;padding:1.2rem 1.4rem;margin-bottom:1.2rem">
-        <div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:13.5px;margin-bottom:6px">🔑 Chave da API Gemini (gratuita)</div>
-        <div style="font-size:12.5px;color:var(--gray3);margin-bottom:10px">Obtenha em <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--blue3);font-weight:600">aistudio.google.com</a> — sem cartão de crédito</div>
-        <div style="display:flex;gap:8px">
-          <input type="password" id="ai-key-input" placeholder="AIzaSy..." style="flex:1;padding:10px 14px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13.5px;font-family:DM Sans,sans-serif;outline:none;box-sizing:border-box">
-          <button class="btn-primary" onclick="salvarChaveIA()">Salvar</button>
-          <button class="btn-secondary" onclick="document.getElementById('ai-config-box').classList.add('hidden')">Cancelar</button>
-        </div>
-        <div style="font-size:11.5px;color:var(--gray3);margin-top:8px">💡 Salva no navegador — não sai do seu computador.</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.2rem">
-        <div style="font-size:12px;color:var(--gray3);width:100%;font-weight:600;font-family:Plus Jakarta Sans,sans-serif">💡 Sugestões:</div>
-        <button class="ai-sugest" onclick="enviarPerguntaIA(this.textContent)">Como responder quando o cliente diz que está caro?</button>
-        <button class="ai-sugest" onclick="enviarPerguntaIA(this.textContent)">Quais são os planos de SEO disponíveis?</button>
-        <button class="ai-sugest" onclick="enviarPerguntaIA(this.textContent)">O que fazer quando o cliente quer cancelar?</button>
-        <button class="ai-sugest" onclick="enviarPerguntaIA(this.textContent)">Como funciona a curva de resultados do SEO?</button>
-        <button class="ai-sugest" onclick="enviarPerguntaIA(this.textContent)">Qual é o prazo mínimo de contrato?</button>
-      </div>
-      <div style="background:white;border-radius:16px;box-shadow:var(--shadow);border:1px solid rgba(226,232,240,0.7);display:flex;flex-direction:column;height:500px">
-        <div id="ai-msgs" style="flex:1;overflow-y:auto;padding:1.4rem;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth">
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#2563c2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🤖</div>
-            <div style="background:#f1f5f9;border-radius:0 12px 12px 12px;padding:12px 16px;max-width:80%;font-size:14px;line-height:1.7;color:#1e293b">Olá! Sou o assistente da <strong>Busca Orgânica</strong>. Fui alimentado com todo o conteúdo do portal — FAQ, Book de Argumentação, Tabela de Valores, Campanhas e Sistemas.<br><br>Como posso te ajudar hoje? 😊</div>
-          </div>
-        </div>
-        <div style="padding:1rem 1.2rem;border-top:1px solid var(--gray2);display:flex;gap:10px;align-items:flex-end">
-          <textarea id="ai-input" placeholder="Digite sua dúvida... (Enter envia, Shift+Enter nova linha)" rows="1"
-            style="flex:1;padding:10px 14px;border:1.5px solid var(--gray2);border-radius:10px;font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:none;line-height:1.5;max-height:100px;overflow-y:auto;box-sizing:border-box;transition:border-color .2s"
-            onfocus="this.style.borderColor='var(--blue3)'" onblur="this.style.borderColor='var(--gray2)'"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMensagemIA()}"
-            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"></textarea>
-          <button onclick="enviarMensagemIA()" id="ai-send-btn"
-            style="width:44px;height:44px;background:var(--blue-grad);color:white;border:none;border-radius:10px;cursor:pointer;font-size:18px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:opacity .2s">➤</button>
-        </div>
-      </div>
-      <div style="text-align:center;font-size:11px;color:var(--gray3);margin-top:8px">✨ Powered by Google Gemini Flash · Baseado no conteúdo do portal</div>
-    </div>
 
 </div><!-- /app -->
 
@@ -2691,49 +2762,111 @@ async function uploadAvatar(input) {
 }
 
 // ============================================================
-// ASSISTENTE IA — Gemini Flash
+// ORI — ASSISTENTE IA
 // ============================================================
 const AI_KEY_STORAGE = 'busca_organica_gemini_key';
 let aiChatHistory   = [];
 let aiTyping        = false;
 
 function configurarChaveIA() {
+  if (currentUser?.role !== 'admin') return;
   const box = document.getElementById('ai-config-box');
   box.classList.toggle('hidden');
-  const key = localStorage.getItem(AI_KEY_STORAGE) || '';
-  document.getElementById('ai-key-input').value = key;
+  document.getElementById('ai-key-input').value = localStorage.getItem(AI_KEY_STORAGE) || '';
 }
 
-function salvarChaveIA() {
+async function salvarChaveIA() {
   const key = document.getElementById('ai-key-input').value.trim();
   if (!key) return alert('Cole a chave da API.');
+  // Salva localmente
   localStorage.setItem(AI_KEY_STORAGE, key);
+  // Persiste no banco para todos os usuários carregarem
+  const { error } = await sb.from('profiles')
+    .update({ observacoes_admin: key })
+    .eq('id', currentUser.id);
+  if (error) {
+    alert('Erro ao salvar no banco: ' + error.message + '\nA chave foi salva apenas localmente.');
+  }
   document.getElementById('ai-config-box').classList.add('hidden');
   atualizarStatusChaveIA();
 }
 
-function atualizarStatusChaveIA() {
-  const key  = localStorage.getItem(AI_KEY_STORAGE);
-  const dot  = document.getElementById('ai-key-dot');
-  const lbl  = document.getElementById('ai-key-label');
-  if (!dot || !lbl) return;
-  if (key) {
-    dot.style.background  = '#10b981';
-    lbl.textContent = 'API configurada ✓';
-  } else {
-    dot.style.background  = '#ef4444';
-    lbl.textContent = 'API não configurada';
-  }
+async function carregarChaveCompartilhada() {
+  // Sempre busca do banco (não depende do localStorage)
+  try {
+    const { data } = await sb.from('profiles')
+      .select('observacoes_admin')
+      .eq('role', 'admin')
+      .not('observacoes_admin', 'is', null)
+      .limit(1)
+      .maybeSingle();
+    if (data?.observacoes_admin?.startsWith('AIza')) {
+      localStorage.setItem(AI_KEY_STORAGE, data.observacoes_admin);
+      return true;
+    }
+  } catch(e) {}
+  return false;
 }
 
-function initAssistenteIA() {
+function atualizarStatusChaveIA() {
+  const key = localStorage.getItem(AI_KEY_STORAGE);
+  const dot = document.getElementById('ai-key-dot');
+  const lbl = document.getElementById('ai-key-label');
+  const btn = document.getElementById('ai-cfg-btn');
+  if (dot) dot.style.background = key ? '#10b981' : '#ef4444';
+  if (lbl) { lbl.textContent = key ? 'Ori ativo ✓' : 'API não configurada'; lbl.style.color = key ? '#10b981' : 'var(--gray3)'; }
+  if (btn) btn.style.display = currentUser?.role === 'admin' ? '' : 'none';
+}
+
+async function initAssistenteIA() {
+  // Sempre tenta carregar do banco primeiro, depois atualiza o status
+  await carregarChaveCompartilhada();
   atualizarStatusChaveIA();
   aiChatHistory = [];
 }
 
+function limparChatIA() {
+  aiChatHistory = [];
+  const msgs = document.getElementById('ai-msgs');
+  if (msgs) msgs.innerHTML = `
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#7c3aed,#2563c2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🔮</div>
+      <div style="background:#f5f3ff;border-radius:0 14px 14px 14px;padding:12px 16px;max-width:82%;font-size:14px;line-height:1.75;color:#1e293b;border:1px solid rgba(124,58,237,.1)">
+        Conversa reiniciada! Como posso te ajudar? 😊
+      </div>
+    </div>`;
+}
+
 // Monta o contexto completo do portal
 function buildContextoPortal() {
-  let ctx = `Você é o Assistente da Busca Orgânica, uma agência de SEO. Responda SEMPRE em português brasileiro, de forma clara, prática e objetiva. Use o conteúdo abaixo como base para responder. Se a pergunta não estiver coberta pelo conteúdo, diga isso claramente e sugira perguntar ao gestor.\n\n`;
+  let ctx = `Você é o Ori, assistente interno da Busca Orgânica, uma agência de SEO. Responda SEMPRE em português brasileiro, de forma clara, prática e objetiva. Use o conteúdo abaixo como base para responder. Se a pergunta não estiver coberta pelo conteúdo, diga isso claramente e sugira perguntar ao gestor.\n\n`;
+
+  // BASE DE CONHECIMENTO EXTRA
+  ctx += `=== BASE DE CONHECIMENTO — ARGUMENTOS DE VENDAS DE SEO ===\n\n`;
+  ctx += `
+1. ROI ALTO E REDUÇÃO DO CUSTO DE AQUISIÇÃO (CAC)
+- Investimento Sustentável: Diferente dos anúncios pagos (PPC), que param de trazer clientes assim que o orçamento acaba, o SEO gera resultados duradouros. O tráfego orgânico continua crescendo ao longo do tempo.
+- Menor Custo por Aquisição: O SEO atrai tráfego qualificado que já está pesquisando ativamente pelo produto ou serviço, aumentando a taxa de conversão e reduzindo o custo total de aquisição de clientes.
+
+2. TRÁFEGO QUALIFICADO E FUNDO DE FUNIL
+- Foco no Desejo de Compra: O SEO não visa apenas "volume" de visitas, mas tráfego relevante. Focar em palavras-chave de fundo de funil atrai usuários prontos para comprar, maximizando as vendas.
+- Autoridade e Confiança: Sites na primeira página do Google transmitem mais credibilidade e confiança, facilitando o fechamento de vendas comparado a concorrentes ocultos.
+
+3. VANTAGEM COMPETITIVA E BRANDING
+- Supere a Concorrência: Aparecer antes dos concorrentes nos mecanismos de busca é crucial. Um site bem otimizado é uma ferramenta de branding poderosa.
+- E-A-T (Expertise, Autoridade, Confiança): O Google prioriza sites que demonstram autoridade. O SEO ajuda a construir essa reputação, essencial para e-commerce e B2B.
+
+4. MELHORIA NA EXPERIÊNCIA DO USUÁRIO (UX)
+- Site Rápido e Funcional: SEO técnico melhora o tempo de carregamento, facilita a leitura e navegação, e garante que o site funcione perfeitamente em dispositivos móveis, reduzindo a taxa de rejeição.
+- Melhores Conversões: Sites estruturados para SEO são mais fáceis de usar, o que naturalmente converte mais visitantes em clientes fiéis.
+
+DICAS DE OURO PARA O VENDEDOR DE SEO (2025/2026):
+- Não venda "Caixa Preta": Explique os pilares (Técnico, On-page, Conteúdo, Off-page) de forma clara.
+- Faça uma Análise Prévia: Mostre o potencial de crescimento e onde o cliente está perdendo dinheiro para a concorrência antes de fechar o contrato.
+- Fale de Vendas, não só de Rankings: O foco principal deve ser a geração de oportunidades de negócio, não apenas posições no Google.
+- SEO + Ads: Venda SEO como aliado dos anúncios pagos — o Ads valida ofertas e o SEO constrói presença sustentável.
+
+\n`;
 
   // FAQ
   ctx += `=== FAQ ===\n`;
@@ -2804,7 +2937,7 @@ function addMsgIA(texto, tipo, isHTML = false) {
     div.style.flexDirection = 'row-reverse';
   } else {
     avatar.style.cssText = 'width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#2563c2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0';
-    avatar.textContent   = '🤖';
+    avatar.textContent   = '🔮';
     bubble.style.cssText = 'background:#f1f5f9;border-radius:0 12px 12px 12px;padding:12px 16px;max-width:82%;font-size:14px;line-height:1.75;color:#1e293b';
     if (isHTML) bubble.innerHTML = texto;
     else bubble.textContent = texto;
@@ -4026,7 +4159,7 @@ const PAGINAS_CONFIG = [
   { id:'faq',          label:'❓ FAQ',                     secao:'Menu Principal' },
   { id:'book',         label:'📖 Book de Argumentação',    secao:'Menu Principal' },
   { id:'precos',       label:'💰 Tabela de Valores',       secao:'Menu Principal' },
-  { id:'assistente',   label:'🤖 Assistente IA',           secao:'Menu Principal' },
+  { id:'assistente',   label:'🔮 Ori — IA',           secao:'Menu Principal' },
   { id:'campanhas',    label:'📣 Campanhas',               secao:'Menu Principal' },
   { id:'sistemas',     label:'🖥️ Sistemas',                secao:'Menu Principal' },
   { id:'leads',        label:'🏢 Leads',                   secao:'Comercial' },
