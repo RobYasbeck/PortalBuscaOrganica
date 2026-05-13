@@ -101,7 +101,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
   overflow:hidden;cursor:pointer;position:relative
 }
 .user-avatar img{width:100%;height:100%;object-fit:cover;border-radius:9px}
-.user-avatar:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;border-radius:9px;font-size:13px}
+.user-avatar.admin-editable:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;border-radius:9px;font-size:13px}.user-avatar.admin-editable{cursor:pointer}
 .user-info p{font-size:12.5px;color:rgba(255,255,255,0.9);font-weight:600;font-family:Plus Jakarta Sans,sans-serif;line-height:1.3}
 .user-info span{font-size:10px;color:rgba(255,255,255,0.35);font-weight:400}
 .avatar-img{width:100%;height:100%;object-fit:cover;border-radius:9px}
@@ -135,7 +135,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
 .page-header{margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:flex-start;padding-top:1.6rem}
 .page-header-left h2{font-size:19px;font-weight:800;color:var(--black);letter-spacing:-.4px}
 .page-header-left p{color:var(--gray3);font-size:13px;margin-top:3px;font-weight:400}
-.page{display:none}.page.active{display:block}
+.page{display:none}.page.active{display:block}#page-assistente.active{display:flex !important;flex-direction:column;height:100vh;padding:1rem 1.8rem .8rem;box-sizing:border-box;overflow:hidden}
 
 /* CARDS */
 .card{background:white;border-radius:var(--radius);padding:1.4rem 1.5rem;box-shadow:var(--shadow);border:1px solid rgba(226,232,240,0.7)}
@@ -247,13 +247,18 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
 
 /* ===== ORI ASSISTENTE IA ===== */
 .ori-sugest{
-  display:flex;align-items:center;gap:10px;padding:10px 14px;
-  background:white;border:1.5px solid var(--gray2);border-radius:12px;
-  cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;color:#374151;
-  transition:all .18s;text-align:left
+  display:flex;align-items:center;gap:8px;padding:9px 12px;
+  background:white;border:1.5px solid var(--gray2);border-radius:10px;
+  cursor:pointer;font-size:12.5px;font-family:'DM Sans',sans-serif;color:#374151;
+  transition:all .18s;text-align:left;overflow:hidden;min-width:0
 }
-.ori-sugest:hover{border-color:#7c3aed;background:#faf5ff;color:#5b21b6;transform:translateY(-2px);box-shadow:0 4px 12px rgba(124,58,237,.12)}
-.ori-sugest-icon{font-size:18px;flex-shrink:0;width:28px;text-align:center}
+.ori-sugest:hover{border-color:#7c3aed;background:#faf5ff;color:#5b21b6;transform:translateY(-1px);box-shadow:0 3px 10px rgba(124,58,237,.12)}
+.ori-sugest-icon{font-size:16px;flex-shrink:0}
+
+/* ===== ORI FULL SCREEN ===== */
+.page-assistente-active .topbar{display:none !important}
+.page-assistente-active.main-content{padding:0 !important;overflow:hidden !important}
+#page-assistente .ai-chat-container{flex:1 !important;height:auto !important;min-height:0 !important}
 
 /* ===== ORI ASSISTENTE IA ===== */
 .ori-sugest{
@@ -676,7 +681,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       </div>
     </div>
     <div class="user-box">
-      <div class="user-avatar" id="nav-avatar" style="background:var(--blue3)" onclick="document.getElementById('avatar-upload-input').click()" title="Clique para trocar sua foto">BO</div>
+      <div class="user-avatar" id="nav-avatar" style="background:var(--blue3)">BO</div>
       <input type="file" id="avatar-upload-input" accept="image/*" style="display:none" onchange="uploadAvatar(this)">
       <div class="user-info" style="flex:1;min-width:0">
         <p id="nav-name">Usuário</p>
@@ -686,7 +691,6 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Menu Principal</div>
-      <div class="nav-item" data-page="assistente" onclick="showPage('assistente')" style="background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(37,99,194,.15));border:1px solid rgba(124,58,237,.3)"><span class="nav-icon">🔮</span>Ori — IA</div>
       <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
       <div class="nav-item active" data-page="novidades" onclick="showPage('novidades')"><span class="nav-icon">📢</span>Novidades</div>
       <div class="nav-item" data-page="faq" onclick="showPage('faq')"><span class="nav-icon">❓</span>FAQ</div>
@@ -710,12 +714,17 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       </div>
     </nav>
     <div class="sidebar-footer">
-      <button class="btn-logout" onclick="doLogout()">↩ Sair do Portal</button>
+      <button onclick="showPage('assistente')"
+        style="width:100%;padding:10px 12px;background:rgba(124,58,237,0.12);color:rgba(255,255,255,0.9);border:1.5px solid #7c3aed;border-radius:9px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;transition:all .2s;display:flex;align-items:center;justify-content:space-between;gap:8px"
+        onmouseover="this.style.background='rgba(124,58,237,0.25)'" onmouseout="this.style.background='rgba(124,58,237,0.12)'">
+        <span style="display:flex;align-items:center;gap:7px">🔮 Ori — IA</span>
+        <span style="background:#7c3aed;color:white;font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;letter-spacing:.4px;font-family:'Plus Jakarta Sans',sans-serif">NOVO</span>
+      </button>
     </div>
   </div>
 
   <!-- MAIN -->
-  <div class="main-content">
+  <div class="main-content" id="main-content">
 
     <!-- TOPBAR -->
     <div class="topbar">
@@ -1966,13 +1975,13 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
 
     <!-- ===== ORI — ASSISTENTE IA ===== -->
     <div class="page" id="page-assistente">
-      <div class="page-header">
-        <div class="page-header-left">
-          <h2 style="display:flex;align-items:center;gap:10px">
-            <span style="width:38px;height:38px;background:linear-gradient(135deg,#7c3aed,#2563c2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">🔮</span>
-            Ori — Assistente IA
-          </h2>
-          <p>Tire dúvidas sobre FAQ, produtos, argumentação e processos</p>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.8rem 0 .6rem;margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:32px;height:32px;background:linear-gradient(135deg,#7c3aed,#2563c2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">🔮</span>
+          <div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px;color:var(--black);line-height:1.2">Ori — Assistente IA</div>
+            <div style="font-size:12px;color:var(--gray3)">Tire dúvidas sobre FAQ, produtos e processos</div>
+          </div>
         </div>
         <div id="ai-status-area" style="display:flex;align-items:center;gap:8px">
           <span id="ai-key-dot" style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block;transition:background .3s"></span>
@@ -1994,38 +2003,38 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       </div>
 
       <!-- Sugestões visuais em cards -->
-      <div style="margin-bottom:1.4rem">
-        <div style="font-size:11.5px;color:var(--gray3);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px">✦ Pergunte ao Ori</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px">
+      <div style="margin-bottom:.8rem">
+        <div style="font-size:11px;color:var(--gray3);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px">✦ Pergunte ao Ori</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px">
           <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Como responder quando o cliente diz que está caro?">
-            <span class="ori-sugest-icon">💰</span>
-            <span>Cliente diz que está caro</span>
+            <span class="ori-sugest-icon">💰</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Está caro</span>
           </button>
           <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Quais são os planos de SEO disponíveis e seus valores?">
-            <span class="ori-sugest-icon">📦</span>
-            <span>Planos e valores de SEO</span>
+            <span class="ori-sugest-icon">📦</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Planos de SEO</span>
           </button>
           <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="O que fazer quando o cliente quer cancelar o contrato?">
-            <span class="ori-sugest-icon">🛡️</span>
-            <span>Cliente quer cancelar</span>
+            <span class="ori-sugest-icon">🛡️</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Quer cancelar</span>
           </button>
           <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Como funciona a curva de resultados do SEO mês a mês?">
-            <span class="ori-sugest-icon">📈</span>
-            <span>Curva de resultados SEO</span>
+            <span class="ori-sugest-icon">📈</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Curva do SEO</span>
           </button>
           <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Qual é o fluxo padrão para agendar uma reunião?">
-            <span class="ori-sugest-icon">📅</span>
-            <span>Fluxo de agendamento</span>
+            <span class="ori-sugest-icon">📅</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Fluxo de agendamento</span>
           </button>
           <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Como calcular o ROI para apresentar ao cliente?">
-            <span class="ori-sugest-icon">🎯</span>
-            <span>Como calcular ROI</span>
+            <span class="ori-sugest-icon">🎯</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Calcular ROI</span>
+          </button>
+          <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Quais objeções mais comuns o cliente levanta e como contorná-las?">
+            <span class="ori-sugest-icon">🔄</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Objeções comuns</span>
+          </button>
+          <button class="ori-sugest" onclick="enviarPerguntaIA(this.dataset.q)" data-q="Qual a diferença entre SEO, Google Meu Negócio e Tráfego Pago?">
+            <span class="ori-sugest-icon">🔍</span><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">SEO vs GMB vs Ads</span>
           </button>
         </div>
       </div>
 
       <!-- Chat container -->
-      <div style="background:white;border-radius:18px;box-shadow:var(--shadow-md);border:1px solid rgba(226,232,240,.7);display:flex;flex-direction:column;height:480px;overflow:hidden">
+      <div class="ai-chat-container" style="background:white;border-radius:18px;box-shadow:var(--shadow-md);border:1px solid rgba(226,232,240,.7);display:flex;flex-direction:column;height:calc(100vh - 260px);min-height:500px;overflow:hidden">
         <!-- Header do chat -->
         <div style="padding:.9rem 1.2rem;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#faf5ff,#eff6ff)">
           <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#7c3aed,#2563c2);display:flex;align-items:center;justify-content:center;font-size:18px">🔮</div>
@@ -2691,6 +2700,27 @@ async function fazerLogout() {
   if (!confirm('Deseja sair da sua conta?')) return;
   await sb.auth.signOut();
   currentUser = null;
+
+  // Reseta estado do DOM completamente
+  document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.nav-item').forEach(el => el.style.display = '');
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-section-label').forEach(el => el.style.display = '');
+
+  // Remove permissões de edição do avatar
+  const navAvatar = document.getElementById('nav-avatar');
+  if (navAvatar) {
+    navAvatar.classList.remove('admin-editable');
+    navAvatar.onclick = null;
+    navAvatar.title = '';
+  }
+
+  // Volta para página inicial
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+  // Reseta chat da IA
+  aiChatHistory = [];
+
   document.getElementById('app').classList.add('hidden');
   document.getElementById('login-screen').classList.remove('hidden');
   document.getElementById('login-user').value = '';
@@ -2719,6 +2749,7 @@ function setNavAvatar(profile) {
 
 // ── Upload de avatar ─────────────────────────────────────
 async function uploadAvatar(input) {
+  if (currentUser?.role !== 'admin') return; // Apenas admin pode trocar foto
   const file = input.files[0];
   if (!file) return;
   if (file.size > 2 * 1024 * 1024) return alert('A foto deve ter no máximo 2MB.');
@@ -3008,7 +3039,7 @@ async function enviarMensagemIA() {
             parts: [{ text: buildContextoPortal() }]
           },
           contents: aiChatHistory,
-          generationConfig: { temperature: 0.7, maxOutputTokens: 1024 },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 4096 },
         })
       }
     );
@@ -3037,7 +3068,26 @@ async function enviarMensagemIA() {
 
   } catch (err) {
     removeTypingIA();
-    addMsgIA(`❌ Erro: ${err.message}. Verifique se a chave da API está correta.`, 'bot');
+
+    // Traduz mensagens de erro comuns para português
+    let msgErro = err.message || 'Erro desconhecido';
+    if (msgErro.includes('high demand') || msgErro.includes('overloaded'))
+      msgErro = 'O serviço está com alta demanda no momento. Tente novamente em alguns segundos.';
+    else if (msgErro.includes('quota') || msgErro.includes('RESOURCE_EXHAUSTED'))
+      msgErro = 'Limite de uso da API atingido. Aguarde alguns minutos e tente novamente.';
+    else if (msgErro.includes('API key') || msgErro.includes('API_KEY') || msgErro.includes('invalid'))
+      msgErro = 'Chave da API inválida. Peça ao administrador para reconfigurar.';
+    else if (msgErro.includes('not found') || msgErro.includes('404'))
+      msgErro = 'Modelo de IA não disponível. Entre em contato com o administrador.';
+    else if (msgErro.includes('network') || msgErro.includes('fetch') || msgErro.includes('Failed'))
+      msgErro = 'Erro de conexão. Verifique sua internet e tente novamente.';
+
+    addMsgIA(`⚠️ ${msgErro}`, 'bot');
+
+    // Remove a última mensagem do usuário do histórico para permitir reenvio
+    if (aiChatHistory.length > 0 && aiChatHistory[aiChatHistory.length - 1].role === 'user') {
+      aiChatHistory.pop();
+    }
   } finally {
     aiTyping = false;
     document.getElementById('ai-send-btn').style.opacity = '1';
@@ -4131,9 +4181,18 @@ async function loadUser(userId) {
 
   if (profile.role === 'admin') {
     document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
+    // Admin pode clicar no avatar para trocar foto
+    const navAvatar = document.getElementById('nav-avatar');
+    if (navAvatar) {
+      navAvatar.classList.add('admin-editable');
+      navAvatar.onclick = () => document.getElementById('avatar-upload-input').click();
+      navAvatar.title = 'Clique para trocar sua foto';
+    }
   }
 
   renderNav();
+  // Carrega chave da IA e atualiza status já no login
+  carregarChaveCompartilhada().then(() => atualizarStatusChaveIA());
   await initApp();
 }
 
@@ -4302,6 +4361,12 @@ function showPage(id) {
   if (id !== 'admin' && !isAdmin && !liberadas.includes(id)) {
     alert('Você não tem permissão para acessar esta página.');
     return;
+  }
+
+  // Oculta topbar apenas na página do Ori
+  const mainContent = document.getElementById('main-content');
+  if (mainContent) {
+    mainContent.classList.toggle('page-assistente-active', id === 'assistente');
   }
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
