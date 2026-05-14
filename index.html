@@ -281,8 +281,10 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
 }
 .react-btn:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.1) }
 .react-btn:active { transform:scale(.92) }
-.react-btn.active-like { border-color:#3b82f6; background:#dbeafe }
-.react-btn.active-amei { border-color:#ec4899; background:#fce7f3 }
+.react-btn.active-like  { border-color:#3b82f6; background:#dbeafe }
+.react-btn.active-amei  { border-color:#ec4899; background:#fce7f3 }
+.react-btn.active-bravo { border-color:#ef4444; background:#fee2e2 }
+.react-btn.active-choro { border-color:#6366f1; background:#e0e7ff }
 
 @keyframes react-pop {
   0%   { transform:scale(1) }
@@ -302,21 +304,38 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
   transform:translate(-50%,-50%) scale(0);pointer-events:none
 }
 .react-btn.ripple::after { animation:react-ripple .4s ease-out forwards }
-.news-grid{display:flex;flex-direction:column;gap:1rem}
+.news-grid{display:flex;flex-direction:column;gap:.6rem}
 .news-item{
-  background:white;border-radius:var(--radius);padding:1.3rem 1.6rem;
+  background:white;border-radius:var(--radius);
   box-shadow:var(--shadow);border:1px solid rgba(13,43,94,0.07);
-  display:flex;gap:1.1rem;align-items:flex-start;
-  border-left:4px solid var(--blue3);transition:box-shadow .2s
+  border-left:4px solid var(--blue3);transition:box-shadow .2s;
+  overflow:hidden;cursor:pointer
 }
-.news-item:hover{box-shadow:0 8px 30px rgba(13,43,94,0.14)}
+.news-item:hover{box-shadow:0 6px 24px rgba(13,43,94,0.12)}
+.news-item-header{
+  display:flex;align-items:center;gap:12px;padding:.85rem 1.2rem;
+  user-select:none
+}
 .news-icon-box{
-  width:46px;height:46px;border-radius:11px;background:var(--blue-light);
-  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0
+  width:36px;height:36px;border-radius:9px;background:var(--blue-light);
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0
 }
+.news-item-body{
+  max-height:0;overflow:hidden;
+  transition:max-height .35s ease, opacity .3s ease, padding .3s ease;
+  opacity:0;padding:0 1.2rem
+}
+.news-item.expanded .news-item-body{
+  max-height:1000px;opacity:1;padding:.2rem 1.2rem 1rem
+}
+.news-item-chevron{
+  margin-left:auto;font-size:13px;color:var(--gray3);
+  transition:transform .3s;flex-shrink:0
+}
+.news-item.expanded .news-item-chevron{transform:rotate(180deg)}
 .news-body h4{font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:14px;margin-bottom:5px;color:var(--black)}
 .news-body p{font-size:13px;color:#555;line-height:1.65}
-.news-meta{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.news-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .news-tag{
   display:inline-block;background:var(--blue-light);color:var(--blue2);
   border-radius:5px;padding:2px 9px;font-size:10.5px;font-weight:700;
@@ -687,8 +706,9 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <p id="nav-name">Usuário</p>
         <span id="nav-role">Equipe</span>
       </div>
-      <button onclick="fazerLogout()" title="Sair" style="background:rgba(255,255,255,0.08);border:none;border-radius:7px;padding:6px 8px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:16px;flex-shrink:0;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.color='white'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.color='rgba(255,255,255,0.55)'">⏻</button>
+            <button onclick="fazerLogout()" title="Sair" style="background:rgba(255,255,255,0.08);border:none;border-radius:7px;padding:6px 8px;cursor:pointer;color:rgba(255,255,255,0.55);font-size:16px;flex-shrink:0;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.color='white'" onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.color='rgba(255,255,255,0.55)'">⏻</button>
     </div>
+
     <nav class="sidebar-nav">
       <div class="nav-section-label">Menu Principal</div>
       <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
@@ -708,6 +728,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       <div class="nav-item" data-page="loja" onclick="showPage('loja')"><span class="nav-icon">🛍️</span>Loja de Prêmios</div>
       <div class="nav-item" data-page="denuncia" onclick="showPage('denuncia')"><span class="nav-icon">📣</span>Ouvidoria</div>
       <div class="nav-item" data-page="suporte" onclick="showPage('suporte')"><span class="nav-icon">🎫</span>Suporte Técnico</div>
+      <div class="nav-item" data-page="configuracoes" onclick="showPage('configuracoes')"><span class="nav-icon">⚙️</span>Configurações</div>
       <div class="nav-item admin-only hidden" data-page="admin" id="nav-admin" onclick="showPage('admin')">
         <span class="nav-icon">⚙️</span>Administração
         <span class="nav-badge" id="badge-admin">0</span>
@@ -722,8 +743,6 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       </button>
     </div>
   </div>
-
-  <!-- MAIN -->
   <div class="main-content" id="main-content">
 
     <!-- TOPBAR -->
@@ -732,6 +751,22 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <span class="topbar-crumb" id="topbar-page">📊 <strong>Dashboard</strong></span>
       </div>
       <div class="topbar-right">
+        <!-- Barra de Meta Mensal -->
+        <div id="topbar-meta" style="display:none;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px">
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:150px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+              <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gray3);text-transform:uppercase;letter-spacing:.4px">🎯 Meta</span>
+              <span id="topbar-meta-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--blue2)">0%</span>
+            </div>
+            <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+              <div id="topbar-meta-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#2563c2,#7c3aed)"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:1px">
+              <span id="topbar-meta-resultado" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+              <span id="topbar-meta-alvo" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+            </div>
+          </div>
+        </div>
         <div class="topbar-pts">⭐ <span id="topbar-pts">0</span> pts</div>
         <div style="font-size:12px;color:var(--gray3);font-family:Plus Jakarta Sans,sans-serif" id="topbar-date"></div>
       </div>
@@ -988,6 +1023,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <div class="admin-tab" onclick="aTab('usuarios')">👥 Usuários</div>
         <div class="admin-tab" onclick="aTab('pontos')">🏆 Gestão de Pontos</div>
         <div class="admin-tab" onclick="aTab('novidades')">📢 Novidades</div>
+        <div class="admin-tab" onclick="aTab('metas')">🎯 Meta Mensal</div>
       </div>
 
       <div class="admin-tab-content active" id="atab-denuncias">
@@ -1044,7 +1080,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
               <label>PERFIL</label>
               <select id="mu-role">
                 <option value="agendamento">BDR — Agendamento</option>
-                <option value="vendas">Executivo de Vendas</option>
+                <option value="vendas">Executivo</option>
                 <option value="admin">Administrador</option>
               </select>
             </div>
@@ -1153,6 +1189,61 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <div class="card">
           <div class="card-title">Gerenciar Publicações</div>
           <div id="admin-news-list"></div>
+        </div>
+      </div>
+
+      <!-- ABA METAS -->
+      <div class="admin-tab-content" id="atab-metas">
+        <div class="card" style="max-width:520px">
+          <div class="card-title" style="margin-bottom:1.2rem">🎯 Meta Mensal de Vendas</div>
+
+          <!-- Seletor mês/ano -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.2rem">
+            <div class="form-group" style="margin:0">
+              <label>MÊS</label>
+              <select id="meta-mes">
+                <option value="1">Janeiro</option><option value="2">Fevereiro</option>
+                <option value="3">Março</option><option value="4">Abril</option>
+                <option value="5">Maio</option><option value="6">Junho</option>
+                <option value="7">Julho</option><option value="8">Agosto</option>
+                <option value="9">Setembro</option><option value="10">Outubro</option>
+                <option value="11">Novembro</option><option value="12">Dezembro</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label>ANO</label>
+              <input type="number" id="meta-ano" value="2026" min="2024" max="2030">
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">
+            <div class="form-group" style="margin:0">
+              <label>META (R$) *</label>
+              <input type="number" id="meta-valor" placeholder="Ex: 50000" min="0" step="0.01">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label>RESULTADO ATUAL (R$) *</label>
+              <input type="number" id="meta-resultado" placeholder="Ex: 32000" min="0" step="0.01">
+            </div>
+          </div>
+
+          <!-- Preview da barra -->
+          <div style="background:#f8fafc;border-radius:10px;padding:1rem;margin-bottom:1rem">
+            <div style="font-size:11px;color:var(--gray3);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Preview</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span id="meta-prev-label" style="font-size:12.5px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--black)">0% da meta</span>
+              <span id="meta-prev-valores" style="font-size:12px;color:var(--gray3)">R$ 0 / R$ 0</span>
+            </div>
+            <div style="height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+              <div id="meta-prev-barra" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#2563c2,#7c3aed);transition:width .4s"></div>
+            </div>
+          </div>
+
+          <div id="meta-msg" class="hidden" style="font-size:12.5px;font-weight:600;margin-bottom:.8rem"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-primary" style="flex:1;justify-content:center" onclick="salvarMeta()">💾 Salvar Meta</button>
+            <button class="btn-secondary" onclick="carregarMetaExistente()">🔄 Carregar mês</button>
+          </div>
         </div>
       </div>
 
@@ -1973,7 +2064,74 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       </div>
     </div>
 
-    <!-- ===== ORI — ASSISTENTE IA ===== -->
+    <!-- ===== CONFIGURAÇÕES ===== -->
+    <div class="page" id="page-configuracoes">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>⚙️ Configurações</h2>
+          <p>Gerencie suas informações pessoais e segurança da conta</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:1.4rem;max-width:860px">
+
+        <!-- Card: Meu Perfil -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom:1.2rem">👤 Meu Perfil</div>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.4rem;padding:1rem;background:var(--gray);border-radius:10px">
+            <div id="cfg-avatar" style="width:52px;height:52px;border-radius:12px;background:var(--blue3);display:flex;align-items:center;justify-content:center;color:white;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;flex-shrink:0;overflow:hidden"></div>
+            <div>
+              <div id="cfg-nome" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;color:var(--black)"></div>
+              <div id="cfg-email" style="font-size:12.5px;color:var(--gray3);margin-top:2px"></div>
+              <div id="cfg-role" style="margin-top:4px"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>NOME DE EXIBIÇÃO</label>
+            <input type="text" id="cfg-nome-input" placeholder="Seu nome..." maxlength="60" oninput="sanitizarNome(this)">
+          </div>
+          <div id="cfg-perfil-msg" class="hidden" style="font-size:12.5px;font-weight:600;margin-bottom:.8rem"></div>
+          <button class="btn-primary" onclick="salvarNomePerfil()" style="width:100%;justify-content:center">💾 Salvar nome</button>
+        </div>
+
+        <!-- Card: Alterar Senha -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom:1.2rem">🔑 Alterar Senha</div>
+          <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:9px;padding:10px 14px;font-size:12.5px;color:#854d0e;margin-bottom:1.2rem">
+            💡 Use uma senha forte com pelo menos 8 caracteres, incluindo letras e números.
+          </div>
+          <div class="form-group">
+            <label>NOVA SENHA *</label>
+            <div style="position:relative">
+              <input type="password" id="cfg-nova-senha" placeholder="Mínimo 8 caracteres..." maxlength="72"
+                style="width:100%;padding:10px 40px 10px 14px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color .2s"
+                onfocus="this.style.borderColor='var(--blue3)'" onblur="this.style.borderColor='var(--gray2)'"
+                oninput="validarForcaSenha(this.value)">
+              <button onclick="toggleSenhaVisivel('cfg-nova-senha')" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--gray3)">👁</button>
+            </div>
+          </div>
+          <!-- Barra de força da senha -->
+          <div style="margin-bottom:1rem">
+            <div style="height:4px;border-radius:4px;background:var(--gray2);overflow:hidden;margin-bottom:4px">
+              <div id="cfg-senha-barra" style="height:100%;width:0%;border-radius:4px;transition:all .3s;background:#ef4444"></div>
+            </div>
+            <div id="cfg-senha-label" style="font-size:11.5px;color:var(--gray3)">Digite uma senha para ver a força</div>
+          </div>
+          <div class="form-group">
+            <label>CONFIRMAR NOVA SENHA *</label>
+            <div style="position:relative">
+              <input type="password" id="cfg-conf-senha" placeholder="Repita a nova senha..." maxlength="72"
+                style="width:100%;padding:10px 40px 10px 14px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;transition:border-color .2s"
+                onfocus="this.style.borderColor='var(--blue3)'" onblur="this.style.borderColor='var(--gray2)'">
+              <button onclick="toggleSenhaVisivel('cfg-conf-senha')" type="button" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--gray3)">👁</button>
+            </div>
+          </div>
+          <div id="cfg-senha-msg" class="hidden" style="font-size:12.5px;font-weight:600;margin-bottom:.8rem"></div>
+          <button class="btn-primary" onclick="alterarSenha()" style="width:100%;justify-content:center">🔑 Atualizar senha</button>
+        </div>
+
+      </div>
+    </div>
     <div class="page" id="page-assistente">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:.8rem 0 .6rem;margin-bottom:0">
         <div style="display:flex;align-items:center;gap:10px">
@@ -3095,6 +3253,323 @@ async function enviarMensagemIA() {
 }
 
 // ============================================================
+// CONFIGURAÇÕES DO USUÁRIO
+// ============================================================
+function renderConfiguracoes() {
+  if (!currentUser) return;
+
+  // Avatar
+  const avatarEl = document.getElementById('cfg-avatar');
+  if (avatarEl) {
+    if (currentUser.avatar_url) {
+      avatarEl.innerHTML = `<img src="${currentUser.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:12px" onerror="this.parentElement.textContent='${(currentUser.name||'U')[0].toUpperCase()}'">`;
+    } else {
+      avatarEl.style.background = currentUser.color || 'var(--blue3)';
+      avatarEl.textContent = (currentUser.name||'U')[0].toUpperCase();
+    }
+  }
+
+  const roleLabels = { admin:'Administrador', vendas:'Executivo', agendamento:'BDR' };
+  const roleColors = { admin:'#854d0e', vendas:'#1e40af', agendamento:'#065f46' };
+  const roleBg     = { admin:'#fef9c3', vendas:'#dbeafe', agendamento:'#dcfce7' };
+  const role = currentUser.role || 'agendamento';
+
+  document.getElementById('cfg-nome').textContent  = currentUser.name || '';
+  document.getElementById('cfg-email').textContent = currentUser.email || '';
+  document.getElementById('cfg-nome-input').value  = currentUser.name || '';
+  document.getElementById('cfg-role').innerHTML = `
+    <span style="background:${roleBg[role]};color:${roleColors[role]};border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif">
+      ${roleLabels[role] || role}
+    </span>`;
+
+  // Limpa mensagens
+  ['cfg-perfil-msg','cfg-senha-msg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('hidden'); el.textContent = ''; }
+  });
+  ['cfg-nova-senha','cfg-conf-senha'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const barra = document.getElementById('cfg-senha-barra');
+  const label = document.getElementById('cfg-senha-label');
+  if (barra) barra.style.width = '0%';
+  if (label) label.textContent = 'Digite uma senha para ver a força';
+}
+
+function sanitizarNome(input) {
+  // Permite apenas letras (incluindo acentuadas), espaços e hífen
+  input.value = input.value.replace(/[^a-zA-ZÀ-ÿ\s\-']/g, '');
+}
+
+async function salvarNomePerfil() {
+  const novoNome = document.getElementById('cfg-nome-input').value.trim();
+  const msgEl    = document.getElementById('cfg-perfil-msg');
+  msgEl.classList.add('hidden');
+
+  if (!novoNome) {
+    msgEl.textContent = 'O nome não pode ficar vazio.';
+    msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); return;
+  }
+  if (novoNome.length < 3) {
+    msgEl.textContent = 'O nome deve ter pelo menos 3 caracteres.';
+    msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); return;
+  }
+  if (novoNome.length > 60) {
+    msgEl.textContent = 'O nome pode ter no máximo 60 caracteres.';
+    msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); return;
+  }
+  if (/[^a-zA-ZÀ-ÿ\s\-']/.test(novoNome)) {
+    msgEl.textContent = 'Use apenas letras, espaços e hífen.';
+    msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); return;
+  }
+
+  const { error } = await sb.from('profiles').update({ name: novoNome }).eq('id', currentUser.id);
+  if (error) {
+    msgEl.textContent = 'Erro: ' + error.message;
+    msgEl.style.color = 'var(--red)';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  currentUser.name = novoNome;
+  document.getElementById('nav-name').textContent = novoNome;
+  document.getElementById('cfg-nome').textContent = novoNome;
+  msgEl.textContent = '✅ Nome atualizado com sucesso!';
+  msgEl.style.color = '#10b981';
+  msgEl.classList.remove('hidden');
+  setTimeout(() => msgEl.classList.add('hidden'), 3000);
+}
+
+function validarForcaSenha(senha) {
+  const barra = document.getElementById('cfg-senha-barra');
+  const label = document.getElementById('cfg-senha-label');
+  if (!barra || !label) return;
+  if (!senha) {
+    barra.style.width = '0%';
+    label.textContent = 'Digite uma senha para ver a força';
+    return;
+  }
+  let forca = 0;
+  if (senha.length >= 8)              forca++;
+  if (senha.length >= 12)             forca++;
+  if (/[A-Z]/.test(senha))            forca++;
+  if (/[0-9]/.test(senha))            forca++;
+  if (/[^A-Za-z0-9]/.test(senha))     forca++;
+
+  const niveis = [
+    { w:'20%', cor:'#ef4444', txt:'Muito fraca' },
+    { w:'40%', cor:'#f97316', txt:'Fraca' },
+    { w:'60%', cor:'#eab308', txt:'Razoável' },
+    { w:'80%', cor:'#22c55e', txt:'Forte' },
+    { w:'100%',cor:'#10b981', txt:'Muito forte' },
+  ];
+  const n = niveis[Math.min(forca, 4)];
+  barra.style.width      = n.w;
+  barra.style.background = n.cor;
+  label.textContent      = n.txt;
+  label.style.color      = n.cor;
+}
+
+function toggleSenhaVisivel(inputId) {
+  const el = document.getElementById(inputId);
+  if (!el) return;
+  el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+async function alterarSenha() {
+  const nova  = document.getElementById('cfg-nova-senha').value;
+  const conf  = document.getElementById('cfg-conf-senha').value;
+  const msgEl = document.getElementById('cfg-senha-msg');
+  msgEl.classList.add('hidden');
+
+  if (!nova || nova.length < 8) {
+    msgEl.textContent = 'A senha deve ter pelo menos 8 caracteres.';
+    msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); return;
+  }
+  if (nova.length > 72) {
+    msgEl.textContent = 'A senha pode ter no máximo 72 caracteres.';
+    msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); return;
+  }
+  if (/[\u0000-\u001F\u007F<>'"`;]/.test(nova)) {
+    msgEl.textContent = 'A senha contém caracteres não permitidos.';
+    msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); return;
+  }
+  if (nova !== conf) {
+    msgEl.textContent = 'As senhas não coincidem.';
+    msgEl.style.color = 'var(--red)';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  const { error } = await sb.auth.updateUser({ password: nova });
+  if (error) {
+    msgEl.textContent = 'Erro: ' + (error.message || 'Não foi possível atualizar a senha.');
+    msgEl.style.color = 'var(--red)';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  document.getElementById('cfg-nova-senha').value = '';
+  document.getElementById('cfg-conf-senha').value = '';
+  const barra = document.getElementById('cfg-senha-barra');
+  const label = document.getElementById('cfg-senha-label');
+  if (barra) barra.style.width = '0%';
+  if (label) { label.textContent = 'Digite uma senha para ver a força'; label.style.color = 'var(--gray3)'; }
+
+  msgEl.textContent = '✅ Senha atualizada com sucesso!';
+  msgEl.style.color = '#10b981';
+  msgEl.classList.remove('hidden');
+  setTimeout(() => msgEl.classList.add('hidden'), 4000);
+}
+
+// ============================================================
+// META MENSAL
+// ============================================================
+let metaAtual = { meta: 0, resultado: 0, mes: 0, ano: 0 };
+
+async function loadMetaMensal() {
+  const agora = new Date();
+  const mes   = agora.getMonth() + 1;
+  const ano   = agora.getFullYear();
+
+  try {
+    const { data, error } = await sb.from('metas_mensais')
+      .select('*').eq('mes', mes).eq('ano', ano).maybeSingle();
+
+    if (error) throw error;
+    metaAtual = data || { meta: 0, resultado: 0, mes, ano };
+  } catch(e) {
+    console.warn('Meta mensal: tabela não encontrada ou erro —', e.message);
+    metaAtual = { meta: 0, resultado: 0, mes, ano };
+  }
+
+  renderMetaTopbar();
+}
+
+function renderMetaTopbar() {
+  const metaEl   = document.getElementById('topbar-meta');
+  if (!metaEl) return;
+
+  // Só mostra se há meta definida
+  if (!metaAtual.meta || metaAtual.meta === 0) {
+    metaEl.style.display = 'none';
+    return;
+  }
+
+  const pct  = Math.min(Math.round((metaAtual.resultado / metaAtual.meta) * 100), 100);
+  const cor  = pct >= 100 ? '#10b981' : pct >= 70 ? '#f59e0b' : '#2563c2';
+  const grad = pct >= 100
+    ? 'linear-gradient(90deg,#10b981,#059669)'
+    : pct >= 70
+    ? 'linear-gradient(90deg,#f59e0b,#d97706)'
+    : 'linear-gradient(90deg,#2563c2,#7c3aed)';
+
+  metaEl.style.display = 'flex';
+  document.getElementById('topbar-meta-barra').style.width       = pct + '%';
+  document.getElementById('topbar-meta-barra').style.background  = grad;
+  document.getElementById('topbar-meta-pct').textContent         = pct + '%';
+  document.getElementById('topbar-meta-pct').style.color         = cor;
+  document.getElementById('topbar-meta-resultado').textContent   = 'R$ ' + Number(metaAtual.resultado).toLocaleString('pt-BR');
+  document.getElementById('topbar-meta-alvo').textContent        = 'R$ ' + Number(metaAtual.meta).toLocaleString('pt-BR');
+}
+
+// Pré-preenche mês/ano atual no admin
+function initMetaAdmin() {
+  const agora = new Date();
+  const sel   = document.getElementById('meta-mes');
+  const ano   = document.getElementById('meta-ano');
+  if (sel) sel.value = agora.getMonth() + 1;
+  if (ano) ano.value = agora.getFullYear();
+
+  // Adiciona listeners de preview ao vivo
+  ['meta-valor','meta-resultado'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', atualizarPreviewMeta);
+  });
+
+  carregarMetaExistente();
+}
+
+async function carregarMetaExistente() {
+  const mes = parseInt(document.getElementById('meta-mes')?.value);
+  const ano = parseInt(document.getElementById('meta-ano')?.value);
+  if (!mes || !ano) return;
+
+  const { data } = await sb.from('metas_mensais')
+    .select('*').eq('mes', mes).eq('ano', ano).maybeSingle();
+
+  if (data) {
+    document.getElementById('meta-valor').value     = data.meta;
+    document.getElementById('meta-resultado').value = data.resultado;
+  } else {
+    document.getElementById('meta-valor').value     = '';
+    document.getElementById('meta-resultado').value = '';
+  }
+  atualizarPreviewMeta();
+}
+
+function atualizarPreviewMeta() {
+  const meta      = parseFloat(document.getElementById('meta-valor')?.value) || 0;
+  const resultado = parseFloat(document.getElementById('meta-resultado')?.value) || 0;
+  const pct       = meta > 0 ? Math.min(Math.round((resultado / meta) * 100), 100) : 0;
+  const cor       = pct >= 100 ? '#10b981' : pct >= 70 ? '#f59e0b' : '#2563c2';
+  const grad      = pct >= 100
+    ? 'linear-gradient(90deg,#10b981,#059669)'
+    : pct >= 70
+    ? 'linear-gradient(90deg,#f59e0b,#d97706)'
+    : 'linear-gradient(90deg,#2563c2,#7c3aed)';
+
+  const barra  = document.getElementById('meta-prev-barra');
+  const label  = document.getElementById('meta-prev-label');
+  const valores = document.getElementById('meta-prev-valores');
+  if (barra)  { barra.style.width = pct + '%'; barra.style.background = grad; }
+  if (label)  { label.textContent = pct + '% da meta'; label.style.color = cor; }
+  if (valores) valores.textContent = `R$ ${resultado.toLocaleString('pt-BR')} / R$ ${meta.toLocaleString('pt-BR')}`;
+}
+
+async function salvarMeta() {
+  const mes       = parseInt(document.getElementById('meta-mes')?.value);
+  const ano       = parseInt(document.getElementById('meta-ano')?.value);
+  const meta      = parseFloat(document.getElementById('meta-valor')?.value);
+  const resultado = parseFloat(document.getElementById('meta-resultado')?.value) || 0;
+  const msgEl     = document.getElementById('meta-msg');
+  msgEl.classList.add('hidden');
+
+  if (!meta || meta <= 0) {
+    msgEl.textContent = 'Informe um valor de meta válido.';
+    msgEl.style.color = 'var(--red)';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  const { error } = await sb.from('metas_mensais').upsert({
+    mes, ano, meta, resultado,
+    criado_por: currentUser.name,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'mes,ano' });
+
+  if (error) {
+    msgEl.textContent = 'Erro: ' + error.message;
+    msgEl.style.color = 'var(--red)';
+    msgEl.classList.remove('hidden');
+    return;
+  }
+
+  // Atualiza dados locais e topbar se for o mês atual
+  const agora = new Date();
+  if (mes === agora.getMonth() + 1 && ano === agora.getFullYear()) {
+    metaAtual = { mes, ano, meta, resultado };
+    renderMetaTopbar();
+  }
+
+  msgEl.textContent = '✅ Meta salva com sucesso!';
+  msgEl.style.color = '#10b981';
+  msgEl.classList.remove('hidden');
+  setTimeout(() => msgEl.classList.add('hidden'), 3000);
+}
+
+// ============================================================
 // CAMPANHAS
 // ============================================================
 let allCampanhas = [];
@@ -4171,7 +4646,7 @@ async function loadUser(userId) {
   setNavAvatar(profile);
   document.getElementById('nav-name').textContent    = profile.name;
   const roleLabel = profile.role === 'admin' ? 'Admin'
-                  : profile.role === 'vendas' ? 'Executivo de Vendas' : 'BDR';
+                  : profile.role === 'vendas' ? 'Executivo' : 'BDR';
   document.getElementById('nav-role').textContent = profile.dept + ' · ' + roleLabel;
   document.getElementById('topbar-pts').textContent  = profile.pts;
 
@@ -4337,7 +4812,8 @@ function renderNav() {
 
   document.querySelectorAll('.nav-item[data-page]').forEach(el => {
     const page = el.dataset.page;
-    if (page === 'admin') return;
+    if (page === 'admin')         return; // admin controlado separadamente
+    if (page === 'configuracoes') return; // sempre visível para todos
     el.style.display = (isAdmin || liberadas.includes(page)) ? '' : 'none';
   });
 
@@ -4358,7 +4834,7 @@ function showPage(id) {
   // Verifica permissão
   const liberadas = currentUser?.paginas_liberadas || ['novidades'];
   const isAdmin   = currentUser?.role === 'admin';
-  if (id !== 'admin' && !isAdmin && !liberadas.includes(id)) {
+  if (id !== 'admin' && id !== 'configuracoes' && !isAdmin && !liberadas.includes(id)) {
     alert('Você não tem permissão para acessar esta página.');
     return;
   }
@@ -4371,8 +4847,8 @@ function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  const navMap   = { dashboard:'📊 Dashboard', novidades:'📢 Novidades', faq:'❓ FAQ', book:'📖 Book de Argumentação', precos:'💰 Tabela de Valores', campanhas:'📣 Campanhas', sistemas:'🖥️ Sistemas', gamificacao:'🏆 Ranking', loja:'🛍️ Loja', denuncia:'📣 Ouvidoria', suporte:'🎫 Suporte Técnico', admin:'⚙️ Administração', leads:'🏢 Leads', agendamentos:'📋 Agendamentos', atividades:'⚡ Atividades', calendario:'📅 Calendário' };
-  const labels   = { dashboard:'Dashboard', novidades:'Novidades', faq:'FAQ', book:'Book de Argumentação', precos:'Tabela de Valores', campanhas:'Campanhas', sistemas:'Sistemas', gamificacao:'Ranking', loja:'Loja de Prêmios', denuncia:'Ouvidoria', suporte:'Suporte Técnico', admin:'Administração', leads:'Leads', agendamentos:'Agendamentos', atividades:'Atividades', calendario:'Calendário' };
+  const navMap   = { dashboard:'📊 Dashboard', novidades:'📢 Novidades', faq:'❓ FAQ', book:'📖 Book de Argumentação', precos:'💰 Tabela de Valores', campanhas:'📣 Campanhas', sistemas:'🖥️ Sistemas', gamificacao:'🏆 Ranking', loja:'🛍️ Loja', denuncia:'📣 Ouvidoria', suporte:'🎫 Suporte Técnico', configuracoes:'⚙️ Configurações', admin:'⚙️ Administração', leads:'🏢 Leads', agendamentos:'📋 Agendamentos', atividades:'⚡ Atividades', calendario:'📅 Calendário' };
+  const labels   = { dashboard:'Dashboard', novidades:'Novidades', faq:'FAQ', book:'Book de Argumentação', precos:'Tabela de Valores', campanhas:'Campanhas', sistemas:'Sistemas', gamificacao:'Ranking', loja:'Loja de Prêmios', denuncia:'Ouvidoria', suporte:'Suporte Técnico', configuracoes:'Configurações', admin:'Administração', leads:'Leads', agendamentos:'Agendamentos', atividades:'Atividades', calendario:'Calendário' };
   document.getElementById('topbar-page').innerHTML = navMap[id].split(' ')[0] + ' <strong>' + labels[id] + '</strong>';
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.textContent.trim().includes(labels[id])) n.classList.add('active');
@@ -4382,6 +4858,7 @@ function showPage(id) {
   if (id === 'loja')        renderLoja();
   if (id === 'dashboard')   setTimeout(initChartData, 100);
   if (id === 'novidades')     { renderNews(); }
+  if (id === 'configuracoes')  { renderConfiguracoes(); }
   if (id === 'assistente')    { initAssistenteIA(); }
   if (id === 'campanhas')     { loadCampanhas(); }
   if (id === 'sistemas')      { loadSistemas(); }
@@ -4413,6 +4890,7 @@ async function initApp() {
   populateCalFiltroVendedor();
   checkDenunciasNaoLidas();
   renderNav();
+  loadMetaMensal();
 
   // Define novidades como página inicial
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -4435,9 +4913,11 @@ async function loadNews() {
   // Agrupa reações por novidade
   const reacaoMap = {};
   (reacoes || []).forEach(r => {
-    if (!reacaoMap[r.novidade_id]) reacaoMap[r.novidade_id] = { likes: [], ameis: [] };
+    if (!reacaoMap[r.novidade_id]) reacaoMap[r.novidade_id] = { likes: [], ameis: [], bravos: [], choros: [] };
     if (r.tipo === 'like') reacaoMap[r.novidade_id].likes.push(r.user_id);
-    if (r.tipo === 'amei') reacaoMap[r.novidade_id].ameis.push(r.user_id);
+    if (r.tipo === 'amei')  reacaoMap[r.novidade_id].ameis.push(r.user_id);
+    if (r.tipo === 'bravo') reacaoMap[r.novidade_id].bravos.push(r.user_id);
+    if (r.tipo === 'choro') reacaoMap[r.novidade_id].choros.push(r.user_id);
   });
 
   newsData = (data || []).map(n => ({
@@ -4450,6 +4930,8 @@ async function loadNews() {
     data:       new Date(n.created_at).toLocaleDateString('pt-BR'),
     likes:      reacaoMap[n.id]?.likes  || [],
     ameis:      reacaoMap[n.id]?.ameis  || [],
+    bravos:     reacaoMap[n.id]?.bravos || [],
+    choros:     reacaoMap[n.id]?.choros || [],
   }));
 }
 
@@ -4532,7 +5014,7 @@ async function renderDashboard() {
 
   const roleBadge = document.getElementById('dash-role-badge');
   if (isBDR)       { roleBadge.textContent = '👤 BDR — Agendamento';  roleBadge.className = 'badge badge-green'; }
-  else if (isExec) { roleBadge.textContent = '💼 Executivo de Vendas'; roleBadge.className = 'badge badge-blue';  }
+  else if (isExec) { roleBadge.textContent = '💼 Executivo'; roleBadge.className = 'badge badge-blue';  }
   else             { roleBadge.textContent = '👑 Admin / Gerência';    roleBadge.className = 'badge badge-gold';  }
 
   const kpiEl = document.getElementById('dash-kpis');
@@ -4804,29 +5286,37 @@ function renderNews() {
       .map(para => `<p style="margin:0 0 .8rem;line-height:1.75;color:#374151;font-size:14px">${para.replace(/\n/g,'<br>')}</p>`)
       .join('');
 
+    const borderColor = n.importante ? '#f59e0b' : 'var(--blue3)';
+    const bgColor     = n.importante ? 'linear-gradient(to right,#fffbeb,white)' : 'white';
+    const iconBg      = n.importante ? 'background:#fef3c7' : '';
+    const likeCount   = (n.likes||[]).length + (n.ameis||[]).length + (n.bravos||[]).length + (n.choros||[]).length;
+
     return `
-    <div class="news-item" style="${n.importante ? 'border-left:4px solid #f59e0b;background:linear-gradient(to right,#fffbeb,white)' : ''}">
-      <div style="display:flex;align-items:flex-start;gap:14px">
-        <div class="news-icon-box" style="${n.importante ? 'background:#fef3c7' : ''}">${n.icon}</div>
+    <div class="news-item" id="news-card-${n.id}" style="border-left-color:${borderColor};background:${bgColor}" onclick="toggleNewsCard(${n.id})">
+      <!-- HEADER compacto — sempre visível -->
+      <div class="news-item-header">
+        <div class="news-icon-box" style="${iconBg}">${n.icon}</div>
         <div style="flex:1;min-width:0">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
-            <h4 onclick="abrirModalNovidade(${n.id})" style="cursor:pointer;transition:color .15s;font-size:15px;font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:var(--black);margin:0"
-              onmouseover="this.style.color='var(--blue3)'" onmouseout="this.style.color='var(--black)'">${n.titulo}</h4>
-            ${n.importante ? '<span style=\"background:#fef3c7;color:#92400e;border-radius:6px;padding:2px 9px;font-size:10.5px;font-weight:800;font-family:Plus Jakarta Sans,sans-serif\">⭐ Importante</span>' : ''}
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;color:var(--black);line-height:1.3">${n.titulo}</span>
+            ${n.importante ? '<span style="background:#fef3c7;color:#92400e;border-radius:5px;padding:1px 7px;font-size:10px;font-weight:800;font-family:\'Plus Jakarta Sans\',sans-serif;flex-shrink:0">⭐ Importante</span>' : ''}
           </div>
-          <div style="max-height:120px;overflow:hidden;position:relative">
-            ${conteudoFormatado}
-            <div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(to bottom,transparent,white)"></div>
-          </div>
-          <button onclick="abrirModalNovidade(${n.id})" style="background:none;border:none;cursor:pointer;color:var(--blue3);font-size:12.5px;font-weight:700;font-family:Plus Jakarta Sans,sans-serif;padding:4px 0;margin-top:2px">
-            Ler mais →
-          </button>
-          <div class="news-meta">
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
             <span class="news-tag">${n.cat}</span>
             <span class="news-date">📅 ${n.data}</span>
-            ${currentUser?.role === 'admin' ? `<button onclick="deleteNews(${n.id})" style="margin-left:auto;padding:4px 10px;background:#fef2f2;color:var(--red);border:1px solid #fecaca;border-radius:5px;cursor:pointer;font-size:11px;font-family:Plus Jakarta Sans,sans-serif;font-weight:700">Remover</button>` : ''}
+            ${likeCount > 0 ? `<span class="news-react-preview" style="font-size:11px;color:var(--gray3)">· ${(n.likes||[]).length?'👍':''}${(n.ameis||[]).length?'❤️':''}${(n.bravos||[]).length?'😡':''}${(n.choros||[]).length?'😢':''} ${likeCount}</span>` : ''}
           </div>
-          <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+        </div>
+        <span class="news-item-chevron">▼</span>
+      </div>
+
+      <!-- BODY expandível -->
+      <div class="news-item-body" onclick="event.stopPropagation()">
+        <div style="border-top:1px solid var(--gray2);padding-top:.9rem;margin-bottom:.8rem">
+          ${conteudoFormatado}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;gap:7px;align-items:center">
             <button onclick="reagir(${n.id},'like')" id="btn-like-${n.id}"
               class="react-btn ${(n.likes||[]).includes(currentUser?.id)?'active-like':''}">
               <span class="emoji-span">👍</span>
@@ -4837,12 +5327,29 @@ function renderNews() {
               <span class="emoji-span">❤️</span>
               <span id="cnt-amei-${n.id}" style="font-size:12px;min-width:8px">${(n.ameis||[]).length||''}</span>
             </button>
+            <button onclick="reagir(${n.id},'bravo')" id="btn-bravo-${n.id}"
+              class="react-btn ${(n.bravos||[]).includes(currentUser?.id)?'active-bravo':''}">
+              <span class="emoji-span">😡</span>
+              <span id="cnt-bravo-${n.id}" style="font-size:12px;min-width:8px">${(n.bravos||[]).length||''}</span>
+            </button>
+            <button onclick="reagir(${n.id},'choro')" id="btn-choro-${n.id}"
+              class="react-btn ${(n.choros||[]).includes(currentUser?.id)?'active-choro':''}">
+              <span class="emoji-span">😢</span>
+              <span id="cnt-choro-${n.id}" style="font-size:12px;min-width:8px">${(n.choros||[]).length||''}</span>
+            </button>
             <span id="react-names-${n.id}" style="font-size:12px;color:#64748b">${reactionNames(n)}</span>
           </div>
+          ${currentUser?.role === 'admin' ? `<button onclick="event.stopPropagation();deleteNews(${n.id})" style="padding:4px 10px;background:#fef2f2;color:var(--red);border:1px solid #fecaca;border-radius:5px;cursor:pointer;font-size:11px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700">Remover</button>` : ''}
         </div>
       </div>
     </div>`;
   }).join('');
+}
+
+function toggleNewsCard(id) {
+  const card = document.getElementById(`news-card-${id}`);
+  if (!card) return;
+  card.classList.toggle('expanded');
 }
 
 function toggleNewsForm() {
@@ -4881,7 +5388,9 @@ async function addNews() {
 function reactionNames(n) {
   const all = [
     ...(n.likes||[]).map(id => ({ id, tipo:'like' })),
-    ...(n.ameis||[]).map(id => ({ id, tipo:'amei' }))
+    ...(n.ameis||[]).map(id => ({ id, tipo:'amei' })),
+    ...(n.bravos||[]).map(id => ({ id, tipo:'bravo' })),
+    ...(n.choros||[]).map(id => ({ id, tipo:'choro' }))
   ];
   if (!all.length) return '';
   const nomes = all.map(r => {
@@ -4898,29 +5407,23 @@ async function reagir(novidadeId, tipo) {
   const n       = newsData.find(x => x.id === novidadeId);
   if (!n) return;
   const uid     = currentUser.id;
-  const tipoOp  = tipo === 'like' ? 'amei' : 'like'; // oposto
-  const jaTem   = (n[tipo+'s']||[]).includes(uid);
-  const temOp   = (n[tipoOp+'s']||[]).includes(uid);
+  const todos = ['like','amei','bravo','choro'];
+  const jaTem  = (n[tipo+'s']||[]).includes(uid);
+  // Outros tipos que o usuário possa ter
+  const outrosComReacao = todos.filter(t => t !== tipo && (n[t+'s']||[]).includes(uid));
 
   if (jaTem) {
     // Remove a reação atual
-    await sb.from('novidades_reacoes')
-      .delete()
-      .eq('novidade_id', novidadeId)
-      .eq('user_id', uid);
+    await sb.from('novidades_reacoes').delete().eq('novidade_id', novidadeId).eq('user_id', uid);
     n[tipo+'s'] = (n[tipo+'s']||[]).filter(id => id !== uid);
   } else {
-    // Se tem a reação oposta, remove ela primeiro
-    if (temOp) {
-      await sb.from('novidades_reacoes')
-        .delete()
-        .eq('novidade_id', novidadeId)
-        .eq('user_id', uid);
-      n[tipoOp+'s'] = (n[tipoOp+'s']||[]).filter(id => id !== uid);
+    // Remove qualquer outra reação existente primeiro (exclusivo: 1 reação por vez)
+    if (outrosComReacao.length) {
+      await sb.from('novidades_reacoes').delete().eq('novidade_id', novidadeId).eq('user_id', uid);
+      outrosComReacao.forEach(t => { n[t+'s'] = (n[t+'s']||[]).filter(id => id !== uid); });
     }
     // Adiciona nova reação
-    await sb.from('novidades_reacoes')
-      .insert({ novidade_id: novidadeId, user_id: uid, tipo });
+    await sb.from('novidades_reacoes').insert({ novidade_id: novidadeId, user_id: uid, tipo });
     n[tipo+'s'] = [...(n[tipo+'s']||[]), uid];
   }
 
@@ -4932,30 +5435,39 @@ function updateReactionUI(novidadeId, n) {
   const uid     = currentUser.id;
   const likes   = n.likes || [];
   const ameis   = n.ameis || [];
-  const btnLike = document.getElementById(`btn-like-${novidadeId}`);
-  const btnAmei = document.getElementById(`btn-amei-${novidadeId}`);
-  const cntLike = document.getElementById(`cnt-like-${novidadeId}`);
-  const cntAmei = document.getElementById(`cnt-amei-${novidadeId}`);
-  const names   = document.getElementById(`react-names-${novidadeId}`);
+  const bravos = n.bravos || [];
+  const choros = n.choros || [];
 
-  if (btnLike) {
-    btnLike.classList.toggle('active-like', likes.includes(uid));
-    // Animação de pop + ripple
-    btnLike.classList.remove('pop','ripple');
-    void btnLike.offsetWidth; // reflow
-    btnLike.classList.add('pop','ripple');
-    setTimeout(() => btnLike.classList.remove('pop','ripple'), 400);
+  const reacts = [
+    { id:`btn-like-${novidadeId}`,  cnt:`cnt-like-${novidadeId}`,  cls:'active-like',  arr:likes  },
+    { id:`btn-amei-${novidadeId}`,  cnt:`cnt-amei-${novidadeId}`,  cls:'active-amei',  arr:ameis  },
+    { id:`btn-bravo-${novidadeId}`, cnt:`cnt-bravo-${novidadeId}`, cls:'active-bravo', arr:bravos },
+    { id:`btn-choro-${novidadeId}`, cnt:`cnt-choro-${novidadeId}`, cls:'active-choro', arr:choros },
+  ];
+
+  reacts.forEach(r => {
+    const btn = document.getElementById(r.id);
+    const cnt = document.getElementById(r.cnt);
+    if (btn) {
+      btn.classList.toggle(r.cls, r.arr.includes(uid));
+      btn.classList.remove('pop','ripple'); void btn.offsetWidth;
+      btn.classList.add('pop','ripple');
+      setTimeout(() => btn.classList.remove('pop','ripple'), 400);
+    }
+    if (cnt) cnt.textContent = r.arr.length || '';
+  });
+
+  const names = document.getElementById(`react-names-${novidadeId}`);
+  if (names) names.textContent = reactionNames(n);
+
+  // Atualiza preview compacto no header
+  const likeCount = likes.length + ameis.length + bravos.length + choros.length;
+  const preview = document.querySelector(`#news-card-${novidadeId} .news-react-preview`);
+  if (preview) {
+    preview.textContent = likeCount > 0
+      ? `· ${likes.length?'👍':''}${ameis.length?'❤️':''}${bravos.length?'😡':''}${choros.length?'😢':''} ${likeCount}`
+      : '';
   }
-  if (btnAmei) {
-    btnAmei.classList.toggle('active-amei', ameis.includes(uid));
-    btnAmei.classList.remove('pop','ripple');
-    void btnAmei.offsetWidth;
-    btnAmei.classList.add('pop','ripple');
-    setTimeout(() => btnAmei.classList.remove('pop','ripple'), 400);
-  }
-  if (cntLike) cntLike.textContent = likes.length || '';
-  if (cntAmei) cntAmei.textContent = ameis.length || '';
-  if (names)   names.textContent   = reactionNames(n);
 }
 
 async function deleteNews(id) {
@@ -5243,6 +5755,7 @@ function aTab(tab) {
   document.getElementById('atab-' + tab).classList.add('active');
   if (tab === 'denuncias') renderAdminDen();
   if (tab === 'usuarios')  renderAdminUsers();
+  if (tab === 'metas')     initMetaAdmin();
   if (tab === 'novidades') renderAdminNews();
 }
 
