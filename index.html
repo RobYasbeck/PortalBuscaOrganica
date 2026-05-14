@@ -6625,6 +6625,100 @@ async function excluirReserva(id) {
 }
 
 // Modal evento
+function toggleSection(id) {
+  const body  = document.getElementById(id);
+  const arrow = document.getElementById(id + '-arrow');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none' && body.style.display !== '';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+function toggleProdLabel(id) {
+  const cb    = document.getElementById('prod-' + id);
+  const label = document.getElementById('label-' + id);
+  if (!cb || !label) return;
+  label.style.borderColor  = cb.checked ? 'var(--blue3)' : 'var(--gray2)';
+  label.style.background   = cb.checked ? 'var(--blue-light)' : 'white';
+}
+
+async function salvarComentario(agId, leadId) {
+  const txt = document.getElementById('evento-comentario')?.value?.trim();
+  if (!txt) return;
+  const { error } = await sb.from('historico_lead').insert({
+    lead_id:    leadId,
+    tipo:       'obs',
+    descricao:  'Comentário registrado',
+    observacao: txt,
+    autor_id:   currentUser.id,
+    autor_nome: currentUser.name,
+  });
+  if (error) return alert('Erro: ' + error.message);
+  const ok = document.getElementById(`coment-ok-${agId}`);
+  if (ok) { ok.style.display = 'inline'; setTimeout(() => ok.style.display = 'none', 2500); }
+  const el = document.getElementById('evento-comentario');
+  if (el) el.value = '';
+}
+
+async function avancarStatusComObs(agId, novoStatus, obsFieldId) {
+  const obs = document.getElementById(obsFieldId)?.value?.trim() || '';
+
+  // Monta os produtos se for fechamento
+  let produtos = [];
+  let parcela  = null;
+  let setup    = null;
+  let duracao  = null;
+  if (novoStatus === 'fechado') {
+    ['seo','gmb','trafego'].forEach(p => {
+      if (document.getElementById('prod-' + p)?.checked) {
+        produtos.push(document.getElementById('prod-' + p).value);
+      }
+    });
+    parcela = parseFloat(document.getElementById('fech-parcela')?.value) || null;
+    setup   = parseFloat(document.getElementById('fech-setup')?.value)   || null;
+    duracao = document.getElementById('fech-duracao')?.value             || null;
+    if (!produtos.length) return alert('Selecione pelo menos um produto.');
+    if (!parcela)         return alert('Informe o valor da parcela mensal.');
+    if (!duracao)         return alert('Selecione a duração do contrato.');
+  }
+
+  const updateData = { status: novoStatus };
+  if (obs)     updateData.observacao = obs;
+  if (produtos.length) updateData.produtos = produtos;
+  if (parcela) updateData.valor_parcela = parcela;
+  if (setup)   updateData.setup = setup;
+  if (duracao) updateData.duracao_contrato = parseInt(duracao);
+
+  const { error } = await sb.from('agendamentos').update(updateData).eq('id', agId);
+  if (error) return alert('Erro: ' + error.message);
+
+  // Registra no histórico
+  const ag = calEventos.find(e => e.id === agId);
+  if (ag?.lead_id) {
+    await sb.from('historico_lead').insert({
+      lead_id:    ag.lead_id,
+      tipo:       novoStatus,
+      descricao:  novoStatus === 'fechado' ? 'Negócio fechado' : 'Reunião realizada',
+      observacao: obs || null,
+      autor_id:   currentUser.id,
+      autor_nome: currentUser.name,
+    });
+  }
+
+  // Pontos automáticos
+  if (novoStatus === 'reuniao_realizada') {
+    await sb.rpc('incrementar_perfil', { p_user_id: currentUser.id, p_tipo: 'reuniao', p_pontos: 50, p_motivo: 'Reunião realizada', p_ref_id: agId });
+  }
+  if (novoStatus === 'fechado') {
+    const vendedorId = ag?.vendedor_id || currentUser.id;
+    await sb.rpc('incrementar_perfil', { p_user_id: vendedorId, p_tipo: 'venda', p_pontos: 100, p_motivo: 'Negócio fechado', p_ref_id: agId });
+  }
+
+  fecharModalEvento();
+  await loadCalendario();
+  renderCalendario();
+}
+
 function fecharModalEvento() {
   document.getElementById('modal-evento').classList.add('hidden');
   document.body.style.overflow = '';
