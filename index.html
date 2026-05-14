@@ -1024,6 +1024,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <div class="admin-tab" onclick="aTab('pontos')">🏆 Gestão de Pontos</div>
         <div class="admin-tab" onclick="aTab('novidades')">📢 Novidades</div>
         <div class="admin-tab" onclick="aTab('metas')">🎯 Meta Mensal</div>
+        <div class="admin-tab" onclick="aTab('ori')">🔮 Base do Ori</div>
       </div>
 
       <div class="admin-tab-content active" id="atab-denuncias">
@@ -1247,7 +1248,76 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         </div>
       </div>
 
+      <!-- ABA BASE DO ORI -->
+      <div class="admin-tab-content" id="atab-ori">
+        <div class="card" style="margin-bottom:1.2rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:10px">
+            <div>
+              <div class="card-title" style="margin-bottom:2px">🔮 Base de Conhecimento do Ori</div>
+              <div style="font-size:12.5px;color:var(--gray3)">Adicione instruções, processos, scripts e informações que o Ori deve conhecer</div>
+            </div>
+            <button class="btn-primary" onclick="abrirModalOri()">+ Novo Conteúdo</button>
+          </div>
+
+          <!-- Filtro por categoria -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem" id="ori-filtros">
+            <button class="rf-btn active" onclick="filtrarOri('todos')">Todos</button>
+          </div>
+
+          <div id="ori-lista" style="display:flex;flex-direction:column;gap:8px">
+            <div class="alert-info">Nenhum conteúdo cadastrado ainda.</div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /page-admin -->
+
+    <!-- MODAL: Novo/Editar conteúdo Ori -->
+    <div id="modal-ori" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:300;display:flex;align-items:center;justify-content:center;padding:1rem">
+      <div style="background:white;border-radius:18px;padding:2rem;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.3);position:relative">
+        <button onclick="fecharModalOri()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray3)">✕</button>
+        <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:17px;margin-bottom:1.5rem" id="ori-modal-titulo">🔮 Novo Conteúdo</h3>
+        <div class="form-group">
+          <label>TÍTULO *</label>
+          <input type="text" id="ori-titulo" placeholder="Ex: Política de desconto, Script de abordagem...">
+        </div>
+        <div class="form-group">
+          <label>CATEGORIA</label>
+          <select id="ori-categoria">
+            <option>Processo</option>
+            <option>Script</option>
+            <option>Produto</option>
+            <option>Objeção</option>
+            <option>Política Interna</option>
+            <option>Treinamento</option>
+            <option>Geral</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>CONTEÚDO *</label>
+          <textarea id="ori-conteudo" rows="10" placeholder="Escreva o conteúdo completo que o Ori deve aprender. Quanto mais detalhado, melhor será a resposta."
+            style="width:100%;padding:11px 14px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;resize:vertical;box-sizing:border-box;line-height:1.7"></textarea>
+          <div style="font-size:11.5px;color:var(--gray3);margin-top:4px">
+            💡 Dica: seja específico. Ex: "Quando o cliente perguntar X, responda Y. Sempre mencione Z."
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding:10px 14px;background:#f0fdf4;border:1.5px solid #86efac;border-radius:9px;cursor:pointer" onclick="document.getElementById('ori-ativo').click()">
+          <label for="ori-ativo" style="display:flex;align-items:center;gap:10px;cursor:pointer;width:100%">
+            <input type="checkbox" id="ori-ativo" checked style="width:16px;height:16px;accent-color:#10b981;cursor:pointer;flex-shrink:0">
+            <div>
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:#065f46">✅ Conteúdo ativo</div>
+              <div style="font-size:11.5px;color:#16a34a">O Ori usará este conteúdo para responder perguntas</div>
+            </div>
+          </label>
+        </div>
+        <input type="hidden" id="ori-edit-id" value="">
+        <div id="ori-erro" class="login-error hidden" style="margin-bottom:1rem"></div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-primary" style="flex:1;justify-content:center" onclick="salvarOriConhecimento()">💾 Salvar</button>
+          <button class="btn-secondary" onclick="fecharModalOri()">Cancelar</button>
+        </div>
+      </div>
+    </div>
 
     <!-- ===== LOJA DE PRÊMIOS ===== -->
     <div class="page" id="page-loja">
@@ -3113,6 +3183,26 @@ DICAS DE OURO PARA O VENDEDOR DE SEO (2025/2026):
     });
   }
 
+  // Base de Conhecimento Dinâmica (cadastrada pelo admin)
+  if (typeof oriConhecimentos !== 'undefined' && oriConhecimentos.length) {
+    const ativos = oriConhecimentos.filter(o => o.ativo);
+    if (ativos.length) {
+      ctx += `\n=== BASE DE CONHECIMENTO ADICIONAL ===\n`;
+      // Agrupa por categoria
+      const porCat = {};
+      ativos.forEach(o => {
+        if (!porCat[o.categoria]) porCat[o.categoria] = [];
+        porCat[o.categoria].push(o);
+      });
+      Object.entries(porCat).forEach(([cat, itens]) => {
+        ctx += `\n[${cat}]\n`;
+        itens.forEach(o => {
+          ctx += `${o.titulo}:\n${o.conteudo}\n\n`;
+        });
+      });
+    }
+  }
+
   return ctx;
 }
 
@@ -3427,6 +3517,136 @@ async function alterarSenha() {
   msgEl.style.color = '#10b981';
   msgEl.classList.remove('hidden');
   setTimeout(() => msgEl.classList.add('hidden'), 4000);
+}
+
+// ============================================================
+// ORI — BASE DE CONHECIMENTO (Admin)
+// ============================================================
+let oriConhecimentos = [];
+let oriFiltroAtual   = 'todos';
+
+async function loadOriConhecimento() {
+  const { data } = await sb.from('ori_conhecimento')
+    .select('*').order('categoria').order('created_at', { ascending: false });
+  oriConhecimentos = data || [];
+  renderOriAdmin();
+}
+
+function renderOriAdmin() {
+  // Filtros de categoria
+  const cats     = ['todos', ...new Set(oriConhecimentos.map(o => o.categoria))];
+  const filtrosEl = document.getElementById('ori-filtros');
+  if (filtrosEl) {
+    filtrosEl.innerHTML = cats.map(c => `
+      <button class="rf-btn ${oriFiltroAtual === c ? 'active' : ''}" onclick="filtrarOri('${c}')">
+        ${c === 'todos' ? 'Todos' : c}
+        <span style="background:rgba(0,0,0,0.1);border-radius:99px;padding:1px 6px;font-size:10px;margin-left:4px">
+          ${c === 'todos' ? oriConhecimentos.length : oriConhecimentos.filter(o => o.categoria === c).length}
+        </span>
+      </button>`).join('');
+  }
+
+  const lista = document.getElementById('ori-lista');
+  if (!lista) return;
+
+  const filtrado = oriFiltroAtual === 'todos'
+    ? oriConhecimentos
+    : oriConhecimentos.filter(o => o.categoria === oriFiltroAtual);
+
+  if (!filtrado.length) {
+    lista.innerHTML = '<div class="alert-info">Nenhum conteúdo nesta categoria.</div>';
+    return;
+  }
+
+  lista.innerHTML = filtrado.map(o => `
+    <div style="background:${o.ativo ? 'white' : '#f8fafc'};border:1.5px solid ${o.ativo ? 'rgba(226,232,240,0.7)' : '#e2e8f0'};border-radius:12px;padding:1rem 1.2rem;display:flex;align-items:flex-start;gap:12px;opacity:${o.ativo ? '1' : '0.6'}">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;color:var(--black)">${o.titulo}</span>
+          <span style="background:#ede9fe;color:#5b21b6;border-radius:5px;padding:2px 8px;font-size:10.5px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif">${o.categoria}</span>
+          ${!o.ativo ? '<span style="background:#f1f5f9;color:#64748b;border-radius:5px;padding:2px 8px;font-size:10.5px;font-weight:700;font-family:\'Plus Jakarta Sans\',sans-serif">Inativo</span>' : ''}
+        </div>
+        <div style="font-size:13px;color:#475569;line-height:1.6;max-height:60px;overflow:hidden;position:relative">
+          ${o.conteudo}
+          <div style="position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(to bottom,transparent,${o.ativo ? 'white' : '#f8fafc'})"></div>
+        </div>
+        <div style="font-size:11px;color:var(--gray3);margin-top:6px">por ${o.criado_por || '—'} · ${new Date(o.updated_at).toLocaleDateString('pt-BR')}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn-sm btn-sm-blue" onclick="editarOri(${o.id})">✏️</button>
+        <button class="btn-sm" style="background:#${o.ativo ? 'fef3c7' : 'dcfce7'};color:#${o.ativo ? '92400e' : '166534'}" onclick="toggleOriAtivo(${o.id},${o.ativo})" title="${o.ativo ? 'Desativar' : 'Ativar'}">${o.ativo ? '⏸️' : '▶️'}</button>
+        <button class="btn-sm" style="background:#fef2f2;color:var(--red)" onclick="excluirOri(${o.id})">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function filtrarOri(cat) {
+  oriFiltroAtual = cat;
+  renderOriAdmin();
+}
+
+function abrirModalOri(id = null) {
+  document.getElementById('ori-edit-id').value  = id || '';
+  document.getElementById('ori-titulo').value   = '';
+  document.getElementById('ori-conteudo').value = '';
+  document.getElementById('ori-ativo').checked  = true;
+  document.getElementById('ori-erro').classList.add('hidden');
+  document.getElementById('ori-modal-titulo').textContent = id ? '✏️ Editar Conteúdo' : '🔮 Novo Conteúdo';
+
+  if (id) {
+    const o = oriConhecimentos.find(x => x.id === id);
+    if (o) {
+      document.getElementById('ori-titulo').value   = o.titulo;
+      document.getElementById('ori-conteudo').value = o.conteudo;
+      document.getElementById('ori-categoria').value = o.categoria;
+      document.getElementById('ori-ativo').checked  = o.ativo;
+    }
+  }
+
+  document.getElementById('modal-ori').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharModalOri() {
+  document.getElementById('modal-ori').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function editarOri(id) { abrirModalOri(id); }
+
+async function salvarOriConhecimento() {
+  const errEl    = document.getElementById('ori-erro');
+  const titulo   = document.getElementById('ori-titulo').value.trim();
+  const conteudo = document.getElementById('ori-conteudo').value.trim();
+  const categoria = document.getElementById('ori-categoria').value;
+  const ativo    = document.getElementById('ori-ativo').checked;
+  const editId   = document.getElementById('ori-edit-id').value;
+  errEl.classList.add('hidden');
+
+  if (!titulo)   { errEl.textContent = 'O título é obrigatório.';   errEl.classList.remove('hidden'); return; }
+  if (!conteudo) { errEl.textContent = 'O conteúdo é obrigatório.'; errEl.classList.remove('hidden'); return; }
+
+  const payload = { titulo, conteudo, categoria, ativo, criado_por: currentUser.name, updated_at: new Date().toISOString() };
+
+  const { error } = editId
+    ? await sb.from('ori_conhecimento').update(payload).eq('id', editId)
+    : await sb.from('ori_conhecimento').insert(payload);
+
+  if (error) { errEl.textContent = 'Erro: ' + error.message; errEl.classList.remove('hidden'); return; }
+
+  fecharModalOri();
+  await loadOriConhecimento();
+}
+
+async function toggleOriAtivo(id, ativo) {
+  await sb.from('ori_conhecimento').update({ ativo: !ativo, updated_at: new Date().toISOString() }).eq('id', id);
+  await loadOriConhecimento();
+}
+
+async function excluirOri(id) {
+  if (!confirm('Excluir este conteúdo permanentemente?')) return;
+  await sb.from('ori_conhecimento').delete().eq('id', id);
+  await loadOriConhecimento();
 }
 
 // ============================================================
@@ -4897,6 +5117,8 @@ async function initApp() {
   checkDenunciasNaoLidas();
   renderNav();
   loadMetaMensal();
+  // Carrega base de conhecimento do Ori em background
+  loadOriConhecimento().catch(() => {});
 
   // Define novidades como página inicial
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -5762,6 +5984,7 @@ function aTab(tab) {
   if (tab === 'denuncias') renderAdminDen();
   if (tab === 'usuarios')  renderAdminUsers();
   if (tab === 'metas')     initMetaAdmin();
+  if (tab === 'ori')       loadOriConhecimento();
   if (tab === 'novidades') renderAdminNews();
 }
 
