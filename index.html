@@ -751,21 +751,43 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <span class="topbar-crumb" id="topbar-page">📊 <strong>Dashboard</strong></span>
       </div>
       <div class="topbar-right">
-        <!-- Barra de Meta Mensal -->
-        <div id="topbar-meta" style="display:none;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px">
-          <div style="display:flex;flex-direction:column;gap:2px;min-width:150px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-              <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gray3);text-transform:uppercase;letter-spacing:.4px">🎯 Meta</span>
-              <span id="topbar-meta-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--blue2)">0%</span>
-            </div>
-            <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
-              <div id="topbar-meta-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#2563c2,#7c3aed)"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:1px">
-              <span id="topbar-meta-resultado" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
-              <span id="topbar-meta-alvo" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+        <!-- Meta Geral + Meta Individual -->
+        <div id="topbar-metas-wrapper" style="display:none;align-items:center;gap:8px">
+
+          <!-- Meta Geral -->
+          <div id="topbar-meta" style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px">
+            <div style="display:flex;flex-direction:column;gap:2px;min-width:140px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gray3);text-transform:uppercase;letter-spacing:.4px">🎯 Meta Geral</span>
+                <span id="topbar-meta-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--blue2)">0%</span>
+              </div>
+              <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+                <div id="topbar-meta-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#2563c2,#7c3aed)"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:1px">
+                <span id="topbar-meta-resultado" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+                <span id="topbar-meta-alvo" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+              </div>
             </div>
           </div>
+
+          <!-- Meta Individual -->
+          <div id="topbar-meta-ind" style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px">
+            <div style="display:flex;flex-direction:column;gap:2px;min-width:140px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gray3);text-transform:uppercase;letter-spacing:.4px">👤 Meta Individual</span>
+                <span id="topbar-meta-ind-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#10b981">0%</span>
+              </div>
+              <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+                <div id="topbar-meta-ind-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#10b981,#059669)"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:1px">
+                <span id="topbar-meta-ind-resultado" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+                <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 12.000</span>
+              </div>
+            </div>
+          </div>
+
         </div>
         <div class="topbar-pts">⭐ <span id="topbar-pts">0</span> pts</div>
         <div style="font-size:12px;color:var(--gray3);font-family:Plus Jakarta Sans,sans-serif" id="topbar-date"></div>
@@ -777,17 +799,15 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       <div class="page-header">
         <div class="page-header-left">
           <h2 id="dash-greeting">Olá! 👋</h2>
-          <p id="dash-subtitle">Bem-vindo ao Portal Interno da Busca Orgânica</p>
+          <p id="dash-subtitle">Seu acompanhamento individual</p>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span id="dash-role-badge" class="badge badge-blue" style="font-size:12px;padding:5px 14px"></span>
-        </div>
+        <span id="dash-role-badge" class="badge badge-blue" style="font-size:12px;padding:5px 14px"></span>
       </div>
 
-      <!-- KPIs dinâmicos por perfil -->
+      <!-- KPIs -->
       <div class="grid-4" style="margin-bottom:1.5rem" id="dash-kpis"></div>
 
-      <!-- Gráfico individual por perfil -->
+      <!-- Gráfico mensal -->
       <div class="card" style="margin-bottom:1.5rem">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
           <div class="card-title" style="margin-bottom:0" id="chart-title">📈 Meu Desempenho no Mês</div>
@@ -810,14 +830,26 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <div style="display:flex;gap:20px;margin-top:12px;justify-content:center;flex-wrap:wrap" id="chart-legend"></div>
       </div>
 
+      <!-- Agendamentos + Vendas lado a lado -->
       <div class="grid-2">
+        <!-- Card Agendamentos -->
         <div class="card">
-          <div class="card-title">📢 Últimas Novidades</div>
-          <div id="dash-news-preview"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <div class="card-title" style="margin:0">📋 Agendamentos Realizados</div>
+            <div id="dash-ag-total" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:28px;color:var(--blue2)">0</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--gray3);margin-bottom:.8rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px">Histórico do mês</div>
+          <div id="dash-ag-lista" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
         </div>
+
+        <!-- Card Vendas -->
         <div class="card">
-          <div class="card-title">🏆 Top Ranking</div>
-          <div id="dash-rank-preview"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <div class="card-title" style="margin:0" id="dash-vendas-titulo">💰 Vendas Realizadas</div>
+            <div id="dash-venda-total" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:28px;color:#10b981">0</div>
+          </div>
+          <div style="font-size:11.5px;color:var(--gray3);margin-bottom:.8rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px">Histórico do mês</div>
+          <div id="dash-venda-lista" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
         </div>
       </div>
     </div>
@@ -3674,30 +3706,86 @@ async function loadMetaMensal() {
 }
 
 function renderMetaTopbar() {
-  const metaEl   = document.getElementById('topbar-meta');
-  if (!metaEl) return;
+  const wrapper = document.getElementById('topbar-metas-wrapper');
+  if (!wrapper) return;
 
-  // Só mostra se há meta definida
+  // Só mostra wrapper se há meta geral definida
   if (!metaAtual.meta || metaAtual.meta === 0) {
-    metaEl.style.display = 'none';
+    wrapper.style.display = 'none';
     return;
   }
 
+  wrapper.style.display = 'flex';
+
+  // ── Meta Geral ────────────────────────────────────────────
   const pct  = Math.min(Math.round((metaAtual.resultado / metaAtual.meta) * 100), 100);
   const cor  = pct >= 100 ? '#10b981' : pct >= 70 ? '#f59e0b' : '#2563c2';
-  const grad = pct >= 100
-    ? 'linear-gradient(90deg,#10b981,#059669)'
-    : pct >= 70
-    ? 'linear-gradient(90deg,#f59e0b,#d97706)'
-    : 'linear-gradient(90deg,#2563c2,#7c3aed)';
+  const grad = pct >= 100 ? 'linear-gradient(90deg,#10b981,#059669)'
+             : pct >= 70  ? 'linear-gradient(90deg,#f59e0b,#d97706)'
+             : 'linear-gradient(90deg,#2563c2,#7c3aed)';
 
-  metaEl.style.display = 'flex';
-  document.getElementById('topbar-meta-barra').style.width       = pct + '%';
-  document.getElementById('topbar-meta-barra').style.background  = grad;
-  document.getElementById('topbar-meta-pct').textContent         = pct + '%';
-  document.getElementById('topbar-meta-pct').style.color         = cor;
-  document.getElementById('topbar-meta-resultado').textContent   = 'R$ ' + Number(metaAtual.resultado).toLocaleString('pt-BR');
-  document.getElementById('topbar-meta-alvo').textContent        = 'R$ ' + Number(metaAtual.meta).toLocaleString('pt-BR');
+  document.getElementById('topbar-meta-barra').style.width      = pct + '%';
+  document.getElementById('topbar-meta-barra').style.background = grad;
+  document.getElementById('topbar-meta-pct').textContent        = pct + '%';
+  document.getElementById('topbar-meta-pct').style.color        = cor;
+  document.getElementById('topbar-meta-resultado').textContent  = 'R$ ' + Number(metaAtual.resultado).toLocaleString('pt-BR');
+  document.getElementById('topbar-meta-alvo').textContent       = 'R$ ' + Number(metaAtual.meta).toLocaleString('pt-BR');
+
+  // ── Meta Individual ───────────────────────────────────────
+  renderMetaIndividual();
+}
+
+const META_INDIVIDUAL = 12000;
+
+async function renderMetaIndividual() {
+  const indEl = document.getElementById('topbar-meta-ind');
+  if (!indEl || !currentUser) return;
+
+  // Admin não tem meta individual
+  if (currentUser.role === 'admin') {
+    indEl.style.display = 'none';
+    return;
+  }
+
+  indEl.style.display = 'flex';
+
+  const agora     = new Date();
+  const inicioMes = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString();
+  const fimMes    = new Date(agora.getFullYear(), agora.getMonth()+1, 0, 23,59,59).toISOString();
+
+  let totalMRR = 0;
+
+  if (currentUser.role === 'agendamento') {
+    // BDR: soma MRR das vendas fechadas pelos vendedores via seus agendamentos
+    const { data } = await sb.from('agendamentos')
+      .select('mrr, valor_parcela')
+      .eq('bdr_id', currentUser.id)
+      .eq('status', 'fechado')
+      .gte('created_at', inicioMes)
+      .lte('created_at', fimMes);
+    totalMRR = (data||[]).reduce((s, e) => s + Number(e.mrr || e.valor_parcela || 0), 0);
+  } else if (currentUser.role === 'vendas') {
+    // Executivo: soma MRR das vendas fechadas por ele
+    const { data } = await sb.from('agendamentos')
+      .select('mrr, valor_parcela')
+      .eq('vendedor_id', currentUser.id)
+      .eq('status', 'fechado')
+      .gte('created_at', inicioMes)
+      .lte('created_at', fimMes);
+    totalMRR = (data||[]).reduce((s, e) => s + Number(e.mrr || e.valor_parcela || 0), 0);
+  }
+
+  const pct  = Math.min(Math.round((totalMRR / META_INDIVIDUAL) * 100), 100);
+  const cor  = pct >= 100 ? '#059669' : pct >= 70 ? '#f59e0b' : '#10b981';
+  const grad = pct >= 100 ? 'linear-gradient(90deg,#059669,#047857)'
+             : pct >= 70  ? 'linear-gradient(90deg,#f59e0b,#d97706)'
+             : 'linear-gradient(90deg,#10b981,#059669)';
+
+  document.getElementById('topbar-meta-ind-barra').style.width      = pct + '%';
+  document.getElementById('topbar-meta-ind-barra').style.background = grad;
+  document.getElementById('topbar-meta-ind-pct').textContent        = pct + '%';
+  document.getElementById('topbar-meta-ind-pct').style.color        = cor;
+  document.getElementById('topbar-meta-ind-resultado').textContent  = 'R$ ' + totalMRR.toLocaleString('pt-BR');
 }
 
 // Pré-preenche mês/ano atual no admin
@@ -4894,6 +4982,8 @@ async function loadUser(userId) {
   renderNav();
   // Carrega chave da IA e atualiza status já no login
   carregarChaveCompartilhada().then(() => atualizarStatusChaveIA());
+  // Carrega meta individual após login
+  loadMetaMensal().then(() => renderMetaIndividual());
   await initApp();
 }
 
@@ -5201,159 +5291,159 @@ async function checkDenunciasNaoLidas() {
 // ============================================================
 async function renderDashboard() {
   if (!currentUser) return;
-  const hour = new Date().getHours();
   document.getElementById('topbar-pts').textContent = currentUser.pts;
 
-  // Busca dados reais do mês atual do banco
-  const hoje     = new Date();
+  const hoje      = new Date();
   const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString();
-  const fimMes    = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0, 23, 59, 59).toISOString();
-
-  const isBDR  = currentUser.role === 'agendamento';
-  const isExec = currentUser.role === 'vendas';
-  const isAdmin = currentUser.role === 'admin';
-
-  // Contadores reais do mês para o usuário logado
-  let agendMes = 0, reunioesMes = 0, vendasMes = 0, mrrMes = 0;
-
-  if (!isAdmin) {
-    const campo = isBDR ? 'bdr_id' : 'vendedor_id';
-    const { data: agEvents } = await sb.from('agendamentos')
-      .select('status, mrr')
-      .eq(campo, currentUser.id)
-      .gte('created_at', inicioMes)
-      .lte('created_at', fimMes);
-
-    (agEvents || []).forEach(e => {
-      if (e.status !== 'cancelado') agendMes++;
-      if (e.status === 'reuniao_realizada' || e.status === 'fechado') reunioesMes++;
-      if (e.status === 'fechado') { vendasMes++; mrrMes += Number(e.mrr || 0); }
-    });
-    // Para o BDR, agendamentos são todos os que ele criou
-    if (isBDR) {
-      const { data: bdrAg } = await sb.from('agendamentos')
-        .select('id')
-        .eq('bdr_id', currentUser.id)
-        .gte('created_at', inicioMes)
-        .lte('created_at', fimMes);
-      agendMes = (bdrAg || []).length;
-    }
-  }
+  const fimMes    = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0, 23,59,59).toISOString();
+  const isBDR     = currentUser.role === 'agendamento';
+  const isExec    = currentUser.role === 'vendas';
+  const isAdmin   = currentUser.role === 'admin';
 
   const roleBadge = document.getElementById('dash-role-badge');
-  if (isBDR)       { roleBadge.textContent = '👤 BDR — Agendamento';  roleBadge.className = 'badge badge-green'; }
-  else if (isExec) { roleBadge.textContent = '💼 Executivo'; roleBadge.className = 'badge badge-blue';  }
-  else             { roleBadge.textContent = '👑 Admin / Gerência';    roleBadge.className = 'badge badge-gold';  }
+  if (isBDR)       { roleBadge.textContent = '👤 BDR'; roleBadge.className = 'badge badge-green'; }
+  else if (isExec) { roleBadge.textContent = '💼 Executivo'; roleBadge.className = 'badge badge-blue'; }
+  else             { roleBadge.textContent = '👑 Admin'; roleBadge.className = 'badge badge-gold'; }
 
-  const kpiEl = document.getElementById('dash-kpis');
+  // ── Busca agendamentos do período ────────────────────────
+  let agQuery = sb.from('agendamentos')
+    .select('id, lead_nome, status, valor_parcela, mrr, data_hora, created_at, bdr_nome, vendedor_nome, bdr_id, vendedor_id, produtos')
+    .gte('created_at', inicioMes)
+    .lte('created_at', fimMes)
+    .neq('status', 'cancelado')
+    .order('created_at', { ascending: false });
 
+  if (isBDR)   agQuery = agQuery.eq('bdr_id', currentUser.id);
+  if (isExec)  agQuery = agQuery.eq('vendedor_id', currentUser.id);
+
+  const { data: eventos } = await agQuery;
+  const todos = eventos || [];
+
+  // Separa agendamentos e vendas
+  const agendamentos = isBDR
+    ? todos  // BDR vê todos que agendou
+    : todos.filter(e => e.status !== 'fechado' && e.status !== 'cancelado');
+
+  const vendas = todos.filter(e => e.status === 'fechado');
+
+  // Para BDR, busca também vendas dos seus agendamentos
+  let vendasBDR = vendas;
   if (isBDR) {
-    document.getElementById('dash-subtitle').textContent = 'Seu desempenho individual deste mês';
-    kpiEl.innerHTML = `
-      <div class="metric-card" style="border-top-color:#2563c2">
-        <div class="label" style="color:#2563c2">Novidades</div>
-        <div class="value" style="color:#2563c2">${newsData.length}</div>
-        <div class="sub">publicações ativas</div>
-      </div>
-      <div class="metric-card" style="border-top-color:#93c5fd">
-        <div class="label" style="color:#1d4ed8">Agendamentos</div>
-        <div class="value" style="color:#1d4ed8">${agendMes}</div>
-        <div class="sub">realizados este mês</div>
-      </div>
-      <div class="metric-card" style="border-top-color:#0d2b5e">
-        <div class="label" style="color:#0d2b5e">Vendas</div>
-        <div class="value" style="color:#0d2b5e">${vendasMes}</div>
-        <div class="sub">fechamentos no mês</div>
-      </div>
-      <div class="metric-card" style="border-top-color:#10b981">
-        <div class="label" style="color:#065f46">MRR Total</div>
-        <div class="value" style="color:#065f46;font-size:22px">R$${(mrrMes/1000).toFixed(1)}k</div>
-        <div class="sub">receita recorrente gerada</div>
-      </div>`;
-
-  } else if (isExec) {
-    document.getElementById('dash-subtitle').textContent = 'Seu desempenho individual deste mês';
-    kpiEl.innerHTML = `
-      <div class="metric-card" style="border-top-color:#2563c2">
-        <div class="label" style="color:#2563c2">Novidades</div>
-        <div class="value" style="color:#2563c2">${newsData.length}</div>
-        <div class="sub">publicações ativas</div>
-      </div>
-      <div class="metric-card" style="border-top-color:#93c5fd">
-        <div class="label" style="color:#1d4ed8">Reuniões Realizadas</div>
-        <div class="value" style="color:#1d4ed8">${reunioesMes}</div>
-        <div class="sub">recebidas dos BDRs</div>
-      </div>
-      <div class="metric-card" style="border-top-color:#0d2b5e">
-        <div class="label" style="color:#0d2b5e">Vendas</div>
-        <div class="value" style="color:#0d2b5e">${vendasMes}</div>
-        <div class="sub">fechamentos no mês</div>
-      </div>
-      <div class="metric-card" style="border-top-color:#10b981">
-        <div class="label" style="color:#065f46">MRR Total</div>
-        <div class="value" style="color:#065f46;font-size:22px">R$${(mrrMes/1000).toFixed(1)}k</div>
-        <div class="sub">receita recorrente gerada</div>
-      </div>`;
-
-  } else {
-    // Admin — totais reais do mês
-    document.getElementById('dash-subtitle').textContent = 'Visão gerencial — resultados consolidados da operação';
-    const { data: allAg } = await sb.from('agendamentos')
-      .select('status, mrr, bdr_id')
+    const { data: vBDR } = await sb.from('agendamentos')
+      .select('id, lead_nome, status, valor_parcela, mrr, data_hora, created_at, vendedor_nome, produtos')
+      .eq('bdr_id', currentUser.id)
+      .eq('status', 'fechado')
       .gte('created_at', inicioMes)
       .lte('created_at', fimMes)
-      .neq('status', 'cancelado');
+      .order('created_at', { ascending: false });
+    vendasBDR = vBDR || [];
+  }
 
-    const totalAgend    = (allAg || []).length;
-    const totalReunioes = (allAg || []).filter(e => e.status === 'reuniao_realizada' || e.status === 'fechado').length;
-    const totalVendas   = (allAg || []).filter(e => e.status === 'fechado').length;
-    const totalMRR      = (allAg || []).filter(e => e.status === 'fechado').reduce((s, e) => s + Number(e.mrr || 0), 0);
+  const vendasFinal  = isBDR ? vendasBDR : vendas;
+  const mrrTotal     = vendasFinal.reduce((s, e) => s + Number(e.mrr || e.valor_parcela || 0), 0);
+  const totalAg      = agendamentos.length;
+  const totalVendas  = vendasFinal.length;
 
+  document.getElementById('dash-subtitle').textContent = 'Seu acompanhamento individual — ' +
+    new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'});
+
+  // ── KPIs ─────────────────────────────────────────────────
+  const kpiEl = document.getElementById('dash-kpis');
+  if (isAdmin) {
+    const { data: allAg } = await sb.from('agendamentos')
+      .select('status, mrr, valor_parcela')
+      .gte('created_at', inicioMes).lte('created_at', fimMes).neq('status','cancelado');
+    const tAg = (allAg||[]).length;
+    const tV  = (allAg||[]).filter(e=>e.status==='fechado').length;
+    const tMRR= (allAg||[]).filter(e=>e.status==='fechado').reduce((s,e)=>s+Number(e.mrr||e.valor_parcela||0),0);
     kpiEl.innerHTML = `
-      <div class="metric-card" style="border-top-color:#93c5fd">
-        <div class="label" style="color:#1d4ed8">Agendamentos</div>
-        <div class="value" style="color:#1d4ed8">${totalAgend}</div>
+      <div class="metric-card" style="border-top-color:#2563c2">
+        <div class="label">Agendamentos</div><div class="value" style="color:#2563c2">${tAg}</div>
         <div class="sub">equipe BDR no mês</div>
       </div>
-      <div class="metric-card" style="border-top-color:#2563c2">
-        <div class="label" style="color:#2563c2">Reuniões Realizadas</div>
-        <div class="value" style="color:#2563c2">${totalReunioes}</div>
-        <div class="sub">equipe de vendas no mês</div>
-      </div>
-      <div class="metric-card" style="border-top-color:#0d2b5e">
-        <div class="label" style="color:#0d2b5e">Vendas</div>
-        <div class="value" style="color:#0d2b5e">${totalVendas}</div>
-        <div class="sub">negócios fechados no mês</div>
+      <div class="metric-card" style="border-top-color:#7c3aed">
+        <div class="label">Vendas</div><div class="value" style="color:#7c3aed">${tV}</div>
+        <div class="sub">negócios fechados</div>
       </div>
       <div class="metric-card" style="border-top-color:#10b981">
-        <div class="label" style="color:#065f46">MRR Total</div>
-        <div class="value" style="color:#065f46;font-size:22px">R$${(totalMRR/1000).toFixed(1)}k</div>
-        <div class="sub">receita recorrente mensal</div>
+        <div class="label">MRR Gerado</div><div class="value" style="color:#10b981;font-size:22px">R$${(tMRR/1000).toFixed(1)}k</div>
+        <div class="sub">receita recorrente</div>
+      </div>
+      <div class="metric-card" style="border-top-color:#f59e0b">
+        <div class="label">Ticket Médio</div><div class="value" style="color:#f59e0b;font-size:20px">R$${tV>0?(tMRR/tV/1000).toFixed(1)+'k':'—'}</div>
+        <div class="sub">por venda fechada</div>
+      </div>`;
+  } else {
+    kpiEl.innerHTML = `
+      <div class="metric-card" style="border-top-color:#2563c2">
+        <div class="label">Agendamentos</div><div class="value" style="color:#2563c2">${totalAg}</div>
+        <div class="sub">este mês</div>
+      </div>
+      <div class="metric-card" style="border-top-color:#10b981">
+        <div class="label">Vendas</div><div class="value" style="color:#10b981">${totalVendas}</div>
+        <div class="sub">${isBDR?'via seus agendamentos':'fechadas por você'}</div>
+      </div>
+      <div class="metric-card" style="border-top-color:#7c3aed">
+        <div class="label">MRR Gerado</div><div class="value" style="color:#7c3aed;font-size:22px">R$${(mrrTotal/1000).toFixed(1)}k</div>
+        <div class="sub">receita recorrente</div>
+      </div>
+      <div class="metric-card" style="border-top-color:#f59e0b">
+        <div class="label">Pontos</div><div class="value" style="color:#f59e0b">${currentUser.pts||0}</div>
+        <div class="sub">acumulados</div>
       </div>`;
   }
 
-  // News preview — clicável
-  document.getElementById('dash-news-preview').innerHTML = newsData.slice(0,3).map(n => `
-    <div onclick="abrirModalNovidade(${n.id})" style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--gray2);cursor:pointer;transition:background .15s;border-radius:6px;margin:0 -6px;padding-left:6px;padding-right:6px" onmouseover="this.style.background='var(--blue-light)'" onmouseout="this.style.background=''">
-      <span style="font-size:20px;flex-shrink:0">${n.icon}</span>
-      <div style="flex:1;min-width:0">
-        <div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:13px;color:var(--black)">${n.titulo}</div>
-        <div style="font-size:11.5px;color:var(--gray3);margin-top:2px">${n.data} · <span class="badge badge-blue" style="font-size:10px">${n.cat}</span></div>
-      </div>
-      <span style="color:var(--blue3);font-size:16px;flex-shrink:0;align-self:center">›</span>
-    </div>`).join('');
+  // ── Card Agendamentos ─────────────────────────────────────
+  document.getElementById('dash-ag-total').textContent = totalAg;
 
-  // Rank preview
-  const medals  = ['🥇','🥈','🥉'];
-  const sorted  = Object.values(usersData).sort((a,b) => b.pts - a.pts);
-  document.getElementById('dash-rank-preview').innerHTML = sorted.slice(0,5).map((v, i) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray2)">
-      <span style="font-size:20px;width:28px;text-align:center">${medals[i] || '#'+(i+1)}</span>
-      ${avatarHTML(v, 32)}
-      <div style="flex:1"><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:700;font-size:13px">${v.name}</div><div style="font-size:11px;color:var(--gray3)">${v.dept}</div></div>
-      <div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;font-size:14px;color:var(--blue2)">${v.pts} <span style="font-size:10px;font-weight:500;color:var(--gray3)">pts</span></div>
-    </div>`).join('');
+  const statusLabel = { agendado:'🟠 Agendado', reuniao_realizada:'🔵 Realizada', fechado:'🟢 Fechado', cancelado:'❌ Cancelado' };
+  const statusCor   = { agendado:'#f97316', reuniao_realizada:'#3b82f6', fechado:'#10b981', cancelado:'#ef4444' };
+
+  const agLista = document.getElementById('dash-ag-lista');
+  if (!agendamentos.length) {
+    agLista.innerHTML = '<div style="font-size:13px;color:var(--gray3);text-align:center;padding:1.5rem 0">Nenhum agendamento este mês</div>';
+  } else {
+    agLista.innerHTML = agendamentos.map(e => {
+      const dt = new Date(e.data_hora||e.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const cor = statusCor[e.status]||'#94a3b8';
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;border-left:3px solid ${cor}">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.lead_nome||'—'}</div>
+            <div style="font-size:11.5px;color:var(--gray3);margin-top:1px">📅 ${dt}${isAdmin||isExec?` · ${e.bdr_nome||'—'}`:''}${isAdmin?` · ${e.vendedor_nome||'—'}`:''}</div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${cor};white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif">${statusLabel[e.status]||e.status}</span>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Card Vendas ────────────────────────────────────────────
+  document.getElementById('dash-venda-total').textContent = vendasFinal.length;
+  if (isBDR) document.getElementById('dash-vendas-titulo').textContent = '💰 Vendas via Seus Agendamentos';
+
+  const vLista = document.getElementById('dash-venda-lista');
+  if (!vendasFinal.length) {
+    vLista.innerHTML = '<div style="font-size:13px;color:var(--gray3);text-align:center;padding:1.5rem 0">Nenhuma venda fechada este mês</div>';
+  } else {
+    vLista.innerHTML = vendasFinal.map(e => {
+      const dt  = new Date(e.data_hora||e.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const mrr = Number(e.mrr||e.valor_parcela||0);
+      const prods = (e.produtos||[]).join(', ') || '—';
+      return `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f0fdf4;border-radius:8px;border-left:3px solid #10b981">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.lead_nome||'—'}</div>
+            <div style="font-size:11.5px;color:var(--gray3);margin-top:1px">📅 ${dt} · 📦 ${prods}${isBDR&&e.vendedor_nome?` · 💼 ${e.vendedor_nome}`:''}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:13px;color:#10b981">R$ ${mrr.toLocaleString('pt-BR')}</div>
+            <div style="font-size:10px;color:var(--gray3)">/mês</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
 }
+
 
 // ============================================================
 // GRÁFICO — dados reais do Supabase via Edge Function
