@@ -3823,7 +3823,7 @@ async function renderMetaIndividual() {
   } else if (currentUser.role === 'vendas') {
     let q = sb.from('ext_agendamentos').select('valor_fechado')
       .eq('status_nome','Fechada').gte('data',inicio).lte('data',fim);
-    if (mysqlId) q = q.eq('acompanhante_id', mysqlId);
+    if (mysqlId) q = q.eq('criador_id', mysqlId);
     else q = q.ilike('acompanhante_nome', `%${nome1}%`);
     const { data } = await q;
     totalMRR = (data||[]).reduce((s,e) => s + Number(e.valor_fechado||0), 0);
@@ -5299,8 +5299,8 @@ async function renderDashboard() {
 
   if (!isAdmin) {
     if (isBDR) {
-      // BDR = acompanhante_id no MySQL
-      if (mysqlId) agQuery = agQuery.eq('acompanhante_id', mysqlId);
+      // BDR = criador_id no MySQL (quem criou o agendamento)
+      if (mysqlId) agQuery = agQuery.eq('criador_id', mysqlId);
       else agQuery = agQuery.ilike('acompanhante_nome', `%${nome1}%`);
     } else if (isExec) {
       // Executivo = representante_id no MySQL
@@ -5384,7 +5384,7 @@ async function renderDashboard() {
     let vq = sb.from('ext_agendamentos').select('*')
       .eq('status_nome','Fechada').gte('data',inicioMes).lte('data',fimMes)
       .order('data',{ascending:false}).limit(100);
-    if (mysqlId) vq = vq.eq('acompanhante_id', mysqlId);
+    if (mysqlId) vq = vq.eq('criador_id', mysqlId);
     else vq = vq.ilike('acompanhante_nome', `%${nome1}%`);
     const { data: vBDR } = await vq;
     vendasFinal = vBDR || [];
