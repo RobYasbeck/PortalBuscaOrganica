@@ -5620,20 +5620,28 @@ async function renderPerfChart() {
     // Admin: agendamentos gerais / vendas gerais / MRR geral
     if (perfTitle) perfTitle.textContent = '📈 Performance da Equipe — ' + ano;
 
-    const { data } = await sb.from('ext_agendamentos')
-      .select('data, status_nome, valor_fechado')
-      .gte('data', inicio).lte('data', fim)
-      .not('status_nome', 'eq', 'Cancelada')
-      .not('status_nome', 'eq', 'Reagendada')
-      .order('data', { ascending: true });
-
+    // Union por mês: criados no mês OU data no mês (mesma lógica dos KPIs)
     const porMes = initMeses();
-    data?.forEach(r => {
-      const m = parseInt(r.data.substring(5, 7)) - 1;
-      if (m < 0 || m > 11) return;
-      porMes[m].ag++;
-      if (r.status_nome === 'Fechada') { porMes[m].vendas++; porMes[m].mrr += Number(r.valor_fechado||0); }
-    });
+    for (let m = 0; m <= mesAtual; m++) {
+      const mStr = String(m+1).padStart(2,'0');
+      const inicioM = `${ano}-${mStr}-01`;
+      const fimM   = new Date(ano, m+1, 0).toISOString().split('T')[0];
+      const [{ data: a1 }, { data: a2 }] = await Promise.all([
+        sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
+          .gte('created', inicioM+'T00:00:00').lte('created', fimM+'T23:59:59')
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').limit(500),
+        sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
+          .gte('data', inicioM).lte('data', fimM)
+          .or(`created.lt.${inicioM}T00:00:00,created.gt.${fimM}T23:59:59`)
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').limit(500),
+      ]);
+      const mapaM = new Map();
+      [...(a1||[]),...(a2||[])].forEach(r => mapaM.set(r.id, r));
+      mapaM.forEach(r => {
+        porMes[m].ag++;
+        if (r.status_nome === 'Fechada') { porMes[m].vendas++; porMes[m].mrr += Number(r.valor_fechado||0); }
+      });
+    }
 
     datasets = [
       {
@@ -5667,14 +5675,28 @@ async function renderPerfChart() {
     if (mysqlId) q = q.eq('criador_id', mysqlId);
     else q = q.ilike('acompanhante_nome', `%${nome1}%`);
 
-    const { data } = await q.order('data', { ascending: true });
+    // Union por mês para BDR
     const porMes = initMeses();
-    data?.forEach(r => {
-      const m = parseInt(r.data.substring(5, 7)) - 1;
-      if (m < 0 || m > 11) return;
-      porMes[m].ag++;
-      if (r.status_nome === 'Fechada') { porMes[m].vendas++; porMes[m].mrr += Number(r.valor_fechado||0); }
-    });
+    for (let m = 0; m <= mesAtual; m++) {
+      const mStr = String(m+1).padStart(2,'0');
+      const inicioM = `${ano}-${mStr}-01`;
+      const fimM   = new Date(ano, m+1, 0).toISOString().split('T')[0];
+      const applyU = (q2) => mysqlId ? q2.eq('criador_id', mysqlId) : q2.ilike('acompanhante_nome', `%${nome1}%`);
+      const applyS = (q2) => q2.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
+      const [{ data: a1 }, { data: a2 }] = await Promise.all([
+        applyU(applyS(sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
+          .gte('created', inicioM+'T00:00:00').lte('created', fimM+'T23:59:59'))).limit(500),
+        applyU(applyS(sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
+          .gte('data', inicioM).lte('data', fimM)
+          .or(`created.lt.${inicioM}T00:00:00,created.gt.${fimM}T23:59:59`))).limit(500),
+      ]);
+      const mapaM = new Map();
+      [...(a1||[]),...(a2||[])].forEach(r => mapaM.set(r.id, r));
+      mapaM.forEach(r => {
+        porMes[m].ag++;
+        if (r.status_nome === 'Fechada') { porMes[m].vendas++; porMes[m].mrr += Number(r.valor_fechado||0); }
+      });
+    }
 
     datasets = [
       {
@@ -5701,14 +5723,26 @@ async function renderPerfChart() {
     if (mysqlId) q = q.eq('representante_id', mysqlId);
     else q = q.ilike('representante_nome', `%${nome1}%`);
 
-    const { data } = await q.order('data', { ascending: true });
+    // Union por mês para Executivo (vendas fechadas)
     const porMes = initMeses();
-    data?.forEach(r => {
-      const m = parseInt(r.data.substring(5, 7)) - 1;
-      if (m < 0 || m > 11) return;
-      porMes[m].vendas++;
-      porMes[m].mrr += Number(r.valor_fechado||0);
-    });
+    for (let m = 0; m <= mesAtual; m++) {
+      const mStr = String(m+1).padStart(2,'0');
+      const inicioM = `${ano}-${mStr}-01`;
+      const fimM   = new Date(ano, m+1, 0).toISOString().split('T')[0];
+      const applyU = (q2) => mysqlId ? q2.eq('representante_id', mysqlId) : q2.ilike('representante_nome', `%${nome1}%`);
+      const [{ data: a1 }, { data: a2 }] = await Promise.all([
+        applyU(sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
+          .eq('status_nome','Fechada')
+          .gte('created', inicioM+'T00:00:00').lte('created', fimM+'T23:59:59')).limit(500),
+        applyU(sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
+          .eq('status_nome','Fechada')
+          .gte('data', inicioM).lte('data', fimM)
+          .or(`created.lt.${inicioM}T00:00:00,created.gt.${fimM}T23:59:59`)).limit(500),
+      ]);
+      const mapaM = new Map();
+      [...(a1||[]),...(a2||[])].forEach(r => mapaM.set(r.id, r));
+      mapaM.forEach(r => { porMes[m].vendas++; porMes[m].mrr += Number(r.valor_fechado||0); });
+    }
 
     datasets = [
       {
