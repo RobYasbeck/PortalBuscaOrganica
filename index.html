@@ -5505,7 +5505,7 @@ async function renderChart() {
     .not('status_nome', 'eq', 'Reagendada');
 
   // AGENDAMENTOS: union criados no período + data no período
-  const sel = 'data, status_nome, valor_fechado, criador_id, representante_id, created';
+  const sel = 'id, data, status_nome, valor_fechado, criador_id, representante_id, created';
   const [{ data: r1 }, { data: r2 }] = await Promise.all([
     applyUser(applyStatus(sb.from('ext_agendamentos').select(sel)
       .gte('created', from + 'T00:00:00').lte('created', to + 'T23:59:59')))
@@ -5516,7 +5516,7 @@ async function renderChart() {
       .order('data', { ascending: true }).limit(1000),
   ]);
   const mapaR = new Map();
-  [...(r1||[]), ...(r2||[])].forEach(r => mapaR.set(r.id || r.data+r.status_nome, r));
+  [...(r1||[]), ...(r2||[])].forEach(r => mapaR.set(r.id, r));
   const todos = [...mapaR.values()].sort((a,b) => a.data.localeCompare(b.data));
 
   // Agrupa por semana (label "DD/MM")
