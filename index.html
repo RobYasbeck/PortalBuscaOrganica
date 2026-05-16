@@ -3809,8 +3809,8 @@ async function renderMetaIndividual() {
   const agora  = new Date();
   const inicio = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString().split('T')[0];
   const fim    = new Date(agora.getFullYear(), agora.getMonth()+1, 0).toISOString().split('T')[0];
-  const mysqlId= currentUser.mysql_id;
-  const nome1  = currentUser.name.split(' ')[0];
+  const mysqlId = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
+  const nome1   = currentUser.name.split(' ')[0];
 
   let totalMRR = 0;
   if (currentUser.role === 'agendamento') {
@@ -5259,7 +5259,7 @@ async function renderDashboard() {
   const isBDR     = currentUser.role === 'agendamento';
   const isExec    = currentUser.role === 'vendas';
   const isAdmin   = currentUser.role === 'admin';
-  const mysqlId   = currentUser.mysql_id;
+  const mysqlId   = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
   const nome1     = currentUser.name.split(' ')[0];
 
   const statusCor = {
@@ -5290,6 +5290,7 @@ async function renderDashboard() {
     new Date().toLocaleString('pt-BR', { month:'long', year:'numeric' });
 
   // ── Busca agendamentos do MySQL ───────────────────────────
+  console.log('[Dashboard] mysqlId:', mysqlId, '| role:', currentUser.role, '| name:', currentUser.name);
   let agQuery = sb.from('ext_agendamentos')
     .select('*')
     .gte('data', inicioMes).lte('data', fimMes)
@@ -5357,7 +5358,7 @@ async function renderDashboard() {
           <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;border-left:3px solid ${cor}">
             <div style="flex:1;min-width:0">
               <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-                ${e.online?'💻':'📍'} ${e.responsavel||'—'}
+                ${e.online?'💻':'📍'} ${e.empresa||e.responsavel||'—'}
               </div>
               <div style="font-size:11.5px;color:var(--gray3);margin-top:1px">
                 📅 ${e.data} ${e.hora?.slice(0,5)||''}
@@ -5397,7 +5398,7 @@ async function renderDashboard() {
         return `
           <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f0fdf4;border-radius:8px;border-left:3px solid #10b981">
             <div style="flex:1;min-width:0">
-              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.responsavel||'—'}</div>
+              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.empresa||e.responsavel||'—'}</div>
               <div style="font-size:11.5px;color:var(--gray3);margin-top:1px">
                 📅 ${e.data}
                 ${isBDR&&e.acompanhante_nome?` · 💼 ${e.acompanhante_nome}`:''}
