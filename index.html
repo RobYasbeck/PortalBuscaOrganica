@@ -5299,11 +5299,13 @@ async function renderDashboard() {
 
   if (!isAdmin) {
     if (isBDR) {
-      if (mysqlId) agQuery = agQuery.eq('representante_id', mysqlId);
-      else agQuery = agQuery.ilike('representante_nome', `%${nome1}%`);
-    } else if (isExec) {
+      // BDR = acompanhante_id no MySQL
       if (mysqlId) agQuery = agQuery.eq('acompanhante_id', mysqlId);
       else agQuery = agQuery.ilike('acompanhante_nome', `%${nome1}%`);
+    } else if (isExec) {
+      // Executivo = representante_id no MySQL
+      if (mysqlId) agQuery = agQuery.eq('representante_id', mysqlId);
+      else agQuery = agQuery.ilike('representante_nome', `%${nome1}%`);
     }
   }
 
@@ -5382,8 +5384,8 @@ async function renderDashboard() {
     let vq = sb.from('ext_agendamentos').select('*')
       .eq('status_nome','Fechada').gte('data',inicioMes).lte('data',fimMes)
       .order('data',{ascending:false}).limit(100);
-    if (mysqlId) vq = vq.eq('representante_id', mysqlId);
-    else vq = vq.ilike('representante_nome', `%${nome1}%`);
+    if (mysqlId) vq = vq.eq('acompanhante_id', mysqlId);
+    else vq = vq.ilike('acompanhante_nome', `%${nome1}%`);
     const { data: vBDR } = await vq;
     vendasFinal = vBDR || [];
   }
