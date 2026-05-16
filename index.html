@@ -5416,6 +5416,11 @@ async function renderDashboard() {
 }
 
 
+// Converte Date para string YYYY-MM-DD usada em inputs date
+function toInputDate(date) {
+  return date.toISOString().split('T')[0];
+}
+
 async function initChartData() {
   const today    = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
