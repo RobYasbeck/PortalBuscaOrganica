@@ -5300,6 +5300,7 @@ async function renderDashboard() {
     .select('*')
     .gte('data', inicioMes).lte('data', fimMes)
     .not('status_nome', 'eq', 'Cancelada')
+    .not('status_nome', 'eq', 'Reagendada')
     .order('data', { ascending: false });
 
   if (!isAdmin) {
@@ -5554,6 +5555,9 @@ async function renderChart() {
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray3)"><div style="width:12px;height:12px;border-radius:3px;background:#10b981"></div>MRR Acumulado</div>`;
 
   // Gráfico removido — apenas cards de resumo
+  // Gráfico de performance anual
+  renderPerfChart();
+
 }
 
 // ============================================================
@@ -5597,7 +5601,8 @@ async function renderPerfChart() {
     const { data } = await sb.from('ext_agendamentos')
       .select('data, status_nome, valor_fechado')
       .gte('data', inicio).lte('data', fim)
-      .not('status_nome', 'in', '("Cancelada","Reagendada")')
+      .not('status_nome', 'eq', 'Cancelada')
+      .not('status_nome', 'eq', 'Reagendada')
       .order('data', { ascending: true });
 
     const porMes = initMeses();
@@ -5635,7 +5640,8 @@ async function renderPerfChart() {
     let q = sb.from('ext_agendamentos')
       .select('data, status_nome, valor_fechado')
       .gte('data', inicio).lte('data', fim)
-      .not('status_nome', 'in', '("Cancelada","Reagendada")');
+      .not('status_nome', 'eq', 'Cancelada')
+      .not('status_nome', 'eq', 'Reagendada');
     if (mysqlId) q = q.eq('criador_id', mysqlId);
     else q = q.ilike('acompanhante_nome', `%${nome1}%`);
 
