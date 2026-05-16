@@ -5317,7 +5317,7 @@ async function renderDashboard() {
     const tR = todos.filter(e => e.status_nome === 'Realizada').length;
     const tN = todos.filter(e => e.status_nome === 'Em negociação').length;
     const tV = vendas.length;
-    const tA = todos.filter(e => e.status_nome !== 'Cancelada').length;
+    const tA = todos.length; // query já exclui Cancelada com .not()
 
     kpiEl.innerHTML = `
       <div class="metric-card" style="border-top-color:#2563c2">
@@ -5345,10 +5345,9 @@ async function renderDashboard() {
   // ── Lista Agendamentos ────────────────────────────────────
   const agTotal = document.getElementById('dash-ag-total');
   const agLista = document.getElementById('dash-ag-lista');
-  // Conta todos exceto cancelados
-  const naoCanc = todos.filter(e => e.status_nome !== 'Cancelada');
-  if (agTotal) agTotal.textContent = naoCanc.length;
-  const listaAg = naoCanc.slice(0,50);
+  // todos já exclui Cancelada (filtrado na query com .not)
+  if (agTotal) agTotal.textContent = todos.length;
+  const listaAg = todos.slice(0, 50);
   if (agLista) {
     if (!listaAg.length) {
       agLista.innerHTML = '<div style="font-size:13px;color:var(--gray3);text-align:center;padding:1.5rem 0">Nenhum agendamento este mês</div>';
