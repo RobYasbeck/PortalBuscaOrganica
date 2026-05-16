@@ -5131,7 +5131,7 @@ function showPage(id) {
   if (id === 'gamificacao') renderRank();
   if (id === 'admin')       renderAdmin();
   if (id === 'loja')        renderLoja();
-  if (id === 'dashboard')   setTimeout(initChartData, 100);
+  if (id === 'dashboard')   { renderDashboard(); setTimeout(initChartData, 100); }
   if (id === 'novidades')     { renderNews(); }
   if (id === 'precos')         { loadProdutos(); }
   if (id === 'configuracoes')  { renderConfiguracoes(); }
