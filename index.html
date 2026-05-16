@@ -5482,6 +5482,7 @@ async function renderChart() {
     .select('data, status_nome, valor_fechado, criador_id, representante_id')
     .gte('data', from).lte('data', to)
     .not('status_nome', 'eq', 'Cancelada')
+    .not('status_nome', 'eq', 'Reagendada')
     .order('data', { ascending: true });
 
   if (!isAdmin) {
