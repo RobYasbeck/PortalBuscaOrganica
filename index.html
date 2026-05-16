@@ -3811,17 +3811,19 @@ async function renderMetaIndividual() {
 
   let totalMRR = 0;
   if (currentUser.role === 'agendamento') {
-    let q = sb.from('ext_agendamentos').select('valor_fechado')
-      .eq('status_nome','Fechada').gte('data',inicio).lte('data',fim);
-    if (mysqlId) q = q.eq('representante_id', mysqlId);
-    else q = q.ilike('representante_nome', `%${nome1}%`);
-    const { data } = await q;
-    totalMRR = (data||[]).reduce((s,e) => s + Number(e.valor_fechado||0), 0);
-  } else if (currentUser.role === 'vendas') {
+    // BDR = criador_id no MySQL
     let q = sb.from('ext_agendamentos').select('valor_fechado')
       .eq('status_nome','Fechada').gte('data',inicio).lte('data',fim);
     if (mysqlId) q = q.eq('criador_id', mysqlId);
     else q = q.ilike('acompanhante_nome', `%${nome1}%`);
+    const { data } = await q;
+    totalMRR = (data||[]).reduce((s,e) => s + Number(e.valor_fechado||0), 0);
+  } else if (currentUser.role === 'vendas') {
+    // Executivo = representante_id no MySQL
+    let q = sb.from('ext_agendamentos').select('valor_fechado')
+      .eq('status_nome','Fechada').gte('data',inicio).lte('data',fim);
+    if (mysqlId) q = q.eq('representante_id', mysqlId);
+    else q = q.ilike('representante_nome', `%${nome1}%`);
     const { data } = await q;
     totalMRR = (data||[]).reduce((s,e) => s + Number(e.valor_fechado||0), 0);
   }
