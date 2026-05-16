@@ -5421,6 +5421,14 @@ function toInputDate(date) {
   return date.toISOString().split('T')[0];
 }
 
+// Destaca o botão de período ativo no gráfico
+function setActiveChartBtn(period) {
+  ['mes','3m','6m'].forEach(p => {
+    const btn = document.getElementById('chart-btn-' + p);
+    if (btn) btn.classList.toggle('active', p === period);
+  });
+}
+
 async function initChartData() {
   const today    = new Date();
   const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
