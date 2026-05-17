@@ -5273,8 +5273,6 @@ async function renderDashboard() {
   const hoje      = new Date();
   const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0];
   const fimMes    = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).toISOString().split('T')[0];
-  // Para histórico das listas: 6 meses atrás
-  const inicio6m  = new Date(hoje.getFullYear(), hoje.getMonth()-5, 1).toISOString().split('T')[0];
   const isBDR     = currentUser.role === 'agendamento';
   const isExec    = currentUser.role === 'vendas';
   const isAdmin   = currentUser.role === 'admin' || currentUser.role === 'gerente';
@@ -5380,21 +5378,45 @@ async function renderDashboard() {
   // ── Lista Agendamentos ────────────────────────────────────
   window._dashTodos = todos;
 
-  // Busca histórico de 6 meses para as listas (por data do agendamento)
+  // Histórico desde Janeiro — union: criados no mês + data no mês (mesmo critério dos KPIs)
   {
-    let qHist = sb.from('ext_agendamentos')
-      .select('id, data, hora, empresa, responsavel, status_nome, valor_fechado, online, representante_nome, acompanhante_nome, criador_id, representante_id')
-      .gte('data', inicio6m)
+    const anoAtual   = hoje.getFullYear();
+    const inicioAno  = `${anoAtual}-01-01`;
+    const fimAno     = `${anoAtual}-12-31`;
+
+    const applyUserHist = (q) => {
+      if (isAdmin) return q;
+      if (isBDR)   return mysqlId ? q.eq('criador_id', mysqlId)       : q.ilike('acompanhante_nome', `%${nome1}%`);
+      if (isExec)  return mysqlId ? q.eq('representante_id', mysqlId) : q.ilike('representante_nome', `%${nome1}%`);
+      return q;
+    };
+    const applyStatusHist = (q) => q
       .not('status_nome', 'eq', 'Cancelada')
-      .not('status_nome', 'eq', 'Reagendada')
-      .order('data', { ascending: false })
-      .limit(1000);
-    if (!isAdmin) {
-      if (isBDR)       qHist = mysqlId ? qHist.eq('criador_id', mysqlId)       : qHist.ilike('acompanhante_nome', `%${nome1}%`);
-      else if (isExec) qHist = mysqlId ? qHist.eq('representante_id', mysqlId) : qHist.ilike('representante_nome', `%${nome1}%`);
+      .not('status_nome', 'eq', 'Reagendada');
+    const selHist = 'id, data, hora, empresa, responsavel, status_nome, valor_fechado, online, representante_nome, acompanhante_nome, criador_id, representante_id, created';
+
+    // Union por mês desde Janeiro
+    const histMapa = new Map();
+    const mesesAno = hoje.getMonth(); // 0=Jan ... 4=Mai
+    for (let m = 0; m <= mesesAno; m++) {
+      const mStr    = String(m+1).padStart(2,'0');
+      const inicioM = `${anoAtual}-${mStr}-01`;
+      const fimM    = new Date(anoAtual, m+1, 0).toISOString().split('T')[0];
+      const [{ data: h1 }, { data: h2 }] = await Promise.all([
+        // Criados neste mês (data pode ser qualquer mês)
+        applyUserHist(applyStatusHist(sb.from('ext_agendamentos').select(selHist)
+          .gte('created', inicioM + 'T00:00:00')
+          .lte('created', fimM   + 'T23:59:59')))
+          .order('data', { ascending: false }).limit(500),
+        // Data neste mês mas criados em outro mês
+        applyUserHist(applyStatusHist(sb.from('ext_agendamentos').select(selHist)
+          .gte('data', inicioM).lte('data', fimM)
+          .or(`created.lt.${inicioM}T00:00:00,created.gt.${fimM}T23:59:59`)))
+          .order('data', { ascending: false }).limit(500),
+      ]);
+      [...(h1||[]), ...(h2||[])].forEach(r => histMapa.set(r.id, r));
     }
-    const { data: histData } = await qHist;
-    window._dashHist = histData || [];
+    window._dashHist = [...histMapa.values()].sort((a,b) => b.data.localeCompare(a.data));
   }
   const agTotal = document.getElementById('dash-ag-total');
   const agLista = document.getElementById('dash-ag-lista');
@@ -5619,9 +5641,16 @@ function filtrarListasDash() {
   const statusLabel = { 'Agendamento':'🟠 Agendado','Realizada':'🔵 Realizada','Em negociação':'🟡 Negociação','Fechada':'🟢 Fechada','Cancelada':'❌ Cancelada','Reagendada':'🔄 Reagendada' };
 
   // Filtro agendamentos — usa created para determinar o mês
-  const filtradosAg = mesSel
-    ? todos.filter(r => (r.data||'').substring(0,7) === mesSel)
-    : todos;
+  const hoje3     = new Date();
+  const mesAtualK = `${hoje3.getFullYear()}-${String(hoje3.getMonth()+1).padStart(2,'0')}`;
+
+  // Para o mês atual usa _dashTodos (union correto dos KPIs), para outros usa _dashHist
+  let filtradosAg;
+  if (!mesSel || mesSel === mesAtualK) {
+    filtradosAg = window._dashTodos || [];
+  } else {
+    filtradosAg = todos.filter(r => (r.data||'').substring(0,7) === mesSel);
+  }
 
   const agTotal = document.getElementById('dash-ag-total');
   const agLista = document.getElementById('dash-ag-lista');
