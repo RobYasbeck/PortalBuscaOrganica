@@ -717,6 +717,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
     <nav class="sidebar-nav">
       <div class="nav-section-label">Menu Principal</div>
       <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+      <div class="nav-item" data-page="acompanhamento" onclick="showPage('acompanhamento')" style="display:none"><span class="nav-icon">📈</span>Acompanhamento</div>
       <div class="nav-item active" data-page="novidades" onclick="showPage('novidades')"><span class="nav-icon">📢</span>Novidades</div>
       <div class="nav-item" data-page="faq" onclick="showPage('faq')"><span class="nav-icon">❓</span>FAQ</div>
       <div class="nav-item" data-page="book" onclick="showPage('book')"><span class="nav-icon">📖</span>Book de Argumentação</div>
@@ -734,7 +735,6 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       <div class="nav-item" data-page="denuncia" onclick="showPage('denuncia')"><span class="nav-icon">📣</span>Ouvidoria</div>
       <div class="nav-item" data-page="suporte" onclick="showPage('suporte')"><span class="nav-icon">🎫</span>Suporte Técnico</div>
       <div class="nav-item" data-page="configuracoes" onclick="showPage('configuracoes')"><span class="nav-icon">⚙️</span>Configurações</div>
-      <div class="nav-item" data-page="acompanhamento" onclick="showPage('acompanhamento')" style="display:none"><span class="nav-icon">📊</span>Acompanhamento</div>
       <div class="nav-item admin-only hidden" data-page="admin" id="nav-admin" onclick="showPage('admin')">
         <span class="nav-icon">⚙️</span>Administração
         <span class="nav-badge" id="badge-admin">0</span>
@@ -5129,8 +5129,7 @@ function renderNav() {
     const page = el.dataset.page;
     if (page === 'admin')           return; // admin controlado separadamente
     if (page === 'configuracoes')   return; // sempre visível para todos
-    if (page === 'acompanhamento') { el.style.display = (isAdmin || isGerente) ? '' : 'none'; return; }
-    el.style.display = (isAdmin || liberadas.includes(page)) ? '' : 'none';
+    el.style.display = (isAdmin || isGerente || liberadas.includes(page)) ? '' : 'none';
   });
 
   ['comercial','time'].forEach(sec => {
@@ -5151,11 +5150,7 @@ function showPage(id) {
   const liberadas = currentUser?.paginas_liberadas || ['novidades'];
   const isAdmin   = currentUser?.role === 'admin';
   const isGerente = currentUser?.role === 'gerente';
-  if (id !== 'admin' && id !== 'configuracoes' && id !== 'acompanhamento' && !isAdmin && !liberadas.includes(id)) {
-    alert('Você não tem permissão para acessar esta página.');
-    return;
-  }
-  if (id === 'acompanhamento' && !isAdmin && !isGerente) {
+  if (id !== 'admin' && id !== 'configuracoes' && !isAdmin && !isGerente && !liberadas.includes(id)) {
     alert('Você não tem permissão para acessar esta página.');
     return;
   }
