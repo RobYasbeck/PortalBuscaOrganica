@@ -5415,22 +5415,6 @@ async function renderDashboard() {
   const hoje2 = new Date();
   const mesAtualStr = `${hoje2.getFullYear()}-${String(hoje2.getMonth()+1).padStart(2,'0')}`;
 
-  const populateMonthSelect = (id, data) => {
-    const sel = document.getElementById(id);
-    if (!sel) return;
-    // Usa created para agendamentos, data para vendas — mas o campo pode ser data ou created
-    const mesesDisp = [...new Set(
-      data.map(r => (r.created||r.data||'').substring(0,7)).filter(m => m.length === 7)
-    )].sort().reverse();
-    sel.innerHTML = mesesDisp.map(m => {
-      const [y, mo] = m.split('-');
-      return `<option value="${m}" ${m===mesAtualStr?'selected':''}>${mesesNomes[parseInt(mo)-1]} ${y}</option>`;
-    }).join('');
-  };
-
-  populateMonthSelect('dash-ag-mes', todos);
-  populateMonthSelect('dash-venda-mes', vendasFinal);
-
   // Lista de vendas e total renderizados por filtrarListasDash()
 }
 
@@ -5575,6 +5559,11 @@ async function renderChart() {
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray3)"><div style="width:12px;height:12px;border-radius:3px;background:#10b981"></div>MRR Acumulado</div>`;
 
   // Gráfico removido — apenas cards de resumo
+  // Popula selects de mês com dados já carregados
+  populateMonthSelect('dash-ag-mes', window._dashTodos || [], true);
+  populateMonthSelect('dash-venda-mes', window._dashVendasFinal || [], false);
+  filtrarListasDash();
+
   // Gráfico de performance anual
   renderPerfChart();
 
@@ -5583,6 +5572,21 @@ async function renderChart() {
 
 // ============================================================
 // FILTRO POR MÊS NAS LISTAS DO DASHBOARD
+
+function populateMonthSelect(id, data, usarCreated = true) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const hoje = new Date();
+  const mesAtualStr = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const mesesDisp = [...new Set(
+    data.map(r => ((usarCreated ? r.created : r.data)||r.data||'').substring(0,7)).filter(m => m.length === 7)
+  )].sort().reverse();
+  sel.innerHTML = mesesDisp.map(m => {
+    const [y, mo] = m.split('-');
+    return `<option value="${m}" ${m===mesAtualStr?'selected':''}>${mesesNomes[parseInt(mo)-1]} ${y}</option>`;
+  }).join('');
+}
 // ============================================================
 function filtrarListasDash() {
   const mesSel   = document.getElementById('dash-ag-mes')?.value;
