@@ -729,6 +729,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       <div class="nav-item" data-page="denuncia" onclick="showPage('denuncia')"><span class="nav-icon">📣</span>Ouvidoria</div>
       <div class="nav-item" data-page="suporte" onclick="showPage('suporte')"><span class="nav-icon">🎫</span>Suporte Técnico</div>
       <div class="nav-item" data-page="configuracoes" onclick="showPage('configuracoes')"><span class="nav-icon">⚙️</span>Configurações</div>
+      <div class="nav-item" data-page="acompanhamento" onclick="showPage('acompanhamento')" style="display:none"><span class="nav-icon">📊</span>Acompanhamento</div>
       <div class="nav-item admin-only hidden" data-page="admin" id="nav-admin" onclick="showPage('admin')">
         <span class="nav-icon">⚙️</span>Administração
         <span class="nav-badge" id="badge-admin">0</span>
@@ -1107,6 +1108,25 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
           <div class="alert-info">Carregando...</div>
         </div>
       </div>
+    </div>
+
+    <!-- ===== ACOMPANHAMENTO ===== -->
+    <div class="page" id="page-acompanhamento">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>📊 Acompanhamento Individual</h2>
+          <p id="acomp-subtitle">Resultado da equipe por colaborador</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <select id="acomp-mes" onchange="renderAcompanhamento()" style="padding:6px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer"></select>
+          <div style="display:flex;gap:6px">
+            <button class="rf-btn active" id="acomp-btn-bdr" onclick="acompFiltro('bdr')">BDRs</button>
+            <button class="rf-btn" id="acomp-btn-exec" onclick="acompFiltro('exec')">Executivos</button>
+            <button class="rf-btn" id="acomp-btn-todos" onclick="acompFiltro('todos')">Todos</button>
+          </div>
+        </div>
+      </div>
+      <div id="acomp-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.2rem"></div>
     </div>
 
     <!-- ===== ADMIN ===== -->
@@ -5102,8 +5122,9 @@ function renderNav() {
 
   document.querySelectorAll('.nav-item[data-page]').forEach(el => {
     const page = el.dataset.page;
-    if (page === 'admin')         return; // admin controlado separadamente
-    if (page === 'configuracoes') return; // sempre visível para todos
+    if (page === 'admin')           return; // admin controlado separadamente
+    if (page === 'configuracoes')   return; // sempre visível para todos
+    if (page === 'acompanhamento') { el.style.display = (isAdmin || isGerente) ? '' : 'none'; return; }
     el.style.display = (isAdmin || liberadas.includes(page)) ? '' : 'none';
   });
 
@@ -5124,7 +5145,12 @@ function showPage(id) {
   // Verifica permissão
   const liberadas = currentUser?.paginas_liberadas || ['novidades'];
   const isAdmin   = currentUser?.role === 'admin';
-  if (id !== 'admin' && id !== 'configuracoes' && !isAdmin && !liberadas.includes(id)) {
+  const isGerente = currentUser?.role === 'gerente';
+  if (id !== 'admin' && id !== 'configuracoes' && id !== 'acompanhamento' && !isAdmin && !liberadas.includes(id)) {
+    alert('Você não tem permissão para acessar esta página.');
+    return;
+  }
+  if (id === 'acompanhamento' && !isAdmin && !isGerente) {
     alert('Você não tem permissão para acessar esta página.');
     return;
   }
@@ -5137,8 +5163,8 @@ function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  const navMap   = { dashboard:'📊 Dashboard', novidades:'📢 Novidades', faq:'❓ FAQ', book:'📖 Book de Argumentação', precos:'💰 Tabela de Valores', campanhas:'📣 Campanhas', sistemas:'🖥️ Sistemas', gamificacao:'🏆 Ranking', loja:'🛍️ Loja', denuncia:'📣 Ouvidoria', suporte:'🎫 Suporte Técnico', configuracoes:'⚙️ Configurações', admin:'⚙️ Administração', leads:'🏢 Leads', agendamentos:'📋 Agendamentos', atividades:'⚡ Atividades', calendario:'📅 Calendário' };
-  const labels   = { dashboard:'Dashboard', novidades:'Novidades', faq:'FAQ', book:'Book de Argumentação', precos:'Tabela de Valores', campanhas:'Campanhas', sistemas:'Sistemas', gamificacao:'Ranking', loja:'Loja de Prêmios', denuncia:'Ouvidoria', suporte:'Suporte Técnico', configuracoes:'Configurações', admin:'Administração', leads:'Leads', agendamentos:'Agendamentos', atividades:'Atividades', calendario:'Calendário' };
+  const navMap   = { dashboard:'📊 Dashboard', novidades:'📢 Novidades', faq:'❓ FAQ', book:'📖 Book de Argumentação', precos:'💰 Tabela de Valores', campanhas:'📣 Campanhas', sistemas:'🖥️ Sistemas', gamificacao:'🏆 Ranking', loja:'🛍️ Loja', denuncia:'📣 Ouvidoria', suporte:'🎫 Suporte Técnico', configuracoes:'⚙️ Configurações', admin:'⚙️ Administração', leads:'🏢 Leads', agendamentos:'📋 Agendamentos', atividades:'⚡ Atividades', calendario:'📅 Calendário', acompanhamento:'📊 Acompanhamento' };
+  const labels   = { dashboard:'Dashboard', novidades:'Novidades', faq:'FAQ', book:'Book de Argumentação', precos:'Tabela de Valores', campanhas:'Campanhas', sistemas:'Sistemas', gamificacao:'Ranking', loja:'Loja de Prêmios', denuncia:'Ouvidoria', suporte:'Suporte Técnico', configuracoes:'Configurações', admin:'Administração', leads:'Leads', agendamentos:'Agendamentos', atividades:'Atividades', calendario:'Calendário', acompanhamento:'Acompanhamento' };
   document.getElementById('topbar-page').innerHTML = navMap[id].split(' ')[0] + ' <strong>' + labels[id] + '</strong>';
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.textContent.trim().includes(labels[id])) n.classList.add('active');
@@ -5146,7 +5172,8 @@ function showPage(id) {
   if (id === 'gamificacao') renderRank();
   if (id === 'admin')       renderAdmin();
   if (id === 'loja')        renderLoja();
-  if (id === 'dashboard')   { renderDashboard(); setTimeout(initChartData, 100); }
+  if (id === 'dashboard')     { renderDashboard(); setTimeout(initChartData, 100); }
+  if (id === 'acompanhamento') { renderAcompanhamento(); }
   if (id === 'novidades')     { renderNews(); }
   if (id === 'precos')         { loadProdutos(); }
   if (id === 'configuracoes')  { renderConfiguracoes(); }
@@ -5933,6 +5960,194 @@ async function renderPerfChart() {
       }
     }
   });
+}
+
+
+// ============================================================
+// ACOMPANHAMENTO INDIVIDUAL
+// ============================================================
+let acompFiltroAtivo = 'todos';
+
+function acompFiltro(tipo) {
+  acompFiltroAtivo = tipo;
+  ['bdr','exec','todos'].forEach(t => {
+    const btn = document.getElementById(`acomp-btn-${t}`);
+    if (btn) btn.classList.toggle('active', t === tipo);
+  });
+  renderAcompanhamento();
+}
+
+async function renderAcompanhamento() {
+  const grid = document.getElementById('acomp-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Carregando...</div>';
+
+  // Mês selecionado
+  const mesSelect = document.getElementById('acomp-mes');
+  const hoje = new Date();
+  const mesAtualStr = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
+  const mesSel = mesSelect?.value || mesAtualStr;
+  const [anoS, mesS] = mesSel.split('-').map(Number);
+  const inicioMes = `${anoS}-${String(mesS).padStart(2,'0')}-01`;
+  const fimMes    = new Date(anoS, mesS, 0).toISOString().split('T')[0];
+
+  // Popula select de meses (Jan até mês atual)
+  if (!mesSelect?.options?.length) {
+    const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+    const meses = [];
+    for (let m = 0; m <= hoje.getMonth(); m++) {
+      const y = hoje.getFullYear();
+      const key = `${y}-${String(m+1).padStart(2,'0')}`;
+      meses.push(`<option value="${key}" ${key===mesAtualStr?'selected':''}>${mesesNomes[m]} ${y}</option>`);
+    }
+    if (mesSelect) mesSelect.innerHTML = meses.join('');
+  }
+
+  // Busca usuários ativos BDR e Exec
+  const { data: users } = await sb.from('profiles')
+    .select('id, name, role, dept, mysql_id, avatar_url, color')
+    .in('role', ['agendamento', 'vendas'])
+    .eq('active', true)
+    .order('name');
+
+  // Meta mensal
+  const { data: metaData } = await sb.from('metas_mensais')
+    .select('meta').eq('mes', mesS).eq('ano', anoS).maybeSingle();
+  const META_GERAL = metaData?.meta || 40000;
+  const META_IND   = 12000;
+
+  // Filtra por tipo
+  let filteredUsers = users || [];
+  if (acompFiltroAtivo === 'bdr')  filteredUsers = filteredUsers.filter(u => u.role === 'agendamento');
+  if (acompFiltroAtivo === 'exec') filteredUsers = filteredUsers.filter(u => u.role === 'vendas');
+
+  // Busca dados de cada usuário em paralelo (union por mês)
+  const results = await Promise.all(filteredUsers.map(async u => {
+    const mid = u.mysql_id ? parseInt(u.mysql_id) : null;
+    const nome1 = u.name.split(' ')[0];
+    const isBDR = u.role === 'agendamento';
+
+    // Agendamentos: union criados no mês + data no mês
+    let agTotal = 0;
+    if (isBDR && mid) {
+      const [{ data: a1 }, { data: a2 }] = await Promise.all([
+        sb.from('ext_agendamentos').select('id', {count:'exact',head:false})
+          .eq('criador_id', mid)
+          .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada'),
+        sb.from('ext_agendamentos').select('id', {count:'exact',head:false})
+          .eq('criador_id', mid)
+          .gte('data', inicioMes).lte('data', fimMes)
+          .or(`created.lt.${inicioMes}T00:00:00,created.gt.${fimMes}T23:59:59`)
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada'),
+      ]);
+      const ids = new Set([...(a1||[]),...(a2||[])].map(r => r.id));
+      agTotal = ids.size;
+    } else if (isBDR && !mid) {
+      const [{ data: a1 }, { data: a2 }] = await Promise.all([
+        sb.from('ext_agendamentos').select('id')
+          .ilike('acompanhante_nome', `%${nome1}%`)
+          .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada'),
+        sb.from('ext_agendamentos').select('id')
+          .ilike('acompanhante_nome', `%${nome1}%`)
+          .gte('data', inicioMes).lte('data', fimMes)
+          .or(`created.lt.${inicioMes}T00:00:00,created.gt.${fimMes}T23:59:59`)
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada'),
+      ]);
+      const ids = new Set([...(a1||[]),...(a2||[])].map(r => r.id));
+      agTotal = ids.size;
+    }
+
+    // Vendas fechadas e MRR (por data do mês)
+    let vendas = 0, mrr = 0;
+    {
+      let qV = sb.from('ext_agendamentos').select('id, valor_fechado')
+        .eq('status_nome','Fechada')
+        .gte('data', inicioMes).lte('data', fimMes);
+      if (isBDR)  qV = mid ? qV.eq('criador_id', mid)       : qV.ilike('acompanhante_nome', `%${nome1}%`);
+      else        qV = mid ? qV.eq('representante_id', mid)  : qV.ilike('representante_nome', `%${nome1}%`);
+      const { data: vd } = await qV;
+      vendas = (vd||[]).length;
+      mrr    = (vd||[]).reduce((s,r) => s + Number(r.valor_fechado||0), 0);
+    }
+
+    // Realizadas (por data do mês)
+    let realizadas = 0;
+    if (isBDR && mid) {
+      const { data: rd } = await sb.from('ext_agendamentos').select('id')
+        .eq('criador_id', mid).eq('status_nome','Realizada')
+        .gte('data', inicioMes).lte('data', fimMes);
+      realizadas = (rd||[]).length;
+    }
+
+    return { ...u, agTotal, realizadas, vendas, mrr };
+  }));
+
+  // Renderiza cards
+  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mesLabel = `${mesesNomes[mesS-1]} ${anoS}`;
+  document.getElementById('acomp-subtitle').textContent = `Resultado individual — ${mesLabel}`;
+
+  if (!results.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Nenhum colaborador encontrado.</div>';
+    return;
+  }
+
+  grid.innerHTML = results.map(u => {
+    const isBDR  = u.role === 'agendamento';
+    const pctMrr = META_IND > 0 ? Math.min(Math.round((u.mrr / META_IND) * 100), 100) : 0;
+    const cor    = pctMrr >= 100 ? '#059669' : pctMrr >= 70 ? '#f59e0b' : pctMrr >= 30 ? '#3b82f6' : '#94a3b8';
+    const avatar = u.avatar_url
+      ? `<img src="${u.avatar_url}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid ${u.color||'#3b82f6'}">`
+      : `<div style="width:44px;height:44px;border-radius:50%;background:${u.color||'#3b82f6'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff">${u.name.charAt(0)}</div>`;
+
+    return `
+      <div class="card" style="border-top:3px solid ${u.color||'#3b82f6'}">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem">
+          ${avatar}
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.name}</div>
+            <div style="font-size:12px;color:var(--gray3)">${u.dept||''} · <span style="font-weight:700;color:${isBDR?'#065f46':'#1e40af'}">${isBDR?'BDR':'Executivo'}</span></div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;color:var(--gray3);font-weight:600">META IND.</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:18px;color:${cor}">${pctMrr}%</div>
+          </div>
+        </div>
+
+        <!-- Barra de meta -->
+        <div style="background:#f1f5f9;border-radius:20px;height:7px;margin-bottom:1rem;overflow:hidden">
+          <div style="height:100%;border-radius:20px;background:${cor};width:${pctMrr}%;transition:width .5s"></div>
+        </div>
+
+        <!-- KPIs -->
+        <div style="display:grid;grid-template-columns:${isBDR?'1fr 1fr 1fr':'1fr 1fr'};gap:8px;margin-bottom:.8rem">
+          ${isBDR ? `
+          <div style="background:#eff6ff;border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:#1d4ed8;letter-spacing:.4px">AGEND.</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#1d4ed8">${u.agTotal}</div>
+          </div>
+          <div style="background:#f0fdf4;border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:#065f46;letter-spacing:.4px">REALIZADAS</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#065f46">${u.realizadas}</div>
+          </div>` : ''}
+          <div style="background:#f0fdf4;border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:#065f46;letter-spacing:.4px">VENDAS</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#065f46">${u.vendas}</div>
+          </div>
+        </div>
+
+        <!-- MRR -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#d1fae5;border-radius:8px">
+          <span style="font-size:12px;font-weight:700;color:#065f46">MRR Gerado</span>
+          <div style="text-align:right">
+            <span style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:18px;color:#065f46">R$ ${u.mrr.toLocaleString('pt-BR')}</span>
+            <span style="font-size:11px;color:#065f46"> / R$ ${META_IND.toLocaleString('pt-BR')}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 // ============================================================
