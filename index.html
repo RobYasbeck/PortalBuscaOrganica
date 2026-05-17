@@ -4926,8 +4926,8 @@ async function loadUser(userId) {
   document.getElementById('nav-avatar').style.background = profile.color;
   setNavAvatar(profile);
   document.getElementById('nav-name').textContent    = profile.name;
-  const roleLabel = profile.role === 'admin' ? 'Admin'
-                  : profile.role === 'vendas' ? 'Executivo' : 'BDR';
+  const roleLabelMap = { admin:'Admin', vendas:'Executivo', agendamento:'BDR', gerente:'Gerente' };
+  const roleLabel = roleLabelMap[profile.role] || profile.role;
   document.getElementById('nav-role').textContent = profile.dept + ' · ' + roleLabel;
   document.getElementById('topbar-pts').textContent  = profile.pts;
 
@@ -6598,7 +6598,7 @@ function renderAdminUsers() {
       </td>
       <td style="color:var(--gray3);font-size:12px">${v.email || '—'}</td>
       <td style="font-size:13px">${v.dept}</td>
-      <td><span class="badge ${v.role==='vendas'?'badge-blue':v.role==='admin'?'badge-gold':'badge-green'}">${v.role==='vendas'?'Executivo':v.role==='admin'?'Admin':'BDR'}</span></td>
+      <td><span class="badge ${v.role==='admin'?'badge-gold':v.role==='gerente'?'badge-blue':v.role==='vendas'?'badge-blue':'badge-green'}">${v.role==='admin'?'Admin':v.role==='gerente'?'Gerente':v.role==='vendas'?'Executivo':'BDR'}</span></td>
       <td style="font-family:Plus Jakarta Sans,sans-serif;font-weight:800;color:var(--blue2)">${v.pts}</td>
       <td><span class="badge ${v.active!==false?'badge-green':'badge-red'}">${v.active!==false?'Ativo':'Inativo'}</span></td>
       <td>
