@@ -842,7 +842,10 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <div class="card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
             <div class="card-title" style="margin:0">📋 Agendamentos Realizados</div>
-            <div id="dash-ag-total" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:28px;color:var(--blue2)">0</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select id="dash-ag-mes" onchange="filtrarListasDash()" style="padding:4px 8px;border:1.5px solid var(--gray2);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;color:var(--black);cursor:pointer"></select>
+              <div id="dash-ag-total" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:28px;color:var(--blue2)">0</div>
+            </div>
           </div>
           <div style="font-size:11.5px;color:var(--gray3);margin-bottom:.8rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px">Histórico do mês</div>
           <div id="dash-ag-lista" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
@@ -852,7 +855,10 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <div class="card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
             <div class="card-title" style="margin:0" id="dash-vendas-titulo">💰 Vendas Realizadas</div>
-            <div id="dash-venda-total" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:28px;color:#10b981">0</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <select id="dash-venda-mes" onchange="filtrarListasDash()" style="padding:4px 8px;border:1.5px solid var(--gray2);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;color:var(--black);cursor:pointer"></select>
+              <div id="dash-venda-total" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:28px;color:#10b981">0</div>
+            </div>
           </div>
           <div style="font-size:11.5px;color:var(--gray3);margin-bottom:.8rem;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px">Histórico do mês</div>
           <div id="dash-venda-lista" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
@@ -5370,33 +5376,14 @@ async function renderDashboard() {
   }
 
   // ── Lista Agendamentos ────────────────────────────────────
+  window._dashTodos = todos;
   const agTotal = document.getElementById('dash-ag-total');
   const agLista = document.getElementById('dash-ag-lista');
   // todos já exclui Cancelada (filtrado na query com .not)
   if (agTotal) agTotal.textContent = todos.length;
   const listaAg = todos.slice(0, 50);
-  if (agLista) {
-    if (!listaAg.length) {
-      agLista.innerHTML = '<div style="font-size:13px;color:var(--gray3);text-align:center;padding:1.5rem 0">Nenhum agendamento este mês</div>';
-    } else {
-      agLista.innerHTML = listaAg.map(e => {
-        const cor = statusCor[e.status_nome]||'#94a3b8';
-        return `
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;border-left:3px solid ${cor}">
-            <div style="flex:1;min-width:0">
-              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-                ${e.online?'💻':'📍'} ${e.empresa||e.responsavel||'—'}
-              </div>
-              <div style="font-size:11.5px;color:var(--gray3);margin-top:1px">
-                📅 ${e.data} ${e.hora?.slice(0,5)||''}
-                ${isAdmin?` · 👤 ${e.representante_nome||'—'} · 💼 ${e.acompanhante_nome||'—'}`:''}
-              </div>
-            </div>
-            <span style="font-size:11px;font-weight:700;color:${cor};white-space:nowrap">${statusLabel[e.status_nome]||e.status_nome}</span>
-          </div>`;
-      }).join('');
-    }
-  }
+  // Renderiza via função de filtro (reutilizada no onchange do select)
+  filtrarListasDash();
 
   // ── Lista Vendas ──────────────────────────────────────────
   const vTotal  = document.getElementById('dash-venda-total');
@@ -5415,33 +5402,37 @@ async function renderDashboard() {
     vendasFinal = vBDR || [];
   }
 
-  if (vTotal) vTotal.textContent = vendasFinal.length;
-  if (vLista) {
-    if (!vendasFinal.length) {
-      vLista.innerHTML = '<div style="font-size:13px;color:var(--gray3);text-align:center;padding:1.5rem 0">Nenhuma venda fechada este mês</div>';
-    } else {
-      vLista.innerHTML = vendasFinal.map(e => {
-        const mrr = Number(e.valor_fechado||0);
-        return `
-          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f0fdf4;border-radius:8px;border-left:3px solid #10b981">
-            <div style="flex:1;min-width:0">
-              <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.empresa||e.responsavel||'—'}</div>
-              <div style="font-size:11.5px;color:var(--gray3);margin-top:1px">
-                📅 ${e.data}
-                ${isBDR&&e.acompanhante_nome?` · 💼 ${e.acompanhante_nome}`:''}
-                ${isAdmin?` · 👤 ${e.representante_nome||'—'}`:''}
-              </div>
-            </div>
-            <div style="text-align:right;flex-shrink:0">
-              <div style="font-weight:800;font-size:13px;color:#10b981">${mrr>0?'R$ '+mrr.toLocaleString('pt-BR'):'—'}</div>
-              ${mrr>0?'<div style="font-size:10px;color:var(--gray3)">/mês</div>':''}
-            </div>
-          </div>`;
-      }).join('');
-    }
-  }
-}
+  window._dashVendasFinal = vendasFinal;
 
+  // Popula selects
+  populateSelect('dash-ag-mes', todos);
+  populateSelect('dash-venda-mes', vendasFinal);
+
+  window._dashVendasFinal = vendasFinal;
+
+  // Popula selects de mês
+  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const hoje2 = new Date();
+  const mesAtualStr = `${hoje2.getFullYear()}-${String(hoje2.getMonth()+1).padStart(2,'0')}`;
+
+  const populateMonthSelect = (id, data) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    // Usa created para agendamentos, data para vendas — mas o campo pode ser data ou created
+    const mesesDisp = [...new Set(
+      data.map(r => (r.created||r.data||'').substring(0,7)).filter(m => m.length === 7)
+    )].sort().reverse();
+    sel.innerHTML = mesesDisp.map(m => {
+      const [y, mo] = m.split('-');
+      return `<option value="${m}" ${m===mesAtualStr?'selected':''}>${mesesNomes[parseInt(mo)-1]} ${y}</option>`;
+    }).join('');
+  };
+
+  populateMonthSelect('dash-ag-mes', todos);
+  populateMonthSelect('dash-venda-mes', vendasFinal);
+
+  // Lista de vendas e total renderizados por filtrarListasDash()
+}
 
 // Converte Date para string YYYY-MM-DD usada em inputs date
 function toInputDate(date) {
@@ -5587,6 +5578,84 @@ async function renderChart() {
   // Gráfico de performance anual
   renderPerfChart();
 
+}
+
+
+// ============================================================
+// FILTRO POR MÊS NAS LISTAS DO DASHBOARD
+// ============================================================
+function filtrarListasDash() {
+  const mesSel   = document.getElementById('dash-ag-mes')?.value;
+  const vendaSel = document.getElementById('dash-venda-mes')?.value;
+  const todos    = window._dashTodos    || [];
+  const vendas   = window._dashVendasFinal || [];
+  const isAdmin  = currentUser?.role === 'admin' || currentUser?.role === 'gerente';
+
+  const statusCor   = { 'Agendamento':'#f97316','Realizada':'#3b82f6','Em negociação':'#eab308','Fechada':'#10b981','Cancelada':'#ef4444','Reagendada':'#8b5cf6' };
+  const statusLabel = { 'Agendamento':'🟠 Agendado','Realizada':'🔵 Realizada','Em negociação':'🟡 Negociação','Fechada':'🟢 Fechada','Cancelada':'❌ Cancelada','Reagendada':'🔄 Reagendada' };
+
+  // Filtro agendamentos — usa created para determinar o mês
+  const filtradosAg = mesSel
+    ? todos.filter(r => (r.created||r.data||'').substring(0,7) === mesSel)
+    : todos;
+
+  const agTotal = document.getElementById('dash-ag-total');
+  const agLista = document.getElementById('dash-ag-lista');
+  if (agTotal) agTotal.textContent = filtradosAg.length;
+  if (agLista) {
+    if (!filtradosAg.length) {
+      agLista.innerHTML = '<div style="font-size:13px;color:var(--gray3);text-align:center;padding:1.5rem 0">Nenhum agendamento neste mês</div>';
+    } else {
+      agLista.innerHTML = filtradosAg.slice(0,50).map(e => {
+        const cor = statusCor[e.status_nome]||'#94a3b8';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f8fafc;border-radius:8px;border-left:3px solid ${cor}">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              ${e.online?'💻':'📍'} ${e.empresa||e.responsavel||'—'}
+            </div>
+            <div style="font-size:11.5px;color:var(--gray3);margin-top:1px">
+              📅 ${e.data} ${e.hora?.slice(0,5)||''}
+              ${isAdmin?` · 👤 ${e.representante_nome||'—'} · 💼 ${e.acompanhante_nome||'—'}`:''}
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${cor};white-space:nowrap">${statusLabel[e.status_nome]||e.status_nome}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Filtro vendas — usa data da venda
+  const filtradosV = vendaSel
+    ? vendas.filter(r => (r.data||'').substring(0,7) === vendaSel)
+    : vendas;
+
+  const vTotal = document.getElementById('dash-venda-total');
+  const vLista = document.getElementById('dash-venda-lista');
+  const isBDR  = currentUser?.role === 'agendamento';
+  if (vTotal) vTotal.textContent = filtradosV.length;
+  if (vLista) {
+    if (!filtradosV.length) {
+      vLista.innerHTML = '<div style="font-size:13px;color:var(--gray3);text-align:center;padding:1.5rem 0">Nenhuma venda neste mês</div>';
+    } else {
+      vLista.innerHTML = filtradosV.slice(0,50).map(e => {
+        const mrr = Number(e.valor_fechado||0);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#f0fdf4;border-radius:8px;border-left:3px solid #10b981">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:13px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.empresa||e.responsavel||'—'}</div>
+            <div style="font-size:11.5px;color:var(--gray3);margin-top:1px">
+              📅 ${e.data}
+              ${isBDR&&e.acompanhante_nome?` · 💼 ${e.acompanhante_nome}`:''}
+              ${isAdmin?` · 👤 ${e.representante_nome||'—'}`:''}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-weight:800;font-size:13px;color:#10b981">${mrr>0?'R$ '+mrr.toLocaleString('pt-BR'):'—'}</div>
+            ${mrr>0?'<div style="font-size:10px;color:var(--gray3)">/mês</div>':''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
 }
 
 // ============================================================
