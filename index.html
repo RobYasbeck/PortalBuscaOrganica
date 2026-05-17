@@ -795,7 +795,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
     </div>
 
     <!-- ===== DASHBOARD ===== -->
-    <div class="page" id="page-dashboard">
+    <div class="page active" id="page-dashboard">
       <div class="page-header">
         <div class="page-header-left">
           <h2 id="dash-greeting">Olá! 👋</h2>
@@ -861,7 +861,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
     </div>
 
     <!-- ===== NOVIDADES ===== -->
-    <div class="page active" id="page-novidades">
+    <div class="page" id="page-novidades">
       <div class="page-header">
         <div class="page-header-left">
           <h2 id="nov-greeting">📢 Novidades</h2>
@@ -1178,6 +1178,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
               <select id="mu-role">
                 <option value="agendamento">BDR — Agendamento</option>
                 <option value="vendas">Executivo</option>
+                <option value="gerente">Gerente</option>
                 <option value="admin">Administrador</option>
               </select>
             </div>
@@ -3463,9 +3464,9 @@ function renderConfiguracoes() {
     }
   }
 
-  const roleLabels = { admin:'Administrador', vendas:'Executivo', agendamento:'BDR' };
-  const roleColors = { admin:'#854d0e', vendas:'#1e40af', agendamento:'#065f46' };
-  const roleBg     = { admin:'#fef9c3', vendas:'#dbeafe', agendamento:'#dcfce7' };
+  const roleLabels = { admin:'Administrador', vendas:'Executivo', agendamento:'BDR', gerente:'Gerente' };
+  const roleColors = { admin:'#854d0e', vendas:'#1e40af', agendamento:'#065f46', gerente:'#6b21a8' };
+  const roleBg     = { admin:'#fef9c3', vendas:'#dbeafe', agendamento:'#dcfce7', gerente:'#f3e8ff' };
   const role = currentUser.role || 'agendamento';
 
   document.getElementById('cfg-nome').textContent  = currentUser.name || '';
@@ -4102,6 +4103,7 @@ const TICKET_PRIO = {
 
 async function loadTickets() {
   const isAdmin = currentUser?.role === 'admin';
+  const isGerente = currentUser?.role === 'gerente';
   document.getElementById('suporte-meus').classList.toggle('hidden', isAdmin);
   document.getElementById('suporte-admin').classList.toggle('hidden', !isAdmin);
 
@@ -4220,6 +4222,7 @@ function abrirTicketDetalhe(id) {
   if (!t) return;
   ticketRespAtual = t;
   const isAdmin = currentUser?.role === 'admin';
+  const isGerente = currentUser?.role === 'gerente';
   const st = TICKET_STATUS[t.status] || TICKET_STATUS.aberto;
   const pr = TICKET_PRIO[t.prioridade] || TICKET_PRIO.normal;
   const dt = new Date(t.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
@@ -5084,6 +5087,7 @@ function renderNav() {
     ? currentUser.paginas_liberadas
     : ['novidades'];
   const isAdmin = currentUser?.role === 'admin';
+  const isGerente = currentUser?.role === 'gerente';
 
   console.log('🔐 renderNav — usuário:', currentUser?.name,
     '| role:', currentUser?.role,
@@ -5175,11 +5179,13 @@ async function initApp() {
   // Carrega base de conhecimento do Ori em background
   loadOriConhecimento().catch(() => {});
 
-  // Define novidades como página inicial
+  // Dashboard como página inicial
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-novidades').classList.add('active');
+  document.getElementById('page-dashboard').classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelector('.nav-item[data-page="novidades"]')?.classList.add('active');
+  document.querySelector('.nav-item[data-page="dashboard"]')?.classList.add('active');
+  renderDashboard();
+  setTimeout(initChartData, 100);
   document.getElementById('topbar-page').innerHTML = '📢 <strong>Novidades</strong>';
 }
 
@@ -5263,7 +5269,7 @@ async function renderDashboard() {
   const fimMes    = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).toISOString().split('T')[0];
   const isBDR     = currentUser.role === 'agendamento';
   const isExec    = currentUser.role === 'vendas';
-  const isAdmin   = currentUser.role === 'admin';
+  const isAdmin   = currentUser.role === 'admin' || currentUser.role === 'gerente';
   const mysqlId   = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
   const nome1     = currentUser.name.split(' ')[0];
 
@@ -5283,6 +5289,7 @@ async function renderDashboard() {
   if (roleBadge) {
     if (isBDR)       { roleBadge.textContent = '👤 BDR';       roleBadge.className = 'badge badge-green'; }
     else if (isExec) { roleBadge.textContent = '💼 Executivo'; roleBadge.className = 'badge badge-blue'; }
+    else if (currentUser.role === 'gerente') { roleBadge.textContent = '📋 Gerente'; roleBadge.className = 'badge badge-blue'; }
     else             { roleBadge.textContent = '👑 Admin';      roleBadge.className = 'badge badge-gold'; }
   }
 
@@ -5488,7 +5495,7 @@ async function renderChart() {
 
   const isBDR  = currentUser.role === 'agendamento';
   const isExec = currentUser.role === 'vendas';
-  const isAdmin = currentUser.role === 'admin';
+  const isAdmin = currentUser.role === 'admin' || currentUser.role === 'gerente';
   const mysqlId = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
   const nome1   = currentUser.name.split(' ')[0];
   const agendLabel = isExec ? 'Reuniões Realizadas' : 'Agendamentos';
@@ -5594,7 +5601,7 @@ async function renderPerfChart() {
 
   const isBDR   = currentUser.role === 'agendamento';
   const isExec  = currentUser.role === 'vendas';
-  const isAdmin = currentUser.role === 'admin';
+  const isAdmin = currentUser.role === 'admin' || currentUser.role === 'gerente';
   const mysqlId = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
   const nome1   = currentUser.name.split(' ')[0];
   const ano     = new Date().getFullYear();
@@ -6072,6 +6079,7 @@ function renderPrices() {
   }
 
   const isAdmin = currentUser?.role === 'admin';
+  const isGerente = currentUser?.role === 'gerente';
   const cats    = [...new Set(allProdutos.map(p => p.categoria))];
   const wrap    = document.getElementById('price-categorias');
   if (!wrap) return;
