@@ -5450,8 +5450,6 @@ async function renderDashboard() {
   // todos já exclui Cancelada (filtrado na query com .not)
   if (agTotal) agTotal.textContent = todos.length;
   const listaAg = todos.slice(0, 50);
-  // Renderiza via função de filtro (reutilizada no onchange do select)
-  filtrarListasDash();
 
   // ── Lista Vendas ──────────────────────────────────────────
   const vTotal  = document.getElementById('dash-venda-total');
@@ -5472,16 +5470,10 @@ async function renderDashboard() {
 
   window._dashVendasFinal = vendasFinal;
 
-  // Popula selects
-  populateSelect('dash-ag-mes', todos);
-  populateSelect('dash-venda-mes', vendasFinal);
-
-  window._dashVendasFinal = vendasFinal;
-
-  // Popula selects de mês
-  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const hoje2 = new Date();
-  const mesAtualStr = `${hoje2.getFullYear()}-${String(hoje2.getMonth()+1).padStart(2,'0')}`;
+  // Popula selects de mês com dados do histórico (garantido ter meses)
+  populateMonthSelect('dash-ag-mes',    window._dashHist || window._dashTodos || []);
+  populateMonthSelect('dash-venda-mes', window._dashHist || window._dashTodos || []);
+  filtrarListasDash();
 
   // Lista de vendas e total renderizados por filtrarListasDash()
 }
@@ -5627,10 +5619,6 @@ async function renderChart() {
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray3)"><div style="width:12px;height:12px;border-radius:3px;background:#10b981"></div>MRR Acumulado</div>`;
 
   // Gráfico removido — apenas cards de resumo
-  // Popula selects de mês com dados já carregados
-  populateMonthSelect('dash-ag-mes', window._dashHist || window._dashTodos || []);
-  populateMonthSelect('dash-venda-mes', window._dashVendasFinal || []);
-  filtrarListasDash();
 
   // Gráfico de performance anual
   renderPerfChart();
