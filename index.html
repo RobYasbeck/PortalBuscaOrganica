@@ -5392,16 +5392,38 @@ async function renderDashboard() {
   // ── KPIs ─────────────────────────────────────────────────
   const kpiEl = document.getElementById('dash-kpis');
   if (kpiEl) {
-    const tR = todos.filter(e => e.status_nome === 'Realizada').length;
-    const tN = todos.filter(e => e.status_nome === 'Em negociação').length;
-    const tV = vendas.length;
-    const tA = todos.length; // query já exclui Cancelada com .not()
+    const tR    = todos.filter(e => e.status_nome === 'Realizada').length;
+    const tN    = todos.filter(e => e.status_nome === 'Em negociação').length;
+    const tV    = vendas.length;
+    const tA    = todos.length; // query já exclui Cancelada com .not()
+
+    // Busca reagendados e compromissos do mês para exibir ao lado do número
+    const applyUserKpi = (q) => {
+      if (isAdmin) return q;
+      if (isBDR)   return mysqlId ? q.eq('criador_id', mysqlId) : q.ilike('acompanhante_nome', `%${nome1}%`);
+      if (isExec)  return mysqlId ? q.eq('representante_id', mysqlId) : q.ilike('representante_nome', `%${nome1}%`);
+      return q;
+    };
+    const [{ data: reagData }, { data: compData }] = await Promise.all([
+      applyUserKpi(sb.from('ext_agendamentos').select('id')
+        .eq('status_nome', 'Reagendada')
+        .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')),
+      sb.from('ext_agendamentos').select('id')
+        .is('responsavel', null)
+        .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59'),
+    ]);
+    const tReag = (reagData||[]).length;
+    const tComp = (compData||[]).length;
 
     kpiEl.innerHTML = `
       <div class="metric-card" style="border-top-color:#2563c2">
         <div class="label">Agendamentos</div>
         <div class="value" style="color:#2563c2">${tA}</div>
-        <div class="sub">${isAdmin?'equipe · ':''}este mês</div>
+        <div class="sub" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          ${tReag > 0 ? `<span style="color:#f59e0b;font-weight:600">+${tReag} reagendados</span>` : ''}
+          ${tComp > 0 ? `<span>+${tComp} reservas</span>` : ''}
+          ${tReag === 0 && tComp === 0 ? '&nbsp;' : ''}
+        </div>
       </div>
       <div class="metric-card" style="border-top-color:#3b82f6">
         <div class="label">Realizadas</div>
@@ -8363,7 +8385,7 @@ function autoSaveNota() {
 
 
 // ============================================================
-// VISÃO GERAL — TABELA COMPARATIVA 3 MESES
+// VISÃO GERAL — RANKING COM MÉDIA 3 MESES
 // ============================================================
 let geralFiltroAtivo = 'bdr';
 
@@ -8383,118 +8405,172 @@ async function renderAcompGeral(role) {
   tabelaEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Carregando...</div>';
 
   const hoje = new Date();
-  const anoAtual = hoje.getFullYear();
-  const mesAtual = hoje.getMonth();
   const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
+  // Últimos 3 meses
   const ultimos3 = [];
   for (let i = 2; i >= 0; i--) {
-    let m = mesAtual - i, y = anoAtual;
+    let m = hoje.getMonth() - i, y = hoje.getFullYear();
     if (m < 0) { m += 12; y--; }
-    ultimos3.push({ mes: m, ano: y, label: mesesNomes[m] + '/' + String(y).slice(2) });
-  }
-
-  const { data: users } = await sb.from('profiles')
-    .select('id, name, role, mysql_id, color, avatar_url')
-    .in('role', geralFiltroAtivo === 'bdr' ? ['agendamento'] : ['vendas','gerente'])
-    .eq('active', true).order('name');
-
-  if (!users || !users.length) {
-    tabelaEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Nenhum colaborador encontrado.</div>';
-    return;
+    ultimos3.push({ mes: m, ano: y, label: mesesNomes[m] });
   }
 
   const isBDR = geralFiltroAtivo === 'bdr';
+  const metrica = isBDR ? 'agendamentos' : 'mrr';
 
-  const getMesData = async (u, mes, ano) => {
-    const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
+  // Busca usuários
+  const { data: users } = await sb.from('profiles')
+    .select('id, name, role, mysql_id, color, avatar_url')
+    .in('role', isBDR ? ['agendamento'] : ['vendas','gerente'])
+    .eq('active', true).order('name');
+
+  if (!users?.length) {
+    tabelaEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Nenhum colaborador.</div>';
+    return;
+  }
+
+  // Busca dados de cada usuário nos 3 meses
+  const dadosUsers = await Promise.all(users.filter(u => u.mysql_id).map(async u => {
+    const mid   = parseInt(u.mysql_id);
     const nome1 = u.name.split(' ')[0];
-    const mStr  = String(mes+1).padStart(2,'0');
-    const ini   = ano + '-' + mStr + '-01';
-    const fim   = new Date(ano, mes+1, 0).toISOString().split('T')[0];
-    const applyU = (q) => isBDR
-      ? (mid ? q.eq('criador_id', mid) : q.ilike('acompanhante_nome', '%'+nome1+'%'))
-      : (mid ? q.eq('representante_id', mid) : q.ilike('representante_nome', '%'+nome1+'%'));
-    const applyS = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null');
-    const orF = 'created.lt.' + ini + 'T00:00:00,created.gt.' + fim + 'T23:59:59';
+    const vals  = [];
 
-    const [r1, r2, rR, rV] = await Promise.all([
-      applyU(applyS(sb.from('ext_agendamentos').select('id').gte('created',ini+'T00:00:00').lte('created',fim+'T23:59:59'))).limit(500),
-      applyU(applyS(sb.from('ext_agendamentos').select('id').gte('data',ini).lte('data',fim).or(orF))).limit(500),
-      applyU(sb.from('ext_agendamentos').select('id').eq('status_nome','Realizada').not('responsavel','is','null').gte('data',ini).lte('data',fim)).limit(500),
-      applyU(sb.from('ext_agendamentos').select('valor_fechado').eq('status_nome','Fechada').not('responsavel','is','null').gte('data',ini).lte('data',fim)).limit(500),
-    ]);
-    const agIds = new Set([...(r1.data||[]),...(r2.data||[])].map(r=>r.id));
-    return {
-      ag        : agIds.size,
-      realizadas: (rR.data||[]).length,
-      vendas    : (rV.data||[]).length,
-      mrr       : (rV.data||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0),
-    };
-  };
+    for (const { mes, ano } of ultimos3) {
+      const mStr = String(mes+1).padStart(2,'0');
+      const ini  = `${ano}-${mStr}-01`;
+      const fim  = new Date(ano, mes+1, 0).toISOString().split('T')[0];
+      const applyU = (q) => isBDR
+        ? (mid ? q.eq('criador_id', mid) : q.ilike('acompanhante_nome','%'+nome1+'%'))
+        : (mid ? q.eq('representante_id', mid) : q.ilike('representante_nome','%'+nome1+'%'));
+      const applyS = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null');
+      const orF = 'created.lt.'+ini+'T00:00:00,created.gt.'+fim+'T23:59:59';
 
-  // Busca todos os dados em paralelo por usuário (cada usuário faz 3 meses em paralelo)
-  const dadosUsers = await Promise.all(users.map(async u => {
-    const meses = await Promise.all(ultimos3.map(({mes,ano}) => getMesData(u, mes, ano)));
-    return { ...u, meses };
+      let val = 0;
+      if (isBDR) {
+        // Agendamentos: union
+        const [r1, r2] = await Promise.all([
+          applyU(applyS(sb.from('ext_agendamentos').select('id').gte('created',ini+'T00:00:00').lte('created',fim+'T23:59:59'))).limit(500),
+          applyU(applyS(sb.from('ext_agendamentos').select('id').gte('data',ini).lte('data',fim).or(orF))).limit(500),
+        ]);
+        const ids = new Set([...(r1.data||[]),...(r2.data||[])].map(r=>r.id));
+        val = ids.size;
+
+        // Realizadas BDR
+        const { data: rd } = await applyU(sb.from('ext_agendamentos').select('id')
+          .eq('status_nome','Realizada').not('responsavel','is','null').gte('data',ini).lte('data',fim));
+        const valReal = (rd||[]).length;
+
+        // MRR BDR
+        const { data: vd } = await applyU(sb.from('ext_agendamentos').select('valor_fechado')
+          .eq('status_nome','Fechada').not('responsavel','is','null').gte('data',ini).lte('data',fim));
+        const valMrr = (vd||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0);
+
+        vals.push({ ag: val, real: valReal, mrr: valMrr });
+      } else {
+        // MRR executivo
+        const { data: vd } = await applyU(sb.from('ext_agendamentos').select('valor_fechado')
+          .eq('status_nome','Fechada').not('responsavel','is','null').gte('data',ini).lte('data',fim));
+        val = (vd||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0);
+        vals.push(val);
+      }
+    }
+
+    const media = isBDR
+      ? vals.reduce((s,v)=>s+v.ag,0) / vals.length
+      : vals.reduce((s,v)=>s+v,0) / vals.length;
+    return { ...u, vals, media };
   }));
 
-  const seta = (cur, prev) => {
-    if (prev === 0 && cur === 0) return '<span style="color:#94a3b8;font-size:11px">—</span>';
-    if (prev === 0 || cur > prev) return '<span style="color:#10b981;font-size:13px">↑</span>';
-    if (cur < prev) return '<span style="color:#ef4444;font-size:13px">↓</span>';
+  // Ordena por média decrescente
+  dadosUsers.sort((a,b) => b.media - a.media);
+
+  // Renderiza
+  const fmtVal = (v) => isBDR
+    ? v
+    : (v > 0 ? 'R$'+(v/1000).toFixed(1)+'k' : '—');
+
+  const fmtMedia = (v) => isBDR
+    ? v.toFixed(1)
+    : (v > 0 ? 'R$'+(v/1000).toFixed(1)+'k' : '—');
+
+  // Calcula média do time no mês atual para comparação
+  const mesAtualIdx  = ultimos3[2];
+  const mAtStr  = String(mesAtualIdx.mes+1).padStart(2,'0');
+  const iniAt   = `${mesAtualIdx.ano}-${mAtStr}-01`;
+  const fimAt   = new Date(mesAtualIdx.ano, mesAtualIdx.mes+1, 0).toISOString().split('T')[0];
+
+  let totalTime = 0, countTime = 0;
+  for (const u of dadosUsers) {
+    totalTime += isBDR ? u.vals[2].ag : u.vals[2];
+    countTime++;
+  }
+  const mediaTime = countTime > 0 ? totalTime / countTime : 0;
+
+  const tendencia = (vals) => {
+    const atual = isBDR ? vals[2].ag : vals[2];
+    if (atual > mediaTime)  return '<span style="color:#10b981;font-size:13px;font-weight:700" title="Acima da média do time">↑</span>';
+    if (atual < mediaTime)  return '<span style="color:#ef4444;font-size:13px;font-weight:700" title="Abaixo da média do time">↓</span>';
     return '<span style="color:#94a3b8;font-size:13px">→</span>';
   };
 
-  const cv = (v, isMrr) => isMrr
-    ? (v > 0 ? 'R$'+(v/1000).toFixed(1)+'k' : '<span style="color:#94a3b8">—</span>')
-    : (v > 0 ? v : '<span style="color:#94a3b8">—</span>');
+  const thStyle = 'padding:9px 14px;text-align:center;font-size:11px;font-weight:700;color:var(--gray3);background:#f8fafc;border-bottom:2px solid var(--gray2);white-space:nowrap';
+  const thLeft  = 'padding:9px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray3);background:#f8fafc;border-bottom:2px solid var(--gray2);white-space:nowrap;min-width:160px';
+  const thAvg   = 'padding:9px 10px;text-align:center;font-size:11px;font-weight:700;color:var(--blue2);background:#e8eeff;border-bottom:2px solid var(--blue2);white-space:nowrap';
+  const thSub   = 'padding:5px 10px;text-align:center;font-size:10px;font-weight:700;color:var(--gray3);background:#f8fafc;border-bottom:2px solid var(--gray2);white-space:nowrap';
 
-  // Cores de fundo por mês (alternadas para separar visualmente)
-  const mesBg = ['#f8fafc', '#f1f5f9', '#eff6ff']; // m0=branco, m1=cinza, m2=azul claro
-
-  const th2 = (label, isAtual) =>
-    '<th colspan="4" style="padding:8px 12px;text-align:center;font-size:12px;font-weight:700;border-bottom:2px solid ' +
-    (isAtual?'var(--blue2)':'var(--gray2)') + ';background:' + (isAtual?'#eff6ff':isAtual===false?'#f1f5f9':'#f8fafc') +
-    ';color:' + (isAtual?'var(--blue2)':'#64748b') + ';white-space:nowrap">' + label + (isAtual?' ← atual':'') + '</th>';
-
-  const subTh = (label, bg2) =>
-    '<th style="padding:5px 8px;text-align:center;font-size:10.5px;font-weight:700;color:var(--gray3);background:'+bg2+';white-space:nowrap;border-bottom:2px solid var(--gray2)">' + label + '</th>';
-
-  const rows = dadosUsers.map((u, ui) => {
-    const [m0, m1, m2] = u.meses;
-    const cor = u.color || '#3b82f6';
-    const av  = u.avatar_url
+  const rows = dadosUsers.map((u, idx) => {
+    const cor    = u.color || '#3b82f6';
+    const av     = u.avatar_url
       ? '<img src="'+u.avatar_url+'" style="width:28px;height:28px;border-radius:50%;object-fit:cover">'
       : '<div style="width:28px;height:28px;border-radius:50%;background:'+cor+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0">'+u.name.charAt(0)+'</div>';
-    const bg = ui%2===0?'':'background:#f8fafc;';
-    const td  = (v, isMrr, bg2) => '<td style="padding:7px 10px;text-align:center;white-space:nowrap;background:'+bg2+';'+bg+'">' + cv(v,isMrr) + '</td>';
-    const tds = (v, prev, isMrr, bg2) => '<td style="padding:7px 10px;text-align:center;font-weight:700;white-space:nowrap;background:'+bg2+';'+bg+'">' + cv(v,isMrr) + ' ' + seta(v,prev) + '</td>';
-    return '<tr style="border-bottom:1px solid var(--gray2)">' +
-      '<td style="padding:7px 12px;white-space:nowrap;'+bg+'"><div style="display:flex;align-items:center;gap:8px">'+av+'<span style="font-weight:700;font-size:13px">'+u.name.split(' ').slice(0,2).join(' ')+'</span></div></td>' +
-      td(m0.ag,false,mesBg[0])+td(m0.realizadas,false,mesBg[0])+td(m0.vendas,false,mesBg[0])+td(m0.mrr,true,mesBg[0]) +
-      tds(m1.ag,m0.ag,false,mesBg[1])+tds(m1.realizadas,m0.realizadas,false,mesBg[1])+tds(m1.vendas,m0.vendas,false,mesBg[1])+tds(m1.mrr,m0.mrr,true,mesBg[1]) +
-      tds(m2.ag,m1.ag,false,mesBg[2])+tds(m2.realizadas,m1.realizadas,false,mesBg[2])+tds(m2.vendas,m1.vendas,false,mesBg[2])+tds(m2.mrr,m1.mrr,true,mesBg[2]) +
-      '</tr>';
-  }).join('');
+    const bg     = idx%2===0 ? '' : 'background:#f8fafc;';
+    const bgAvg  = idx%2===0 ? 'background:#f0f4ff;' : 'background:#e8eeff;';
+    const medalha = idx===0 ? '🥇' : idx===1 ? '🥈' : idx===2 ? '🥉' : '';
+    const nameTd = '<td style="padding:8px 14px;'+bg+'"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;min-width:20px">'+medalha+'</span>'+av+'<span style="font-weight:700;font-size:13px;color:var(--black)">'+u.name.split(' ').slice(0,2).join(' ')+'</span></div></td>';
 
-  tabelaEl.innerHTML =
-    '<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:680px">' +
-    '<thead>' +
-    '<tr>' +
-      '<th style="padding:8px 12px;text-align:left;font-size:12px;font-weight:700;color:var(--gray3);border-bottom:2px solid var(--gray2);background:#f8fafc;min-width:150px">COLABORADOR</th>' +
-      th2(ultimos3[0].label, null) +
-      th2(ultimos3[1].label, null) +
-      th2(ultimos3[2].label, true) +
-    '</tr>' +
-    '<tr>' +
-      '<th style="background:#f8fafc;border-bottom:2px solid var(--gray2)"></th>' +
-      subTh('Ag.',mesBg[0])+subTh('Real.',mesBg[0])+subTh('Vend.',mesBg[0])+subTh('MRR',mesBg[0]) +
-      subTh('Ag. ↕',mesBg[1])+subTh('Real. ↕',mesBg[1])+subTh('Vend. ↕',mesBg[1])+subTh('MRR ↕',mesBg[1]) +
-      subTh('Ag. ↕',mesBg[2])+subTh('Real. ↕',mesBg[2])+subTh('Vend. ↕',mesBg[2])+subTh('MRR ↕',mesBg[2]) +
-    '</tr>' +
-    '</thead><tbody>' + rows + '</tbody></table>';
+    if (isBDR) {
+      const agAvg   = u.vals.reduce((s,v)=>s+v.ag,0)/3;
+      const realAvg = u.vals.reduce((s,v)=>s+v.real,0)/3;
+      const mrrAvg  = u.vals.reduce((s,v)=>s+v.mrr,0)/3;
+      const tAg   = u.vals[2].ag   > mediaTime ? '<span style="color:#10b981;font-weight:700">↑</span>' : u.vals[2].ag   < mediaTime ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
+      const tReal = u.vals[2].real > (dadosUsers.reduce((s,x)=>s+x.vals[2].real,0)/dadosUsers.length) ? '<span style="color:#10b981;font-weight:700">↑</span>' : u.vals[2].real < (dadosUsers.reduce((s,x)=>s+x.vals[2].real,0)/dadosUsers.length) ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
+      const tMrr  = u.vals[2].mrr  > (dadosUsers.reduce((s,x)=>s+x.vals[2].mrr,0)/dadosUsers.length)  ? '<span style="color:#10b981;font-weight:700">↑</span>' : u.vals[2].mrr  < (dadosUsers.reduce((s,x)=>s+x.vals[2].mrr,0)/dadosUsers.length)  ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
+      return { nameTd, bg, bgAvg, ag: u.vals.map(v=>v.ag), real: u.vals.map(v=>v.real), mrr: u.vals.map(v=>v.mrr), agAvg, realAvg, mrrAvg, tAg, tReal, tMrr };
+    } else {
+      const tMrr = u.vals[2] > mediaTime ? '<span style="color:#10b981;font-weight:700">↑</span>' : u.vals[2] < mediaTime ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
+      return { nameTd, bg, bgAvg, vals: u.vals, media: u.media, tMrr };
+    }
+  });
+
+  const label = isBDR ? 'Agendamentos' : 'MRR';
+  const mesLabels = ultimos3.map((m,i) => '<th style="'+thStyle+(i===2?';color:var(--blue2);border-bottom-color:var(--blue2)':'')+'">'+m.label+(i===2?' ←':'')+'</th>').join('');
+  const thAvgSingle = '<th style="'+thAvg+'">Média ↕</th>';
+
+  const buildTable = (titulo, rowsFn, colspan) => {
+    const tbody = rows.map(rowsFn).join('');
+    return '<div style="margin-bottom:1.2rem">'+
+      '<div style="font-size:11.5px;font-weight:700;color:var(--gray3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+titulo+'</div>'+
+      '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+      '<thead><tr><th style="'+thLeft+'">Colaborador</th>'+mesLabels+thAvgSingle+'</tr></thead>'+
+      '<tbody>'+tbody+'</tbody></table></div>';
+  };
+
+  let html;
+  if (isBDR) {
+    const tAg   = buildTable('Agendamentos', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.ag.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+v+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+r.agAvg.toFixed(1)+' '+r.tAg+'</td></tr>');
+    const tReal = buildTable('Reuniões Realizadas', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.real.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+v+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+r.realAvg.toFixed(1)+' '+r.tReal+'</td></tr>');
+    const tMrrT = buildTable('MRR Gerado', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.mrr.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+(v>0?'R$'+(v/1000).toFixed(1)+'k':'—')+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+(r.mrrAvg>0?'R$'+(r.mrrAvg/1000).toFixed(1)+'k':'—')+' '+r.tMrr+'</td></tr>');
+    html = tAg + tReal + tMrrT;
+  } else {
+    html = buildTable('MRR Fechado', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.vals.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+(v>0?'R$'+(v/1000).toFixed(1)+'k':'—')+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+(r.media>0?'R$'+(r.media/1000).toFixed(1)+'k':'—')+' '+r.tMrr+'</td></tr>');
+  }
+
+  tabelaEl.innerHTML = html +
+    '<div style="font-size:11.5px;color:var(--gray3);margin-top:4px;text-align:right">Ordenado por média (Ag.) 3 meses · ↑↓ = mês atual vs média do time</div>';
 }
+
+
+
 
 
 // ============================================================
