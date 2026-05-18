@@ -619,6 +619,11 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
 .slot-horario:hover:not(.ocupado-slot){ border-color:var(--blue3);color:var(--blue3);background:var(--blue-light) }
 .slot-horario.selecionado{ background:var(--blue3);color:white;border-color:var(--blue3) }
 .slot-horario.ocupado-slot{ background:var(--gray2);color:var(--gray3);cursor:not-allowed;border-color:var(--gray2) }
+
+  .mad-tab { padding:6px 14px;border:1.5px solid var(--gray2);border-radius:7px;background:none;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:12.5px;color:var(--gray3);cursor:pointer;transition:all .15s; }
+  .mad-tab.active { background:var(--blue2);border-color:var(--blue2);color:#fff; }
+  .mad-tab:hover:not(.active) { border-color:var(--blue2);color:var(--blue2); }
+  .mad-th { padding:10px 12px;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:11.5px;color:var(--gray3);white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -5358,7 +5363,8 @@ async function renderDashboard() {
 
   const baseFilter = (q) => q
     .not('status_nome', 'eq', 'Cancelada')
-    .not('status_nome', 'eq', 'Reagendada');
+    .not('status_nome', 'eq', 'Reagendada')
+    .not('responsavel', 'is', 'null');
 
   // AGENDAMENTOS: union de criados em maio + data em maio
   const [{ data: ag1 }, { data: ag2 }] = await Promise.all([
@@ -5431,7 +5437,8 @@ async function renderDashboard() {
     };
     const applyStatusHist = (q) => q
       .not('status_nome', 'eq', 'Cancelada')
-      .not('status_nome', 'eq', 'Reagendada');
+    .not('status_nome', 'eq', 'Reagendada')
+    .not('responsavel', 'is', 'null');
     const selHist = 'id, data, hora, empresa, responsavel, status_nome, valor_fechado, online, representante_nome, acompanhante_nome, criador_id, representante_id, created';
 
     // Union por mês desde Janeiro
@@ -5472,7 +5479,7 @@ async function renderDashboard() {
   if (isBDR) {
     if (vTitulo) vTitulo.textContent = '💰 Vendas via Seus Agendamentos';
     let vq = sb.from('ext_agendamentos').select('*')
-      .eq('status_nome','Fechada').gte('data',inicioMes).lte('data',fimMes)
+      .eq('status_nome','Fechada').not('responsavel','is','null').gte('data',inicioMes).lte('data',fimMes)
       .order('data',{ascending:false}).limit(100);
     if (mysqlId) vq = vq.eq('criador_id', mysqlId);
     else vq = vq.ilike('acompanhante_nome', `%${nome1}%`);
@@ -5558,7 +5565,8 @@ async function renderChart() {
   };
   const applyStatus = (q) => q
     .not('status_nome', 'eq', 'Cancelada')
-    .not('status_nome', 'eq', 'Reagendada');
+    .not('status_nome', 'eq', 'Reagendada')
+    .not('responsavel', 'is', 'null');
 
   // AGENDAMENTOS: union criados no período + data no período
   const sel = 'id, data, status_nome, valor_fechado, criador_id, representante_id, created';
@@ -5715,7 +5723,7 @@ async function filtrarListasDash() {
     const fimV = new Date(yV, mV, 0).toISOString().split('T')[0];
     let qV = sb.from('ext_agendamentos')
       .select('id, data, hora, empresa, responsavel, valor_fechado, representante_nome, acompanhante_nome, online')
-      .eq('status_nome', 'Fechada').gte('data', iniV).lte('data', fimV)
+      .eq('status_nome', 'Fechada').not('responsavel','is','null').gte('data', iniV).lte('data', fimV)
       .order('data', {ascending:false}).limit(200);
     if (!isAdmin) {
       if (isBDR2)  qV = mysqlId2 ? qV.eq('criador_id', mysqlId2)       : qV.ilike('acompanhante_nome', `%${nome12}%`);
@@ -5801,11 +5809,11 @@ async function renderPerfChart() {
       const [{ data: a1 }, { data: a2 }] = await Promise.all([
         sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
           .gte('created', inicioM+'T00:00:00').lte('created', fimM+'T23:59:59')
-          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').limit(500),
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null').limit(500),
         sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
           .gte('data', inicioM).lte('data', fimM)
           .or(`created.lt.${inicioM}T00:00:00,created.gt.${fimM}T23:59:59`)
-          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').limit(500),
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null').limit(500),
       ]);
       const mapaM = new Map();
       [...(a1||[]),...(a2||[])].forEach(r => mapaM.set(r.id, r));
@@ -5843,7 +5851,8 @@ async function renderPerfChart() {
       .select('data, status_nome, valor_fechado')
       .gte('data', inicio).lte('data', fim)
       .not('status_nome', 'eq', 'Cancelada')
-      .not('status_nome', 'eq', 'Reagendada');
+    .not('status_nome', 'eq', 'Reagendada')
+    .not('responsavel', 'is', 'null');
     if (mysqlId) q = q.eq('criador_id', mysqlId);
     else q = q.ilike('acompanhante_nome', `%${nome1}%`);
 
@@ -5854,7 +5863,7 @@ async function renderPerfChart() {
       const inicioM = `${ano}-${mStr}-01`;
       const fimM   = new Date(ano, m+1, 0).toISOString().split('T')[0];
       const applyU = (q2) => mysqlId ? q2.eq('criador_id', mysqlId) : q2.ilike('acompanhante_nome', `%${nome1}%`);
-      const applyS = (q2) => q2.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
+      const applyS = (q2) => q2.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null');
       const [{ data: a1 }, { data: a2 }] = await Promise.all([
         applyU(applyS(sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
           .gte('created', inicioM+'T00:00:00').lte('created', fimM+'T23:59:59'))).limit(500),
@@ -6024,9 +6033,15 @@ async function renderAcompanhamento() {
   }
 
   // Busca usuários ativos BDR e Exec
+  // Gerentes com mysql_id também entram como executivos
+  const rolesQuery = acompFiltroAtivo === 'exec'
+    ? ['vendas', 'gerente']
+    : acompFiltroAtivo === 'bdr'
+    ? ['agendamento']
+    : ['agendamento', 'vendas', 'gerente'];
   const { data: users } = await sb.from('profiles')
     .select('id, name, role, dept, mysql_id, avatar_url, color')
-    .in('role', ['agendamento', 'vendas'])
+    .in('role', rolesQuery)
     .eq('active', true)
     .order('name');
 
@@ -6036,16 +6051,16 @@ async function renderAcompanhamento() {
   const META_GERAL = metaData?.meta || 40000;
   const META_IND   = 12000;
 
-  // Filtra por tipo
-  let filteredUsers = users || [];
+  // Filtra por tipo — gerente entra como executivo
+  let filteredUsers = (users || []).filter(u => u.mysql_id); // só com mysql_id vinculado
   if (acompFiltroAtivo === 'bdr')  filteredUsers = filteredUsers.filter(u => u.role === 'agendamento');
-  if (acompFiltroAtivo === 'exec') filteredUsers = filteredUsers.filter(u => u.role === 'vendas');
+  if (acompFiltroAtivo === 'exec') filteredUsers = filteredUsers.filter(u => u.role === 'vendas' || u.role === 'gerente');
 
   // Busca dados de cada usuário em paralelo (union por mês)
   const results = await Promise.all(filteredUsers.map(async u => {
     const mid = u.mysql_id ? parseInt(u.mysql_id) : null;
     const nome1 = u.name.split(' ')[0];
-    const isBDR = u.role === 'agendamento';
+    const isBDR = u.role === 'agendamento'; // gerente tratado como exec
 
     // Agendamentos: union criados no mês + data no mês
     let agTotal = 0;
@@ -6054,12 +6069,12 @@ async function renderAcompanhamento() {
         sb.from('ext_agendamentos').select('id', {count:'exact',head:false})
           .eq('criador_id', mid)
           .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')
-          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada'),
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null'),
         sb.from('ext_agendamentos').select('id', {count:'exact',head:false})
           .eq('criador_id', mid)
           .gte('data', inicioMes).lte('data', fimMes)
           .or(`created.lt.${inicioMes}T00:00:00,created.gt.${fimMes}T23:59:59`)
-          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada'),
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null'),
       ]);
       const ids = new Set([...(a1||[]),...(a2||[])].map(r => r.id));
       agTotal = ids.size;
@@ -6068,18 +6083,18 @@ async function renderAcompanhamento() {
         sb.from('ext_agendamentos').select('id')
           .ilike('acompanhante_nome', `%${nome1}%`)
           .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')
-          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada'),
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null'),
         sb.from('ext_agendamentos').select('id')
           .ilike('acompanhante_nome', `%${nome1}%`)
           .gte('data', inicioMes).lte('data', fimMes)
           .or(`created.lt.${inicioMes}T00:00:00,created.gt.${fimMes}T23:59:59`)
-          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada'),
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null'),
       ]);
       const ids = new Set([...(a1||[]),...(a2||[])].map(r => r.id));
       agTotal = ids.size;
     } else if (!isBDR) {
       const applyExec = (q) => mid ? q.eq('representante_id', mid) : q.ilike('representante_nome', `%${nome1}%`);
-      const applyS2   = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
+      const applyS2   = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null');
       const [{ data: a1 }, { data: a2 }] = await Promise.all([
         applyExec(applyS2(sb.from('ext_agendamentos').select('id').gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59'))).limit(500),
         applyExec(applyS2(sb.from('ext_agendamentos').select('id').gte('data', inicioMes).lte('data', fimMes).or(`created.lt.${inicioMes}T00:00:00,created.gt.${fimMes}T23:59:59`))).limit(500),
@@ -6105,7 +6120,7 @@ async function renderAcompanhamento() {
     let realizadas = 0;
     {
       let qR = sb.from('ext_agendamentos').select('id')
-        .eq('status_nome','Realizada').gte('data', inicioMes).lte('data', fimMes);
+        .eq('status_nome','Realizada').not('responsavel','is','null').gte('data', inicioMes).lte('data', fimMes);
       if (isBDR)  qR = mid ? qR.eq('criador_id', mid)       : qR.ilike('acompanhante_nome', `%${nome1}%`);
       else        qR = mid ? qR.eq('representante_id', mid)  : qR.ilike('representante_nome', `%${nome1}%`);
       const { data: rd } = await qR;
@@ -6125,6 +6140,8 @@ async function renderAcompanhamento() {
     return;
   }
 
+  window._acompUsers = {};
+  results.forEach(u => { window._acompUsers[u.id] = u; });
   grid.innerHTML = results.map(u => {
     const isBDR  = u.role === 'agendamento';
     const pctMrr = META_IND > 0 ? Math.min(Math.round((u.mrr / META_IND) * 100), 100) : 0;
@@ -6134,12 +6151,12 @@ async function renderAcompanhamento() {
       : `<div style="width:44px;height:44px;border-radius:50%;background:${u.color||'#3b82f6'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff">${u.name.charAt(0)}</div>`;
 
     return `
-      <div class="card" style="border-top:3px solid ${u.color||'#3b82f6'}">
+      <div class="card" style="border-top:3px solid ${u.color||'#3b82f6'};cursor:pointer" onclick="abrirDetalheAcomp(window._acompUsers&&window._acompUsers['${u.id}'])">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem">
           ${avatar}
           <div style="flex:1;min-width:0">
             <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:15px;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.name}</div>
-            <div style="font-size:12px;color:var(--gray3)">${u.dept||''} · <span style="font-weight:700;color:${isBDR?'#065f46':'#1e40af'}">${isBDR?'BDR':'Executivo'}</span></div>
+            <div style="font-size:12px;color:var(--gray3)">${u.dept||''} · <span style="font-weight:700;color:${isBDR?'#065f46':u.role==='gerente'?'#6b21a8':'#1e40af'}">${isBDR?'BDR':u.role==='gerente'?'Ger./Exec.':'Executivo'}</span></div>
           </div>
           <div style="text-align:right">
             <div style="font-size:11px;color:var(--gray3);font-weight:600">META IND.</div>
@@ -8379,7 +8396,7 @@ async function renderAcompGeral(role) {
 
   const { data: users } = await sb.from('profiles')
     .select('id, name, role, mysql_id, color, avatar_url')
-    .eq('role', geralFiltroAtivo === 'bdr' ? 'agendamento' : 'vendas')
+    .in('role', geralFiltroAtivo === 'bdr' ? ['agendamento'] : ['vendas','gerente'])
     .eq('active', true).order('name');
 
   if (!users || !users.length) {
@@ -8398,14 +8415,14 @@ async function renderAcompGeral(role) {
     const applyU = (q) => isBDR
       ? (mid ? q.eq('criador_id', mid) : q.ilike('acompanhante_nome', '%'+nome1+'%'))
       : (mid ? q.eq('representante_id', mid) : q.ilike('representante_nome', '%'+nome1+'%'));
-    const applyS = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
+    const applyS = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null');
     const orF = 'created.lt.' + ini + 'T00:00:00,created.gt.' + fim + 'T23:59:59';
 
     const [r1, r2, rR, rV] = await Promise.all([
       applyU(applyS(sb.from('ext_agendamentos').select('id').gte('created',ini+'T00:00:00').lte('created',fim+'T23:59:59'))).limit(500),
       applyU(applyS(sb.from('ext_agendamentos').select('id').gte('data',ini).lte('data',fim).or(orF))).limit(500),
-      applyU(sb.from('ext_agendamentos').select('id').eq('status_nome','Realizada').gte('data',ini).lte('data',fim)).limit(500),
-      applyU(sb.from('ext_agendamentos').select('valor_fechado').eq('status_nome','Fechada').gte('data',ini).lte('data',fim)).limit(500),
+      applyU(sb.from('ext_agendamentos').select('id').eq('status_nome','Realizada').not('responsavel','is','null').gte('data',ini).lte('data',fim)).limit(500),
+      applyU(sb.from('ext_agendamentos').select('valor_fechado').eq('status_nome','Fechada').not('responsavel','is','null').gte('data',ini).lte('data',fim)).limit(500),
     ]);
     const agIds = new Set([...(r1.data||[]),...(r2.data||[])].map(r=>r.id));
     return {
@@ -8479,6 +8496,166 @@ async function renderAcompGeral(role) {
     '</thead><tbody>' + rows + '</tbody></table>';
 }
 
+
+// ============================================================
+// MODAL ACOMPANHAMENTO DETALHE
+// ============================================================
+let madDados = null;
+
+async function abrirDetalheAcomp(u) {
+  if (!u) return;
+  document.getElementById('modal-acomp-detalhe').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+
+  const cor = u.color || '#3b82f6';
+  const avatarEl = document.getElementById('mad-avatar');
+  if (u.avatar_url) {
+    avatarEl.innerHTML = '<img src="' + u.avatar_url + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover">';
+    avatarEl.style.background = 'none';
+  } else {
+    avatarEl.textContent = u.name.charAt(0);
+    avatarEl.style.background = cor;
+  }
+  document.getElementById('mad-nome').textContent  = u.name;
+  document.getElementById('mad-cargo').textContent = (u.dept || '') + ' · ' + (u.role === 'agendamento' ? 'BDR' : 'Executivo');
+  document.getElementById('mad-tabela').innerHTML  = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Carregando dados...</div>';
+  document.getElementById('mad-kpis').innerHTML    = '';
+
+  const mesSel = document.getElementById('acomp-mes')?.value || (() => {
+    const h = new Date(); return h.getFullYear() + '-' + String(h.getMonth()+1).padStart(2,'0');
+  })();
+  const parts = mesSel.split('-');
+  const anoS = parseInt(parts[0]), mesS = parseInt(parts[1]);
+  const inicioMes = anoS + '-' + String(mesS).padStart(2,'0') + '-01';
+  const fimMes    = new Date(anoS, mesS, 0).toISOString().split('T')[0];
+  const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
+  const nome1 = u.name.split(' ')[0];
+  const isBDR = u.role === 'agendamento';
+  const sel   = 'id, data, hora, empresa, responsavel, status_nome, valor_fechado, online, representante_nome, acompanhante_nome, criador_id, representante_id, created';
+
+  const applyU = function(q) {
+    if (isBDR) return mid ? q.eq('criador_id', mid)       : q.ilike('acompanhante_nome', '%'+nome1+'%');
+    else       return mid ? q.eq('representante_id', mid)  : q.ilike('representante_nome', '%'+nome1+'%');
+  };
+  const applyS = function(q) {
+    return q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null');
+  };
+
+  const orF = 'created.lt.' + inicioMes + 'T00:00:00,created.gt.' + fimMes + 'T23:59:59';
+  const [r1, r2] = await Promise.all([
+    applyU(applyS(sb.from('ext_agendamentos').select(sel)
+      .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')))
+      .order('data',{ascending:false}).limit(500),
+    applyU(applyS(sb.from('ext_agendamentos').select(sel)
+      .gte('data', inicioMes).lte('data', fimMes).or(orF)))
+      .order('data',{ascending:false}).limit(500),
+  ]);
+
+  const mapaAg = new Map();
+  [...(r1.data||[]),...(r2.data||[])].forEach(function(r){ mapaAg.set(r.id, r); });
+  const todos      = [...mapaAg.values()].sort(function(a,b){ return b.data.localeCompare(a.data); });
+  const realizadas = todos.filter(function(r){ return r.status_nome === 'Realizada'; });
+  const vendas     = todos.filter(function(r){ return r.status_nome === 'Fechada'; });
+  const mrrTotal   = vendas.reduce(function(s,r){ return s + Number(r.valor_fechado||0); }, 0);
+
+  madDados = { u, todos, realizadas, vendas };
+
+  const kpisEl = document.getElementById('mad-kpis');
+  kpisEl.style.gridTemplateColumns = isBDR ? '1fr 1fr 1fr 1fr' : '1fr 1fr';
+  kpisEl.innerHTML =
+    (isBDR ? '<div style="background:#eff6ff;border-radius:9px;padding:10px;text-align:center"><div style="font-size:10.5px;color:#1d4ed8;font-weight:700;letter-spacing:.4px">AGENDAMENTOS</div><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;font-size:26px;color:#1d4ed8">' + todos.length + '</div></div>' : '') +
+    (isBDR ? '<div style="background:#f0f9ff;border-radius:9px;padding:10px;text-align:center"><div style="font-size:10.5px;color:#0369a1;font-weight:700;letter-spacing:.4px">REALIZADAS</div><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;font-size:26px;color:#0369a1">' + realizadas.length + '</div></div>' : '') +
+    '<div style="background:#f0fdf4;border-radius:9px;padding:10px;text-align:center"><div style="font-size:10.5px;color:#065f46;font-weight:700;letter-spacing:.4px">VENDAS</div><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;font-size:26px;color:#065f46">' + vendas.length + '</div></div>' +
+    '<div style="background:#d1fae5;border-radius:9px;padding:10px;text-align:center"><div style="font-size:10.5px;color:#065f46;font-weight:700;letter-spacing:.4px">MRR TOTAL</div><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;font-size:22px;color:#065f46">R$ ' + mrrTotal.toLocaleString('pt-BR') + '</div></div>';
+
+  document.querySelectorAll('.mad-tab').forEach(function(t){
+    t.classList.toggle('active', t.dataset.tab === 'agendamentos');
+  });
+  renderMadTabela('agendamentos');
+}
+
+function fecharModalAcompDetalhe() {
+  document.getElementById('modal-acomp-detalhe').classList.add('hidden');
+  document.body.style.overflow = '';
+  madDados = null;
+}
+
+function switchMadTab(tab) {
+  document.querySelectorAll('.mad-tab').forEach(function(t){
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  renderMadTabela(tab);
+}
+
+function renderMadTabela(tab) {
+  if (!madDados) return;
+  const isBDR  = madDados.u.role === 'agendamento';
+  const rows   = tab === 'agendamentos' ? madDados.todos : tab === 'realizadas' ? madDados.realizadas : madDados.vendas;
+  const scor   = { 'Agendamento':'#f97316','Realizada':'#3b82f6','Em negociação':'#eab308','Fechada':'#10b981','Cancelada':'#ef4444','Reagendada':'#8b5cf6' };
+  const tabEl  = document.getElementById('mad-tabela');
+
+  if (!rows.length) {
+    tabEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Nenhum registro nesta categoria.</div>';
+    return;
+  }
+
+  let thExtra = '';
+  if (tab === 'agendamentos') thExtra += '<th class="mad-th">STATUS</th>';
+  if (tab !== 'agendamentos' && isBDR) thExtra += '<th class="mad-th">EXECUTIVO</th>';
+  if (tab === 'vendas') thExtra += '<th class="mad-th" style="text-align:right">MRR</th>';
+  thExtra += '<th class="mad-th" style="text-align:center">TIPO</th>';
+
+  const rowsHtml = rows.map(function(r, i) {
+    const cor = scor[r.status_nome] || '#94a3b8';
+    const mrr = Number(r.valor_fechado || 0);
+    const bg  = i % 2 === 0 ? '' : 'background:#f8fafc;';
+    let tdExtra = '';
+    if (tab === 'agendamentos') {
+      tdExtra = '<td style="padding:9px 12px"><span style="font-size:11px;font-weight:700;color:' + cor + ';background:' + cor + '20;padding:3px 8px;border-radius:5px;white-space:nowrap">' + (r.status_nome || '—') + '</span></td>';
+    } else if (isBDR) {
+      tdExtra = '<td style="padding:9px 12px;color:var(--gray3);font-size:12px">' + (r.representante_nome || '—') + '</td>';
+    }
+    if (tab === 'vendas') {
+      tdExtra += '<td style="padding:9px 12px;text-align:right;font-weight:800;color:#065f46">' + (mrr > 0 ? 'R$ ' + mrr.toLocaleString('pt-BR') : '—') + '</td>';
+    }
+    return '<tr style="border-bottom:1px solid var(--gray2);' + bg + '">' +
+      '<td style="padding:9px 12px;font-weight:600;color:var(--black);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (r.empresa || r.responsavel || '—') + '</td>' +
+      '<td style="padding:9px 12px;color:var(--gray3);white-space:nowrap">' + (r.data || '—') + '</td>' +
+      '<td style="padding:9px 12px;color:var(--gray3)">' + (r.hora ? r.hora.slice(0,5) : '—') + '</td>' +
+      tdExtra +
+      '<td style="padding:9px 12px;text-align:center">' + (r.online ? '💻' : '📍') + '</td>' +
+      '</tr>';
+  }).join('');
+
+  tabEl.innerHTML =
+    '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+    '<thead><tr style="background:#f8fafc;border-bottom:2px solid var(--gray2)">' +
+    '<th class="mad-th">EMPRESA</th><th class="mad-th">DATA</th><th class="mad-th">HORA</th>' +
+    thExtra + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+}
+
 </script>
+
+  <div id="modal-acomp-detalhe" class="modal-overlay hidden" onclick="if(event.target===this)fecharModalAcompDetalhe()">
+    <div class="modal-box" style="max-width:860px;width:95%;max-height:90vh;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div id="mad-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff"></div>
+          <div>
+            <div id="mad-nome" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:17px;color:var(--black)"></div>
+            <div id="mad-cargo" style="font-size:12px;color:var(--gray3)"></div>
+          </div>
+        </div>
+        <button onclick="fecharModalAcompDetalhe()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray3);padding:4px">&#x2715;</button>
+      </div>
+      <div id="mad-kpis" style="display:grid;gap:10px;margin-bottom:1.2rem;flex-shrink:0"></div>
+      <div style="display:flex;gap:6px;margin-bottom:1rem;flex-shrink:0;border-bottom:2px solid var(--gray2);padding-bottom:8px">
+        <button class="mad-tab active" data-tab="agendamentos" onclick="switchMadTab('agendamentos')">📋 Agendamentos</button>
+        <button class="mad-tab" data-tab="realizadas" onclick="switchMadTab('realizadas')">🔵 Realizadas</button>
+        <button class="mad-tab" data-tab="vendas" onclick="switchMadTab('vendas')">💰 Vendas</button>
+      </div>
+      <div id="mad-tabela" style="overflow-y:auto;flex:1"></div>
+    </div>
+  </div>
 </body>
 </html>
