@@ -1127,11 +1127,25 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
           <div style="display:flex;gap:6px">
             <button class="rf-btn active" id="acomp-btn-bdr" onclick="acompFiltro('bdr')">BDRs</button>
             <button class="rf-btn" id="acomp-btn-exec" onclick="acompFiltro('exec')">Executivos</button>
-            <button class="rf-btn" id="acomp-btn-todos" onclick="acompFiltro('todos')">Todos</button>
+            <button class="rf-btn" id="acomp-btn-geral" onclick="acompFiltro('geral')">📊 Visão Geral</button>
           </div>
         </div>
       </div>
       <div id="acomp-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.2rem"></div>
+      <div id="acomp-geral" class="hidden">
+        <div class="card" style="margin-bottom:1.2rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+            <div class="card-title" style="margin:0" id="acomp-geral-titulo">📈 Agendamentos por BDR — 2026</div>
+            <div style="display:flex;gap:6px">
+              <button class="rf-btn active" id="geral-btn-bdr"  onclick="geralMetrica('bdr-ag')">Ag. BDR</button>
+              <button class="rf-btn" id="geral-btn-exec" onclick="geralMetrica('exec-mrr')">MRR Exec.</button>
+              <button class="rf-btn" id="geral-btn-mrr"  onclick="geralMetrica('bdr-mrr')">MRR BDR</button>
+            </div>
+          </div>
+          <canvas id="acomp-geral-chart" height="100"></canvas>
+          <div id="acomp-geral-legend" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;justify-content:center"></div>
+        </div>
+      </div>
     </div>
 
     <!-- ===== ADMIN ===== -->
@@ -5982,11 +5996,15 @@ let acompFiltroAtivo = 'todos';
 
 function acompFiltro(tipo) {
   acompFiltroAtivo = tipo;
-  ['bdr','exec','todos'].forEach(t => {
-    const btn = document.getElementById(`acomp-btn-${t}`);
+  ['bdr','exec','geral'].forEach(t => {
+    const btn = document.getElementById('acomp-btn-' + t);
     if (btn) btn.classList.toggle('active', t === tipo);
   });
-  renderAcompanhamento();
+  const isGeral = tipo === 'geral';
+  document.getElementById('acomp-grid').classList.toggle('hidden', isGeral);
+  document.getElementById('acomp-geral').classList.toggle('hidden', !isGeral);
+  if (isGeral) renderAcompGeral('bdr-ag');
+  else renderAcompanhamento();
 }
 
 async function renderAcompanhamento() {
@@ -6162,6 +6180,157 @@ async function renderAcompanhamento() {
         </div>
       </div>`;
   }).join('');
+}
+
+
+// ============================================================
+// VISÃO GERAL — GRÁFICO POR PESSOA MÊS A MÊS
+// ============================================================
+let geralChart = null;
+let geralMetricaAtiva = 'bdr-ag';
+
+function geralMetrica(tipo) {
+  geralMetricaAtiva = tipo;
+  const btns = { 'bdr-ag':'geral-btn-bdr', 'exec-mrr':'geral-btn-exec', 'bdr-mrr':'geral-btn-mrr' };
+  Object.entries(btns).forEach(([k,id]) => {
+    const b = document.getElementById(id);
+    if (b) b.classList.toggle('active', k === tipo);
+  });
+  renderAcompGeral(tipo);
+}
+
+async function renderAcompGeral(metrica) {
+  geralMetricaAtiva = metrica || geralMetricaAtiva;
+  const canvas = document.getElementById('acomp-geral-chart');
+  const legendEl = document.getElementById('acomp-geral-legend');
+  const tituloEl = document.getElementById('acomp-geral-titulo');
+  if (!canvas) return;
+
+  // Mês selecionado no select (até qual mês mostrar)
+  const mesSelect = document.getElementById('acomp-mes');
+  const hoje = new Date();
+  const mesAtualIdx = hoje.getMonth(); // 0=Jan ... 4=Mai
+  const anoAtual = hoje.getFullYear();
+  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const labels = mesesNomes.slice(0, mesAtualIdx + 1);
+
+  const isBDR  = geralMetricaAtiva === 'bdr-ag' || geralMetricaAtiva === 'bdr-mrr';
+  const isMRR  = geralMetricaAtiva === 'bdr-mrr' || geralMetricaAtiva === 'exec-mrr';
+
+  // Títulos
+  const tituloMap = {
+    'bdr-ag'  : '📈 Agendamentos por BDR — ' + anoAtual,
+    'bdr-mrr' : '💰 MRR Gerado por BDR — ' + anoAtual,
+    'exec-mrr': '💰 MRR Fechado por Executivo — ' + anoAtual,
+  };
+  if (tituloEl) tituloEl.textContent = tituloMap[geralMetricaAtiva];
+
+  // Busca usuários
+  const roleFilter = isBDR ? 'agendamento' : 'vendas';
+  const { data: users } = await sb.from('profiles')
+    .select('id, name, role, mysql_id, color')
+    .eq('role', roleFilter).eq('active', true).order('name');
+  
+  if (!users?.length) { canvas.style.display='none'; return; }
+  canvas.style.display = '';
+
+  // Paleta de cores
+  const palette = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#0d2b5e','#06b6d4','#f97316','#84cc16','#ec4899'];
+
+  // Busca dados por pessoa por mês (union para agendamentos)
+  const datasets = await Promise.all(users.map(async (u, ui) => {
+    const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
+    const nome1 = u.name.split(' ')[0];
+    const cor   = u.color || palette[ui % palette.length];
+    const vals  = [];
+
+    for (let m = 0; m <= mesAtualIdx; m++) {
+      const mStr   = String(m+1).padStart(2,'0');
+      const inicioM = `${anoAtual}-${mStr}-01`;
+      const fimM    = new Date(anoAtual, m+1, 0).toISOString().split('T')[0];
+
+      let val = 0;
+      if (geralMetricaAtiva === 'bdr-ag') {
+        // Union: criados no mês + data no mês
+        const applyU = (q) => mid ? q.eq('criador_id', mid) : q.ilike('acompanhante_nome', '%'+nome1+'%');
+        const applyS = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
+        const [r1, r2] = await Promise.all([
+          applyU(applyS(sb.from('ext_agendamentos').select('id')
+            .gte('created', inicioM+'T00:00:00').lte('created', fimM+'T23:59:59'))).limit(500),
+          applyU(applyS(sb.from('ext_agendamentos').select('id')
+            .gte('data', inicioM).lte('data', fimM)
+            .or('created.lt.'+inicioM+'T00:00:00,created.gt.'+fimM+'T23:59:59'))).limit(500),
+        ]);
+        const ids = new Set([...(r1.data||[]),...(r2.data||[])].map(r=>r.id));
+        val = ids.size;
+      } else {
+        // MRR: por data do fechamento
+        let q = sb.from('ext_agendamentos').select('valor_fechado')
+          .eq('status_nome','Fechada')
+          .gte('data', inicioM).lte('data', fimM);
+        if (geralMetricaAtiva === 'bdr-mrr')  q = mid ? q.eq('criador_id', mid) : q.ilike('acompanhante_nome','%'+nome1+'%');
+        if (geralMetricaAtiva === 'exec-mrr') q = mid ? q.eq('representante_id', mid) : q.ilike('representante_nome','%'+nome1+'%');
+        const { data: vd } = await q;
+        val = (vd||[]).reduce((s,r) => s + Number(r.valor_fechado||0), 0);
+      }
+      vals.push(val);
+    }
+
+    return {
+      label: u.name.split(' ').slice(0,2).join(' '),
+      data: vals,
+      borderColor: cor,
+      backgroundColor: cor + '20',
+      tension: 0.3,
+      fill: false,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      borderWidth: 2,
+      _cor: cor,
+    };
+  }));
+
+  // Legenda
+  if (legendEl) {
+    legendEl.innerHTML = datasets.map(d =>
+      '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--black);font-weight:600">' +
+      '<div style="width:24px;height:3px;border-radius:2px;background:' + d._cor + '"></div>' +
+      d.label + '</div>'
+    ).join('');
+  }
+
+  // Renderiza
+  if (geralChart) { geralChart.destroy(); geralChart = null; }
+  geralChart = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.raw;
+              return ' ' + ctx.dataset.label + ': ' + (isMRR ? 'R$ ' + Number(v).toLocaleString('pt-BR') : v);
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,0.05)' },
+          ticks: {
+            font: { size: 11 },
+            callback: v => isMRR ? 'R$' + (v/1000).toFixed(0) + 'k' : v
+          }
+        },
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
 }
 
 // ============================================================
