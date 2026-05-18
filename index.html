@@ -5462,8 +5462,6 @@ async function renderDashboard() {
   // todos já exclui Cancelada (filtrado na query com .not)
   if (agTotal) agTotal.textContent = todos.length;
   const listaAg = todos.slice(0, 50);
-  // Renderiza via função de filtro (reutilizada no onchange do select)
-  filtrarListasDash();
 
   // ── Lista Vendas ──────────────────────────────────────────
   const vTotal  = document.getElementById('dash-venda-total');
@@ -5483,19 +5481,15 @@ async function renderDashboard() {
   }
 
   window._dashVendasFinal = vendasFinal;
+  if (vTotal) vTotal.textContent = vendasFinal.length;
 
-  // Popula selects
-  populateSelect('dash-ag-mes', todos);
-  populateSelect('dash-venda-mes', vendasFinal);
+  // Popula selects e renderiza listas — após todos os dados estarem prontos
+  populateMonthSelect('dash-ag-mes');
+  populateMonthSelect('dash-venda-mes');
+  filtrarListasDash();
 
-  window._dashVendasFinal = vendasFinal;
-
-  // Popula selects de mês
-  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const hoje2 = new Date();
-  const mesAtualStr = `${hoje2.getFullYear()}-${String(hoje2.getMonth()+1).padStart(2,'0')}`;
-
-  // Lista de vendas e total renderizados por filtrarListasDash()
+  // Gráfico de performance anual
+  renderPerfChart();
 }
 
 // Converte Date para string YYYY-MM-DD usada em inputs date
@@ -5639,51 +5633,45 @@ async function renderChart() {
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray3)"><div style="width:12px;height:12px;border-radius:3px;background:#10b981"></div>MRR Acumulado</div>`;
 
   // Gráfico removido — apenas cards de resumo
-  // Popula selects de mês com dados já carregados
-  populateMonthSelect('dash-ag-mes', window._dashHist || window._dashTodos || []);
-  populateMonthSelect('dash-venda-mes', window._dashVendasFinal || []);
-  filtrarListasDash();
-
-  // Gráfico de performance anual
-  renderPerfChart();
-
 }
 
 
 // ============================================================
 // FILTRO POR MÊS NAS LISTAS DO DASHBOARD
 
-function populateMonthSelect(id, data) {
+function populateMonthSelect(id) {
   const sel = document.getElementById(id);
-  if (!sel) return;
+  if (!sel || sel.options.length > 0) return; // já populado
   const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const hoje = new Date();
-  const mesAtualStr = `${hoje.getFullYear()}-${String(hoje.getMonth()+1).padStart(2,'0')}`;
-  // Usa campo 'data' (data do agendamento) para os meses do select
-  const mesesDisp = [...new Set(
-    data.map(r => (r.data||'').substring(0,7)).filter(m => m.length === 7)
-  )].sort().reverse();
-  sel.innerHTML = mesesDisp.map(m => {
-    const [y, mo] = m.split('-');
-    return `<option value="${m}" ${m===mesAtualStr?'selected':''}>${mesesNomes[parseInt(mo)-1]} ${y}</option>`;
-  }).join('');
+  const anoAtual = hoje.getFullYear();
+  const mesAtual = hoje.getMonth(); // 0-based
+  const mesAtualStr = `${anoAtual}-${String(mesAtual+1).padStart(2,'0')}`;
+  // Gera todos os meses desde Janeiro até o mês atual
+  const opts = [];
+  for (let m = 0; m <= mesAtual; m++) {
+    const key = `${anoAtual}-${String(m+1).padStart(2,'0')}`;
+    opts.push(`<option value="${key}" ${key===mesAtualStr?'selected':''}>${mesesNomes[m]} ${anoAtual}</option>`);
+  }
+  sel.innerHTML = opts.reverse().join(''); // mais recente primeiro
 }
 // ============================================================
-function filtrarListasDash() {
+async function filtrarListasDash() {
   const mesSel   = document.getElementById('dash-ag-mes')?.value;
   const vendaSel = document.getElementById('dash-venda-mes')?.value;
   const todos    = window._dashHist || window._dashTodos || [];
-  const vendas   = window._dashVendasFinal || [];
   const isAdmin  = currentUser?.role === 'admin' || currentUser?.role === 'gerente';
+  const isBDR2   = currentUser?.role === 'agendamento';
+  const isExec2  = currentUser?.role === 'vendas';
+  const mysqlId2 = currentUser?.mysql_id ? parseInt(currentUser.mysql_id) : null;
+  const nome12   = currentUser?.name?.split(' ')[0] || '';
 
   const statusCor   = { 'Agendamento':'#f97316','Realizada':'#3b82f6','Em negociação':'#eab308','Fechada':'#10b981','Cancelada':'#ef4444','Reagendada':'#8b5cf6' };
   const statusLabel = { 'Agendamento':'🟠 Agendado','Realizada':'🔵 Realizada','Em negociação':'🟡 Negociação','Fechada':'🟢 Fechada','Cancelada':'❌ Cancelada','Reagendada':'🔄 Reagendada' };
 
-  // Filtro agendamentos — usa created para determinar o mês
+  // ── Agendamentos ─────────────────────────────────────────
   const hoje3     = new Date();
   const mesAtualK = `${hoje3.getFullYear()}-${String(hoje3.getMonth()+1).padStart(2,'0')}`;
-
-  // Para o mês atual usa _dashTodos (union correto dos KPIs), para outros usa _dashHist
   let filtradosAg;
   if (!mesSel || mesSel === mesAtualK) {
     filtradosAg = window._dashTodos || [];
@@ -5716,10 +5704,26 @@ function filtrarListasDash() {
     }
   }
 
-  // Filtro vendas — usa data da venda
-  const filtradosV = vendaSel
-    ? vendas.filter(r => (r.data||'').substring(0,7) === vendaSel)
-    : vendas;
+  // ── Vendas ────────────────────────────────────────────────
+  // Mês atual usa dados já em memória; outros meses buscam no banco
+  let filtradosV;
+  if (!vendaSel || vendaSel === mesAtualK) {
+    filtradosV = window._dashVendasFinal || [];
+  } else {
+    const [yV, mV] = vendaSel.split('-').map(Number);
+    const iniV = `${yV}-${String(mV).padStart(2,'0')}-01`;
+    const fimV = new Date(yV, mV, 0).toISOString().split('T')[0];
+    let qV = sb.from('ext_agendamentos')
+      .select('id, data, hora, empresa, responsavel, valor_fechado, representante_nome, acompanhante_nome, online')
+      .eq('status_nome', 'Fechada').gte('data', iniV).lte('data', fimV)
+      .order('data', {ascending:false}).limit(200);
+    if (!isAdmin) {
+      if (isBDR2)  qV = mysqlId2 ? qV.eq('criador_id', mysqlId2)       : qV.ilike('acompanhante_nome', `%${nome12}%`);
+      else if (isExec2) qV = mysqlId2 ? qV.eq('representante_id', mysqlId2) : qV.ilike('representante_nome', `%${nome12}%`);
+    }
+    const { data: vd } = await qV;
+    filtradosV = vd || [];
+  }
 
   const vTotal = document.getElementById('dash-venda-total');
   const vLista = document.getElementById('dash-venda-lista');
