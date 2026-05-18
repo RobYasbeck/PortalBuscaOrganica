@@ -5645,12 +5645,36 @@ function populateMonthSelect(id, data) {
   }).join('');
 }
 // ============================================================
-function filtrarListasDash() {
+async function filtrarListasDash() {
   const mesSel   = document.getElementById('dash-ag-mes')?.value;
   const vendaSel = document.getElementById('dash-venda-mes')?.value;
   const todos    = window._dashHist || window._dashTodos || [];
-  const vendas   = window._dashVendasFinal || [];
   const isAdmin  = currentUser?.role === 'admin' || currentUser?.role === 'gerente';
+  const isBDR2   = currentUser?.role === 'agendamento';
+  const isExec2  = currentUser?.role === 'vendas';
+  const mysqlId2 = currentUser?.mysql_id ? parseInt(currentUser.mysql_id) : null;
+  const nome12   = currentUser?.name?.split(' ')[0] || '';
+
+  // Busca vendas do mês selecionado dinamicamente
+  const hoje3v = new Date();
+  const mesAtualV = `${hoje3v.getFullYear()}-${String(hoje3v.getMonth()+1).padStart(2,'0')}`;
+  let vendas;
+  if (!vendaSel || vendaSel === mesAtualV) {
+    vendas = window._dashVendasFinal || [];
+  } else {
+    const [yV, mV] = vendaSel.split('-').map(Number);
+    const iniV = `${yV}-${String(mV).padStart(2,'0')}-01`;
+    const fimV = new Date(yV, mV, 0).toISOString().split('T')[0];
+    let qV = sb.from('ext_agendamentos').select('id, data, hora, empresa, responsavel, valor_fechado, representante_nome, acompanhante_nome, online')
+      .eq('status_nome', 'Fechada').gte('data', iniV).lte('data', fimV)
+      .order('data', {ascending:false}).limit(200);
+    if (!isAdmin) {
+      if (isBDR2)  qV = mysqlId2 ? qV.eq('criador_id', mysqlId2)       : qV.ilike('acompanhante_nome', `%${nome12}%`);
+      else if (isExec2) qV = mysqlId2 ? qV.eq('representante_id', mysqlId2) : qV.ilike('representante_nome', `%${nome12}%`);
+    }
+    const { data: vd } = await qV;
+    vendas = vd || [];
+  }
 
   const statusCor   = { 'Agendamento':'#f97316','Realizada':'#3b82f6','Em negociação':'#eab308','Fechada':'#10b981','Cancelada':'#ef4444','Reagendada':'#8b5cf6' };
   const statusLabel = { 'Agendamento':'🟠 Agendado','Realizada':'🔵 Realizada','Em negociação':'🟡 Negociação','Fechada':'🟢 Fechada','Cancelada':'❌ Cancelada','Reagendada':'🔄 Reagendada' };
