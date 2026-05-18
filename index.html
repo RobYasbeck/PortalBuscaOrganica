@@ -619,11 +619,6 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
 .slot-horario:hover:not(.ocupado-slot){ border-color:var(--blue3);color:var(--blue3);background:var(--blue-light) }
 .slot-horario.selecionado{ background:var(--blue3);color:white;border-color:var(--blue3) }
 .slot-horario.ocupado-slot{ background:var(--gray2);color:var(--gray3);cursor:not-allowed;border-color:var(--gray2) }
-
-  .mad-tab { padding:6px 14px;border:1.5px solid var(--gray2);border-radius:7px;background:none;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;font-size:12.5px;color:var(--gray3);cursor:pointer;transition:all .15s; }
-  .mad-tab.active { background:var(--blue2);border-color:var(--blue2);color:#fff; }
-  .mad-tab:hover:not(.active) { border-color:var(--blue2);color:var(--blue2); }
-  .mad-th { padding:10px 12px;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:11.5px;color:var(--gray3);white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -1133,17 +1128,15 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       </div>
       <div id="acomp-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.2rem"></div>
       <div id="acomp-geral" class="hidden">
-        <div class="card" style="margin-bottom:1.2rem">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
-            <div class="card-title" style="margin:0" id="acomp-geral-titulo">📈 Agendamentos por BDR — 2026</div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:8px">
+            <div class="card-title" style="margin:0">📊 Comparativo dos Últimos 3 Meses</div>
             <div style="display:flex;gap:6px">
-              <button class="rf-btn active" id="geral-btn-bdr"  onclick="geralMetrica('bdr-ag')">Ag. BDR</button>
-              <button class="rf-btn" id="geral-btn-exec" onclick="geralMetrica('exec-mrr')">MRR Exec.</button>
-              <button class="rf-btn" id="geral-btn-mrr"  onclick="geralMetrica('bdr-mrr')">MRR BDR</button>
+              <button class="rf-btn active" id="geral-btn-bdr"  onclick="geralFiltro('bdr')">BDRs</button>
+              <button class="rf-btn"        id="geral-btn-exec" onclick="geralFiltro('exec')">Executivos</button>
             </div>
           </div>
-          <canvas id="acomp-geral-chart" height="100"></canvas>
-          <div id="acomp-geral-legend" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;justify-content:center"></div>
+          <div id="acomp-geral-tabela" style="overflow-x:auto"></div>
         </div>
       </div>
     </div>
@@ -5143,7 +5136,8 @@ function renderNav() {
     const page = el.dataset.page;
     if (page === 'admin')           return; // admin controlado separadamente
     if (page === 'configuracoes')   return; // sempre visível para todos
-    el.style.display = (isAdmin || isGerente || liberadas.includes(page)) ? '' : 'none';
+    if (page === 'acompanhamento') { el.style.display = (isAdmin || isGerente) ? '' : 'none'; return; }
+    el.style.display = (isAdmin || liberadas.includes(page)) ? '' : 'none';
   });
 
   ['comercial','time'].forEach(sec => {
@@ -5164,7 +5158,11 @@ function showPage(id) {
   const liberadas = currentUser?.paginas_liberadas || ['novidades'];
   const isAdmin   = currentUser?.role === 'admin';
   const isGerente = currentUser?.role === 'gerente';
-  if (id !== 'admin' && id !== 'configuracoes' && !isAdmin && !isGerente && !liberadas.includes(id)) {
+  if (id !== 'admin' && id !== 'configuracoes' && id !== 'acompanhamento' && !isAdmin && !liberadas.includes(id)) {
+    alert('Você não tem permissão para acessar esta página.');
+    return;
+  }
+  if (id === 'acompanhamento' && !isAdmin && !isGerente) {
     alert('Você não tem permissão para acessar esta página.');
     return;
   }
@@ -5464,6 +5462,8 @@ async function renderDashboard() {
   // todos já exclui Cancelada (filtrado na query com .not)
   if (agTotal) agTotal.textContent = todos.length;
   const listaAg = todos.slice(0, 50);
+  // Renderiza via função de filtro (reutilizada no onchange do select)
+  filtrarListasDash();
 
   // ── Lista Vendas ──────────────────────────────────────────
   const vTotal  = document.getElementById('dash-venda-total');
@@ -5484,10 +5484,16 @@ async function renderDashboard() {
 
   window._dashVendasFinal = vendasFinal;
 
-  // Popula selects de mês com dados do histórico (garantido ter meses)
-  populateMonthSelect('dash-ag-mes',    window._dashHist || window._dashTodos || []);
-  populateMonthSelect('dash-venda-mes', window._dashHist || window._dashTodos || []);
-  filtrarListasDash();
+  // Popula selects
+  populateSelect('dash-ag-mes', todos);
+  populateSelect('dash-venda-mes', vendasFinal);
+
+  window._dashVendasFinal = vendasFinal;
+
+  // Popula selects de mês
+  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const hoje2 = new Date();
+  const mesAtualStr = `${hoje2.getFullYear()}-${String(hoje2.getMonth()+1).padStart(2,'0')}`;
 
   // Lista de vendas e total renderizados por filtrarListasDash()
 }
@@ -5633,6 +5639,10 @@ async function renderChart() {
     <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gray3)"><div style="width:12px;height:12px;border-radius:3px;background:#10b981"></div>MRR Acumulado</div>`;
 
   // Gráfico removido — apenas cards de resumo
+  // Popula selects de mês com dados já carregados
+  populateMonthSelect('dash-ag-mes', window._dashHist || window._dashTodos || []);
+  populateMonthSelect('dash-venda-mes', window._dashVendasFinal || []);
+  filtrarListasDash();
 
   // Gráfico de performance anual
   renderPerfChart();
@@ -5659,36 +5669,12 @@ function populateMonthSelect(id, data) {
   }).join('');
 }
 // ============================================================
-async function filtrarListasDash() {
+function filtrarListasDash() {
   const mesSel   = document.getElementById('dash-ag-mes')?.value;
   const vendaSel = document.getElementById('dash-venda-mes')?.value;
   const todos    = window._dashHist || window._dashTodos || [];
+  const vendas   = window._dashVendasFinal || [];
   const isAdmin  = currentUser?.role === 'admin' || currentUser?.role === 'gerente';
-  const isBDR2   = currentUser?.role === 'agendamento';
-  const isExec2  = currentUser?.role === 'vendas';
-  const mysqlId2 = currentUser?.mysql_id ? parseInt(currentUser.mysql_id) : null;
-  const nome12   = currentUser?.name?.split(' ')[0] || '';
-
-  // Busca vendas do mês selecionado dinamicamente
-  const hoje3v = new Date();
-  const mesAtualV = `${hoje3v.getFullYear()}-${String(hoje3v.getMonth()+1).padStart(2,'0')}`;
-  let vendas;
-  if (!vendaSel || vendaSel === mesAtualV) {
-    vendas = window._dashVendasFinal || [];
-  } else {
-    const [yV, mV] = vendaSel.split('-').map(Number);
-    const iniV = `${yV}-${String(mV).padStart(2,'0')}-01`;
-    const fimV = new Date(yV, mV, 0).toISOString().split('T')[0];
-    let qV = sb.from('ext_agendamentos').select('id, data, hora, empresa, responsavel, valor_fechado, representante_nome, acompanhante_nome, online')
-      .eq('status_nome', 'Fechada').gte('data', iniV).lte('data', fimV)
-      .order('data', {ascending:false}).limit(200);
-    if (!isAdmin) {
-      if (isBDR2)  qV = mysqlId2 ? qV.eq('criador_id', mysqlId2)       : qV.ilike('acompanhante_nome', `%${nome12}%`);
-      else if (isExec2) qV = mysqlId2 ? qV.eq('representante_id', mysqlId2) : qV.ilike('representante_nome', `%${nome12}%`);
-    }
-    const { data: vd } = await qV;
-    vendas = vd || [];
-  }
 
   const statusCor   = { 'Agendamento':'#f97316','Realizada':'#3b82f6','Em negociação':'#eab308','Fechada':'#10b981','Cancelada':'#ef4444','Reagendada':'#8b5cf6' };
   const statusLabel = { 'Agendamento':'🟠 Agendado','Realizada':'🔵 Realizada','Em negociação':'🟡 Negociação','Fechada':'🟢 Fechada','Cancelada':'❌ Cancelada','Reagendada':'🔄 Reagendada' };
@@ -5992,7 +5978,7 @@ async function renderPerfChart() {
 // ============================================================
 // ACOMPANHAMENTO INDIVIDUAL
 // ============================================================
-let acompFiltroAtivo = 'todos';
+let acompFiltroAtivo = 'bdr';
 
 function acompFiltro(tipo) {
   acompFiltroAtivo = tipo;
@@ -6003,7 +5989,7 @@ function acompFiltro(tipo) {
   const isGeral = tipo === 'geral';
   document.getElementById('acomp-grid').classList.toggle('hidden', isGeral);
   document.getElementById('acomp-geral').classList.toggle('hidden', !isGeral);
-  if (isGeral) renderAcompGeral('bdr-ag');
+  if (isGeral) renderAcompGeral('bdr');
   else renderAcompanhamento();
 }
 
@@ -6087,6 +6073,15 @@ async function renderAcompanhamento() {
       ]);
       const ids = new Set([...(a1||[]),...(a2||[])].map(r => r.id));
       agTotal = ids.size;
+    } else if (!isBDR) {
+      const applyExec = (q) => mid ? q.eq('representante_id', mid) : q.ilike('representante_nome', `%${nome1}%`);
+      const applyS2   = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
+      const [{ data: a1 }, { data: a2 }] = await Promise.all([
+        applyExec(applyS2(sb.from('ext_agendamentos').select('id').gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59'))).limit(500),
+        applyExec(applyS2(sb.from('ext_agendamentos').select('id').gte('data', inicioMes).lte('data', fimMes).or(`created.lt.${inicioMes}T00:00:00,created.gt.${fimMes}T23:59:59`))).limit(500),
+      ]);
+      const ids = new Set([...(a1||[]),...(a2||[])].map(r => r.id));
+      agTotal = ids.size;
     }
 
     // Vendas fechadas e MRR (por data do mês)
@@ -6102,12 +6097,14 @@ async function renderAcompanhamento() {
       mrr    = (vd||[]).reduce((s,r) => s + Number(r.valor_fechado||0), 0);
     }
 
-    // Realizadas (por data do mês)
+    // Realizadas (por data do mês) — BDR e Executivo
     let realizadas = 0;
-    if (isBDR && mid) {
-      const { data: rd } = await sb.from('ext_agendamentos').select('id')
-        .eq('criador_id', mid).eq('status_nome','Realizada')
-        .gte('data', inicioMes).lte('data', fimMes);
+    {
+      let qR = sb.from('ext_agendamentos').select('id')
+        .eq('status_nome','Realizada').gte('data', inicioMes).lte('data', fimMes);
+      if (isBDR)  qR = mid ? qR.eq('criador_id', mid)       : qR.ilike('acompanhante_nome', `%${nome1}%`);
+      else        qR = mid ? qR.eq('representante_id', mid)  : qR.ilike('representante_nome', `%${nome1}%`);
+      const { data: rd } = await qR;
       realizadas = (rd||[]).length;
     }
 
@@ -6124,8 +6121,6 @@ async function renderAcompanhamento() {
     return;
   }
 
-  window._acompUsers = {};
-  results.forEach(u => { window._acompUsers[u.id] = u; });
   grid.innerHTML = results.map(u => {
     const isBDR  = u.role === 'agendamento';
     const pctMrr = META_IND > 0 ? Math.min(Math.round((u.mrr / META_IND) * 100), 100) : 0;
@@ -6135,7 +6130,7 @@ async function renderAcompanhamento() {
       : `<div style="width:44px;height:44px;border-radius:50%;background:${u.color||'#3b82f6'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff">${u.name.charAt(0)}</div>`;
 
     return `
-      <div class="card" style="border-top:3px solid ${u.color||'#3b82f6'};cursor:pointer" onclick="abrirDetalheAcomp(window._acompUsers&&window._acompUsers['${u.id}'])">
+      <div class="card" style="border-top:3px solid ${u.color||'#3b82f6'}">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem">
           ${avatar}
           <div style="flex:1;min-width:0">
@@ -6154,16 +6149,15 @@ async function renderAcompanhamento() {
         </div>
 
         <!-- KPIs -->
-        <div style="display:grid;grid-template-columns:${isBDR?'1fr 1fr 1fr':'1fr 1fr'};gap:8px;margin-bottom:.8rem">
-          ${isBDR ? `
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.8rem">
           <div style="background:#eff6ff;border-radius:8px;padding:8px;text-align:center">
-            <div style="font-size:10px;font-weight:700;color:#1d4ed8;letter-spacing:.4px">AGEND.</div>
+            <div style="font-size:10px;font-weight:700;color:#1d4ed8;letter-spacing:.4px">${isBDR?'AGEND.':'REUNIÕES'}</div>
             <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#1d4ed8">${u.agTotal}</div>
           </div>
-          <div style="background:#f0fdf4;border-radius:8px;padding:8px;text-align:center">
-            <div style="font-size:10px;font-weight:700;color:#065f46;letter-spacing:.4px">REALIZADAS</div>
-            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#065f46">${u.realizadas}</div>
-          </div>` : ''}
+          <div style="background:${isBDR?'#f0fdf4':'#f0f9ff'};border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:${isBDR?'#065f46':'#0369a1'};letter-spacing:.4px">REALIZADAS</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:${isBDR?'#065f46':'#0369a1'}">${u.realizadas}</div>
+          </div>
           <div style="background:#f0fdf4;border-radius:8px;padding:8px;text-align:center">
             <div style="font-size:10px;font-weight:700;color:#065f46;letter-spacing:.4px">VENDAS</div>
             <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#065f46">${u.vendas}</div>
@@ -6180,157 +6174,6 @@ async function renderAcompanhamento() {
         </div>
       </div>`;
   }).join('');
-}
-
-
-// ============================================================
-// VISÃO GERAL — GRÁFICO POR PESSOA MÊS A MÊS
-// ============================================================
-let geralChart = null;
-let geralMetricaAtiva = 'bdr-ag';
-
-function geralMetrica(tipo) {
-  geralMetricaAtiva = tipo;
-  const btns = { 'bdr-ag':'geral-btn-bdr', 'exec-mrr':'geral-btn-exec', 'bdr-mrr':'geral-btn-mrr' };
-  Object.entries(btns).forEach(([k,id]) => {
-    const b = document.getElementById(id);
-    if (b) b.classList.toggle('active', k === tipo);
-  });
-  renderAcompGeral(tipo);
-}
-
-async function renderAcompGeral(metrica) {
-  geralMetricaAtiva = metrica || geralMetricaAtiva;
-  const canvas = document.getElementById('acomp-geral-chart');
-  const legendEl = document.getElementById('acomp-geral-legend');
-  const tituloEl = document.getElementById('acomp-geral-titulo');
-  if (!canvas) return;
-
-  // Mês selecionado no select (até qual mês mostrar)
-  const mesSelect = document.getElementById('acomp-mes');
-  const hoje = new Date();
-  const mesAtualIdx = hoje.getMonth(); // 0=Jan ... 4=Mai
-  const anoAtual = hoje.getFullYear();
-  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const labels = mesesNomes.slice(0, mesAtualIdx + 1);
-
-  const isBDR  = geralMetricaAtiva === 'bdr-ag' || geralMetricaAtiva === 'bdr-mrr';
-  const isMRR  = geralMetricaAtiva === 'bdr-mrr' || geralMetricaAtiva === 'exec-mrr';
-
-  // Títulos
-  const tituloMap = {
-    'bdr-ag'  : '📈 Agendamentos por BDR — ' + anoAtual,
-    'bdr-mrr' : '💰 MRR Gerado por BDR — ' + anoAtual,
-    'exec-mrr': '💰 MRR Fechado por Executivo — ' + anoAtual,
-  };
-  if (tituloEl) tituloEl.textContent = tituloMap[geralMetricaAtiva];
-
-  // Busca usuários
-  const roleFilter = isBDR ? 'agendamento' : 'vendas';
-  const { data: users } = await sb.from('profiles')
-    .select('id, name, role, mysql_id, color')
-    .eq('role', roleFilter).eq('active', true).order('name');
-  
-  if (!users?.length) { canvas.style.display='none'; return; }
-  canvas.style.display = '';
-
-  // Paleta de cores
-  const palette = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#0d2b5e','#06b6d4','#f97316','#84cc16','#ec4899'];
-
-  // Busca dados por pessoa por mês (union para agendamentos)
-  const datasets = await Promise.all(users.map(async (u, ui) => {
-    const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
-    const nome1 = u.name.split(' ')[0];
-    const cor   = u.color || palette[ui % palette.length];
-    const vals  = [];
-
-    for (let m = 0; m <= mesAtualIdx; m++) {
-      const mStr   = String(m+1).padStart(2,'0');
-      const inicioM = `${anoAtual}-${mStr}-01`;
-      const fimM    = new Date(anoAtual, m+1, 0).toISOString().split('T')[0];
-
-      let val = 0;
-      if (geralMetricaAtiva === 'bdr-ag') {
-        // Union: criados no mês + data no mês
-        const applyU = (q) => mid ? q.eq('criador_id', mid) : q.ilike('acompanhante_nome', '%'+nome1+'%');
-        const applyS = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
-        const [r1, r2] = await Promise.all([
-          applyU(applyS(sb.from('ext_agendamentos').select('id')
-            .gte('created', inicioM+'T00:00:00').lte('created', fimM+'T23:59:59'))).limit(500),
-          applyU(applyS(sb.from('ext_agendamentos').select('id')
-            .gte('data', inicioM).lte('data', fimM)
-            .or('created.lt.'+inicioM+'T00:00:00,created.gt.'+fimM+'T23:59:59'))).limit(500),
-        ]);
-        const ids = new Set([...(r1.data||[]),...(r2.data||[])].map(r=>r.id));
-        val = ids.size;
-      } else {
-        // MRR: por data do fechamento
-        let q = sb.from('ext_agendamentos').select('valor_fechado')
-          .eq('status_nome','Fechada')
-          .gte('data', inicioM).lte('data', fimM);
-        if (geralMetricaAtiva === 'bdr-mrr')  q = mid ? q.eq('criador_id', mid) : q.ilike('acompanhante_nome','%'+nome1+'%');
-        if (geralMetricaAtiva === 'exec-mrr') q = mid ? q.eq('representante_id', mid) : q.ilike('representante_nome','%'+nome1+'%');
-        const { data: vd } = await q;
-        val = (vd||[]).reduce((s,r) => s + Number(r.valor_fechado||0), 0);
-      }
-      vals.push(val);
-    }
-
-    return {
-      label: u.name.split(' ').slice(0,2).join(' '),
-      data: vals,
-      borderColor: cor,
-      backgroundColor: cor + '20',
-      tension: 0.3,
-      fill: false,
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      borderWidth: 2,
-      _cor: cor,
-    };
-  }));
-
-  // Legenda
-  if (legendEl) {
-    legendEl.innerHTML = datasets.map(d =>
-      '<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--black);font-weight:600">' +
-      '<div style="width:24px;height:3px;border-radius:2px;background:' + d._cor + '"></div>' +
-      d.label + '</div>'
-    ).join('');
-  }
-
-  // Renderiza
-  if (geralChart) { geralChart.destroy(); geralChart = null; }
-  geralChart = new Chart(canvas, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              const v = ctx.raw;
-              return ' ' + ctx.dataset.label + ': ' + (isMRR ? 'R$ ' + Number(v).toLocaleString('pt-BR') : v);
-            }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: { color: 'rgba(0,0,0,0.05)' },
-          ticks: {
-            font: { size: 11 },
-            callback: v => isMRR ? 'R$' + (v/1000).toFixed(0) + 'k' : v
-          }
-        },
-        x: { grid: { display: false }, ticks: { font: { size: 11 } } }
-      }
-    }
-  });
 }
 
 // ============================================================
@@ -8499,167 +8342,139 @@ function autoSaveNota() {
 
 
 // ============================================================
-// MODAL ACOMPANHAMENTO DETALHE
+// VISÃO GERAL — TABELA COMPARATIVA 3 MESES
 // ============================================================
-let madDados = null;
+let geralFiltroAtivo = 'bdr';
 
-async function abrirDetalheAcomp(u) {
-  if (!u) return;
-  document.getElementById('modal-acomp-detalhe').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+function geralFiltro(tipo) {
+  geralFiltroAtivo = tipo;
+  ['bdr','exec'].forEach(t => {
+    const b = document.getElementById('geral-btn-' + t);
+    if (b) b.classList.toggle('active', t === tipo);
+  });
+  renderAcompGeral(tipo);
+}
 
-  const cor = u.color || '#3b82f6';
-  const avatarEl = document.getElementById('mad-avatar');
-  if (u.avatar_url) {
-    avatarEl.innerHTML = '<img src="' + u.avatar_url + '" style="width:44px;height:44px;border-radius:50%;object-fit:cover">';
-    avatarEl.style.background = 'none';
-  } else {
-    avatarEl.textContent = u.name.charAt(0);
-    avatarEl.style.background = cor;
+async function renderAcompGeral(role) {
+  geralFiltroAtivo = role || geralFiltroAtivo;
+  const tabelaEl = document.getElementById('acomp-geral-tabela');
+  if (!tabelaEl) return;
+  tabelaEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Carregando...</div>';
+
+  const hoje = new Date();
+  const anoAtual = hoje.getFullYear();
+  const mesAtual = hoje.getMonth();
+  const mesesNomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  const ultimos3 = [];
+  for (let i = 2; i >= 0; i--) {
+    let m = mesAtual - i, y = anoAtual;
+    if (m < 0) { m += 12; y--; }
+    ultimos3.push({ mes: m, ano: y, label: mesesNomes[m] + '/' + String(y).slice(2) });
   }
-  document.getElementById('mad-nome').textContent  = u.name;
-  document.getElementById('mad-cargo').textContent = (u.dept || '') + ' · ' + (u.role === 'agendamento' ? 'BDR' : 'Executivo');
-  document.getElementById('mad-tabela').innerHTML  = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Carregando dados...</div>';
-  document.getElementById('mad-kpis').innerHTML    = '';
 
-  const mesSel = document.getElementById('acomp-mes')?.value || (() => {
-    const h = new Date(); return h.getFullYear() + '-' + String(h.getMonth()+1).padStart(2,'0');
-  })();
-  const parts = mesSel.split('-');
-  const anoS = parseInt(parts[0]), mesS = parseInt(parts[1]);
-  const inicioMes = anoS + '-' + String(mesS).padStart(2,'0') + '-01';
-  const fimMes    = new Date(anoS, mesS, 0).toISOString().split('T')[0];
-  const mid    = u.mysql_id ? parseInt(u.mysql_id) : null;
-  const nome1  = u.name.split(' ')[0];
-  const isBDR  = u.role === 'agendamento';
-  const sel    = 'id, data, hora, empresa, responsavel, status_nome, valor_fechado, online, representante_nome, acompanhante_nome, criador_id, representante_id, created';
+  const { data: users } = await sb.from('profiles')
+    .select('id, name, role, mysql_id, color, avatar_url')
+    .eq('role', geralFiltroAtivo === 'bdr' ? 'agendamento' : 'vendas')
+    .eq('active', true).order('name');
 
-  const applyU = function(q) {
-    if (isBDR)  return mid ? q.eq('criador_id', mid)       : q.ilike('acompanhante_nome', '%' + nome1 + '%');
-    else        return mid ? q.eq('representante_id', mid)  : q.ilike('representante_nome', '%' + nome1 + '%');
-  };
-  const applyS = function(q) {
-    return q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
-  };
-
-  const orFilter = 'created.lt.' + inicioMes + 'T00:00:00,created.gt.' + fimMes + 'T23:59:59';
-  const [r1, r2] = await Promise.all([
-    applyU(applyS(sb.from('ext_agendamentos').select(sel)
-      .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')))
-      .order('data',{ascending:false}).limit(500),
-    applyU(applyS(sb.from('ext_agendamentos').select(sel)
-      .gte('data', inicioMes).lte('data', fimMes)
-      .or(orFilter)))
-      .order('data',{ascending:false}).limit(500),
-  ]);
-
-  const mapaAg = new Map();
-  [...(r1.data||[]),...(r2.data||[])].forEach(function(r){ mapaAg.set(r.id, r); });
-  const todos      = [...mapaAg.values()].sort(function(a,b){ return b.data.localeCompare(a.data); });
-  const realizadas = todos.filter(function(r){ return r.status_nome === 'Realizada'; });
-  const vendas     = todos.filter(function(r){ return r.status_nome === 'Fechada'; });
-  const mrrTotal   = vendas.reduce(function(s,r){ return s + Number(r.valor_fechado||0); }, 0);
-
-  madDados = { u, todos, realizadas, vendas };
-
-  // KPIs
-  const kpisEl = document.getElementById('mad-kpis');
-  kpisEl.style.gridTemplateColumns = isBDR ? '1fr 1fr 1fr 1fr' : '1fr 1fr';
-  kpisEl.innerHTML =
-    (isBDR ? '<div style="background:#eff6ff;border-radius:9px;padding:10px;text-align:center"><div style="font-size:10.5px;color:#1d4ed8;font-weight:700;letter-spacing:.4px">AGENDAMENTOS</div><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;font-size:26px;color:#1d4ed8">' + todos.length + '</div></div>' : '') +
-    (isBDR ? '<div style="background:#f0f9ff;border-radius:9px;padding:10px;text-align:center"><div style="font-size:10.5px;color:#0369a1;font-weight:700;letter-spacing:.4px">REALIZADAS</div><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;font-size:26px;color:#0369a1">' + realizadas.length + '</div></div>' : '') +
-    '<div style="background:#f0fdf4;border-radius:9px;padding:10px;text-align:center"><div style="font-size:10.5px;color:#065f46;font-weight:700;letter-spacing:.4px">VENDAS</div><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;font-size:26px;color:#065f46">' + vendas.length + '</div></div>' +
-    '<div style="background:#d1fae5;border-radius:9px;padding:10px;text-align:center"><div style="font-size:10.5px;color:#065f46;font-weight:700;letter-spacing:.4px">MRR TOTAL</div><div style="font-family:Plus Jakarta Sans,sans-serif;font-weight:900;font-size:22px;color:#065f46">R$ ' + mrrTotal.toLocaleString('pt-BR') + '</div></div>';
-
-  document.querySelectorAll('.mad-tab').forEach(function(t){
-    t.classList.toggle('active', t.dataset.tab === 'agendamentos');
-  });
-  renderMadTabela('agendamentos');
-}
-
-function fecharModalAcompDetalhe() {
-  document.getElementById('modal-acomp-detalhe').classList.add('hidden');
-  document.body.style.overflow = '';
-  madDados = null;
-}
-
-function switchMadTab(tab) {
-  document.querySelectorAll('.mad-tab').forEach(function(t){
-    t.classList.toggle('active', t.dataset.tab === tab);
-  });
-  renderMadTabela(tab);
-}
-
-function renderMadTabela(tab) {
-  if (!madDados) return;
-  const isBDR  = madDados.u.role === 'agendamento';
-  const rows   = tab === 'agendamentos' ? madDados.todos : tab === 'realizadas' ? madDados.realizadas : madDados.vendas;
-  const scor   = { 'Agendamento':'#f97316','Realizada':'#3b82f6','Em negociação':'#eab308','Fechada':'#10b981','Cancelada':'#ef4444','Reagendada':'#8b5cf6' };
-  const tabEl  = document.getElementById('mad-tabela');
-
-  if (!rows.length) {
-    tabEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Nenhum registro nesta categoria.</div>';
+  if (!users || !users.length) {
+    tabelaEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--gray3)">Nenhum colaborador encontrado.</div>';
     return;
   }
 
-  let thExtra = '';
-  if (tab === 'agendamentos') thExtra += '<th class="mad-th">STATUS</th>';
-  if (tab !== 'agendamentos' && isBDR) thExtra += '<th class="mad-th">EXECUTIVO</th>';
-  if (tab === 'vendas') thExtra += '<th class="mad-th" style="text-align:right">MRR</th>';
-  thExtra += '<th class="mad-th" style="text-align:center">TIPO</th>';
+  const isBDR = geralFiltroAtivo === 'bdr';
 
-  const rowsHtml = rows.map(function(r, i) {
-    const cor = scor[r.status_nome] || '#94a3b8';
-    const mrr = Number(r.valor_fechado || 0);
-    const bg  = i % 2 === 0 ? '' : 'background:#f8fafc;';
-    let tdExtra = '';
-    if (tab === 'agendamentos') {
-      tdExtra = '<td style="padding:9px 12px"><span style="font-size:11px;font-weight:700;color:' + cor + ';background:' + cor + '20;padding:3px 8px;border-radius:5px;white-space:nowrap">' + (r.status_nome || '—') + '</span></td>';
-    } else if (isBDR) {
-      tdExtra = '<td style="padding:9px 12px;color:var(--gray3);font-size:12px">' + (r.representante_nome || '—') + '</td>';
-    }
-    if (tab === 'vendas') {
-      tdExtra += '<td style="padding:9px 12px;text-align:right;font-weight:800;color:#065f46">' + (mrr > 0 ? 'R$ ' + mrr.toLocaleString('pt-BR') : '—') + '</td>';
-    }
-    return '<tr style="border-bottom:1px solid var(--gray2);' + bg + '">' +
-      '<td style="padding:9px 12px;font-weight:600;color:var(--black);max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (r.empresa || r.responsavel || '—') + '</td>' +
-      '<td style="padding:9px 12px;color:var(--gray3);white-space:nowrap">' + (r.data || '—') + '</td>' +
-      '<td style="padding:9px 12px;color:var(--gray3)">' + (r.hora ? r.hora.slice(0,5) : '—') + '</td>' +
-      tdExtra +
-      '<td style="padding:9px 12px;text-align:center">' + (r.online ? '💻' : '📍') + '</td>' +
+  const getMesData = async (u, mes, ano) => {
+    const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
+    const nome1 = u.name.split(' ')[0];
+    const mStr  = String(mes+1).padStart(2,'0');
+    const ini   = ano + '-' + mStr + '-01';
+    const fim   = new Date(ano, mes+1, 0).toISOString().split('T')[0];
+    const applyU = (q) => isBDR
+      ? (mid ? q.eq('criador_id', mid) : q.ilike('acompanhante_nome', '%'+nome1+'%'))
+      : (mid ? q.eq('representante_id', mid) : q.ilike('representante_nome', '%'+nome1+'%'));
+    const applyS = (q) => q.not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada');
+    const orF = 'created.lt.' + ini + 'T00:00:00,created.gt.' + fim + 'T23:59:59';
+
+    const [r1, r2, rR, rV] = await Promise.all([
+      applyU(applyS(sb.from('ext_agendamentos').select('id').gte('created',ini+'T00:00:00').lte('created',fim+'T23:59:59'))).limit(500),
+      applyU(applyS(sb.from('ext_agendamentos').select('id').gte('data',ini).lte('data',fim).or(orF))).limit(500),
+      applyU(sb.from('ext_agendamentos').select('id').eq('status_nome','Realizada').gte('data',ini).lte('data',fim)).limit(500),
+      applyU(sb.from('ext_agendamentos').select('valor_fechado').eq('status_nome','Fechada').gte('data',ini).lte('data',fim)).limit(500),
+    ]);
+    const agIds = new Set([...(r1.data||[]),...(r2.data||[])].map(r=>r.id));
+    return {
+      ag        : agIds.size,
+      realizadas: (rR.data||[]).length,
+      vendas    : (rV.data||[]).length,
+      mrr       : (rV.data||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0),
+    };
+  };
+
+  // Busca todos os dados em paralelo por usuário (cada usuário faz 3 meses em paralelo)
+  const dadosUsers = await Promise.all(users.map(async u => {
+    const meses = await Promise.all(ultimos3.map(({mes,ano}) => getMesData(u, mes, ano)));
+    return { ...u, meses };
+  }));
+
+  const seta = (cur, prev) => {
+    if (prev === 0 && cur === 0) return '<span style="color:#94a3b8;font-size:11px">—</span>';
+    if (prev === 0 || cur > prev) return '<span style="color:#10b981;font-size:13px">↑</span>';
+    if (cur < prev) return '<span style="color:#ef4444;font-size:13px">↓</span>';
+    return '<span style="color:#94a3b8;font-size:13px">→</span>';
+  };
+
+  const cv = (v, isMrr) => isMrr
+    ? (v > 0 ? 'R$'+(v/1000).toFixed(1)+'k' : '<span style="color:#94a3b8">—</span>')
+    : (v > 0 ? v : '<span style="color:#94a3b8">—</span>');
+
+  // Cores de fundo por mês (alternadas para separar visualmente)
+  const mesBg = ['#f8fafc', '#f1f5f9', '#eff6ff']; // m0=branco, m1=cinza, m2=azul claro
+
+  const th2 = (label, isAtual) =>
+    '<th colspan="4" style="padding:8px 12px;text-align:center;font-size:12px;font-weight:700;border-bottom:2px solid ' +
+    (isAtual?'var(--blue2)':'var(--gray2)') + ';background:' + (isAtual?'#eff6ff':isAtual===false?'#f1f5f9':'#f8fafc') +
+    ';color:' + (isAtual?'var(--blue2)':'#64748b') + ';white-space:nowrap">' + label + (isAtual?' ← atual':'') + '</th>';
+
+  const subTh = (label, bg2) =>
+    '<th style="padding:5px 8px;text-align:center;font-size:10.5px;font-weight:700;color:var(--gray3);background:'+bg2+';white-space:nowrap;border-bottom:2px solid var(--gray2)">' + label + '</th>';
+
+  const rows = dadosUsers.map((u, ui) => {
+    const [m0, m1, m2] = u.meses;
+    const cor = u.color || '#3b82f6';
+    const av  = u.avatar_url
+      ? '<img src="'+u.avatar_url+'" style="width:28px;height:28px;border-radius:50%;object-fit:cover">'
+      : '<div style="width:28px;height:28px;border-radius:50%;background:'+cor+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0">'+u.name.charAt(0)+'</div>';
+    const bg = ui%2===0?'':'background:#f8fafc;';
+    const td  = (v, isMrr, bg2) => '<td style="padding:7px 10px;text-align:center;white-space:nowrap;background:'+bg2+';'+bg+'">' + cv(v,isMrr) + '</td>';
+    const tds = (v, prev, isMrr, bg2) => '<td style="padding:7px 10px;text-align:center;font-weight:700;white-space:nowrap;background:'+bg2+';'+bg+'">' + cv(v,isMrr) + ' ' + seta(v,prev) + '</td>';
+    return '<tr style="border-bottom:1px solid var(--gray2)">' +
+      '<td style="padding:7px 12px;white-space:nowrap;'+bg+'"><div style="display:flex;align-items:center;gap:8px">'+av+'<span style="font-weight:700;font-size:13px">'+u.name.split(' ').slice(0,2).join(' ')+'</span></div></td>' +
+      td(m0.ag,false,mesBg[0])+td(m0.realizadas,false,mesBg[0])+td(m0.vendas,false,mesBg[0])+td(m0.mrr,true,mesBg[0]) +
+      tds(m1.ag,m0.ag,false,mesBg[1])+tds(m1.realizadas,m0.realizadas,false,mesBg[1])+tds(m1.vendas,m0.vendas,false,mesBg[1])+tds(m1.mrr,m0.mrr,true,mesBg[1]) +
+      tds(m2.ag,m1.ag,false,mesBg[2])+tds(m2.realizadas,m1.realizadas,false,mesBg[2])+tds(m2.vendas,m1.vendas,false,mesBg[2])+tds(m2.mrr,m1.mrr,true,mesBg[2]) +
       '</tr>';
   }).join('');
 
-  tabEl.innerHTML =
-    '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
-    '<thead><tr style="background:#f8fafc;border-bottom:2px solid var(--gray2)">' +
-    '<th class="mad-th">EMPRESA</th><th class="mad-th">DATA</th><th class="mad-th">HORA</th>' +
-    thExtra + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+  tabelaEl.innerHTML =
+    '<table style="width:100%;border-collapse:collapse;font-size:13px;min-width:680px">' +
+    '<thead>' +
+    '<tr>' +
+      '<th style="padding:8px 12px;text-align:left;font-size:12px;font-weight:700;color:var(--gray3);border-bottom:2px solid var(--gray2);background:#f8fafc;min-width:150px">COLABORADOR</th>' +
+      th2(ultimos3[0].label, null) +
+      th2(ultimos3[1].label, null) +
+      th2(ultimos3[2].label, true) +
+    '</tr>' +
+    '<tr>' +
+      '<th style="background:#f8fafc;border-bottom:2px solid var(--gray2)"></th>' +
+      subTh('Ag.',mesBg[0])+subTh('Real.',mesBg[0])+subTh('Vend.',mesBg[0])+subTh('MRR',mesBg[0]) +
+      subTh('Ag. ↕',mesBg[1])+subTh('Real. ↕',mesBg[1])+subTh('Vend. ↕',mesBg[1])+subTh('MRR ↕',mesBg[1]) +
+      subTh('Ag. ↕',mesBg[2])+subTh('Real. ↕',mesBg[2])+subTh('Vend. ↕',mesBg[2])+subTh('MRR ↕',mesBg[2]) +
+    '</tr>' +
+    '</thead><tbody>' + rows + '</tbody></table>';
 }
 
 </script>
-
-  <!-- ===== MODAL ACOMP DETALHE ===== -->
-  <div id="modal-acomp-detalhe" class="modal-overlay hidden" onclick="if(event.target===this)fecharModalAcompDetalhe()">
-    <div class="modal-box" style="max-width:860px;width:95%;max-height:90vh;display:flex;flex-direction:column">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-shrink:0">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div id="mad-avatar" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff"></div>
-          <div>
-            <div id="mad-nome" style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:17px;color:var(--black)"></div>
-            <div id="mad-cargo" style="font-size:12px;color:var(--gray3)"></div>
-          </div>
-        </div>
-        <button onclick="fecharModalAcompDetalhe()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray3);padding:4px">&#x2715;</button>
-      </div>
-      <div id="mad-kpis" style="display:grid;gap:10px;margin-bottom:1.2rem;flex-shrink:0"></div>
-      <div style="display:flex;gap:6px;margin-bottom:1rem;flex-shrink:0;border-bottom:2px solid var(--gray2);padding-bottom:8px">
-        <button class="mad-tab active" data-tab="agendamentos" onclick="switchMadTab('agendamentos')">📋 Agendamentos</button>
-        <button class="mad-tab" data-tab="realizadas" onclick="switchMadTab('realizadas')">🔵 Realizadas</button>
-        <button class="mad-tab" data-tab="vendas" onclick="switchMadTab('vendas')">💰 Vendas</button>
-      </div>
-      <div id="mad-tabela" style="overflow-y:auto;flex:1"></div>
-    </div>
-  </div>
 </body>
 </html>
