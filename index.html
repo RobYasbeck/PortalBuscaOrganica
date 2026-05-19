@@ -146,14 +146,14 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
 
 /* METRIC CARDS */
 .metric-card{
-  background:white;border-radius:var(--radius);padding:1.3rem 1.5rem;
+  background:white;border-radius:var(--radius);padding:1rem 1.2rem;
   box-shadow:var(--shadow);border:1px solid rgba(226,232,240,0.7);
   border-top:3px solid var(--blue3);position:relative;overflow:hidden
 }
 .metric-card::before{content:'';position:absolute;top:0;right:0;width:100px;height:100px;background:radial-gradient(circle at top right,var(--blue-light) 0%,transparent 70%);pointer-events:none}
-.metric-card .label{font-size:10.5px;color:var(--gray3);font-weight:700;letter-spacing:.6px;text-transform:uppercase;font-family:Plus Jakarta Sans,sans-serif;margin-bottom:8px}
-.metric-card .value{font-family:Plus Jakarta Sans,sans-serif;font-size:30px;font-weight:800;color:var(--blue2);line-height:1}
-.metric-card .sub{font-size:11.5px;color:var(--gray3);margin-top:6px;font-weight:400}
+.metric-card .label{font-size:9.5px;color:var(--gray3);font-weight:700;letter-spacing:.6px;text-transform:uppercase;font-family:Plus Jakarta Sans,sans-serif;margin-bottom:6px}
+.metric-card .value{font-family:Plus Jakarta Sans,sans-serif;font-size:26px;font-weight:800;color:var(--blue2);line-height:1}
+.metric-card .sub{font-size:11px;color:var(--gray3);margin-top:6px;font-weight:400}
 
 /* BADGES */
 .badge{display:inline-block;border-radius:6px;padding:3px 9px;font-size:10.5px;font-weight:700;font-family:Plus Jakarta Sans,sans-serif}
@@ -811,7 +811,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       </div>
 
       <!-- KPIs -->
-      <div class="grid-4" style="margin-bottom:1.5rem" id="dash-kpis"></div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1.2rem;margin-bottom:1.5rem" id="dash-kpis"></div>
 
       <!-- Gráfico mensal -->
       <div class="card" style="margin-bottom:1.5rem">
@@ -1347,7 +1347,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.2rem">
             <div class="form-group" style="margin:0">
               <label>MÊS</label>
-              <select id="meta-mes">
+              <select id="meta-mes" onchange="carregarMetaExistente()">
                 <option value="1">Janeiro</option><option value="2">Fevereiro</option>
                 <option value="3">Março</option><option value="4">Abril</option>
                 <option value="5">Maio</option><option value="6">Junho</option>
@@ -1358,14 +1358,14 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
             </div>
             <div class="form-group" style="margin:0">
               <label>ANO</label>
-              <input type="number" id="meta-ano" value="2026" min="2024" max="2030">
+              <input type="number" id="meta-ano" value="2026" min="2024" max="2030" onchange="carregarMetaExistente()">
             </div>
           </div>
 
           <div style="margin-bottom:1rem">
             <div class="form-group" style="margin:0">
               <label>META DO MÊS (R$) *</label>
-              <input type="number" id="meta-valor" placeholder="Ex: 50000" min="0" step="0.01">
+              <input type="number" id="meta-valor" placeholder="Ex: 50000" min="0" step="0.01" oninput="atualizarPreviewMeta()">
               <div style="font-size:11.5px;color:var(--gray3);margin-top:4px">O resultado é atualizado automaticamente pelo sync do MySQL</div>
             </div>
           </div>
@@ -1387,6 +1387,29 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
             <button class="btn-primary" style="flex:1;justify-content:center" onclick="salvarMeta()">💾 Salvar Meta</button>
             <button class="btn-secondary" onclick="carregarMetaExistente()">🔄 Carregar mês</button>
           </div>
+        </div>
+
+        <!-- Meta Individual -->
+        <div class="card" style="max-width:520px;margin-top:1.2rem">
+          <div class="card-title" style="margin-bottom:1.2rem">👤 Meta Individual (BDRs e Executivos)</div>
+          <div style="font-size:13px;color:var(--gray3);margin-bottom:1rem">Define a meta mensal de MRR para todos os BDRs e Executivos. Exibida na barra de progresso individual de cada usuário.</div>
+          <div class="form-group">
+            <label>META INDIVIDUAL (R$) *</label>
+            <input type="number" id="meta-ind-valor" placeholder="Ex: 12000" min="0" step="100"
+              value="12000" oninput="atualizarPreviewMetaInd()">
+          </div>
+          <div style="background:#f8fafc;border-radius:10px;padding:1rem;margin-bottom:1rem">
+            <div style="font-size:11px;color:var(--gray3);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Preview</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span id="meta-ind-prev-label" style="font-size:12.5px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--black)">Exemplo: vendedor com R$ 8.400 fechado</span>
+            </div>
+            <div style="height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+              <div id="meta-ind-prev-barra" style="height:100%;width:70%;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#d97706);transition:width .4s"></div>
+            </div>
+            <div style="font-size:11px;color:var(--gray3);margin-top:4px" id="meta-ind-prev-sub">70% da meta individual</div>
+          </div>
+          <div id="meta-ind-msg" class="hidden" style="font-size:12.5px;font-weight:600;margin-bottom:.8rem"></div>
+          <button class="btn-primary" style="width:100%;justify-content:center" onclick="salvarMetaIndividual()">💾 Salvar Meta Individual</button>
         </div>
       </div>
 
@@ -3815,6 +3838,109 @@ async function loadMetaMensal() {
   renderMetaTopbar();
 }
 
+// ── Preenche o select de mês com o mês atual ao abrir admin ──
+function initMetaAdminForm() {
+  const mes = document.getElementById('meta-mes');
+  const ano = document.getElementById('meta-ano');
+  if (mes) mes.value = new Date().getMonth() + 1;
+  if (ano) ano.value = new Date().getFullYear();
+  atualizarPreviewMeta();
+  carregarMetaExistente();
+  carregarMetaIndividual();
+}
+
+function atualizarPreviewMeta() {
+  const valorInput = parseFloat(document.getElementById('meta-valor')?.value) || 0;
+  const resultado  = metaAtual?.resultado || 0;
+  const pct = valorInput > 0 ? Math.min(Math.round((resultado / valorInput) * 100), 100) : 0;
+  const cor = pct >= 100 ? '#10b981' : pct >= 70 ? '#f59e0b' : '#2563c2';
+  const grad = pct >= 100 ? 'linear-gradient(90deg,#10b981,#059669)'
+             : pct >= 70  ? 'linear-gradient(90deg,#f59e0b,#d97706)'
+             : 'linear-gradient(90deg,#2563c2,#7c3aed)';
+  const labelEl  = document.getElementById('meta-prev-label');
+  const valEl    = document.getElementById('meta-prev-valores');
+  const barraEl  = document.getElementById('meta-prev-barra');
+  if (labelEl)  labelEl.textContent = pct + '% da meta';
+  if (labelEl)  labelEl.style.color = cor;
+  if (valEl)    valEl.textContent   = 'R$ ' + resultado.toLocaleString('pt-BR') + ' / R$ ' + valorInput.toLocaleString('pt-BR');
+  if (barraEl)  { barraEl.style.width = pct + '%'; barraEl.style.background = grad; }
+}
+
+async function carregarMetaExistente() {
+  const mes = parseInt(document.getElementById('meta-mes')?.value);
+  const ano = parseInt(document.getElementById('meta-ano')?.value);
+  if (!mes || !ano) return;
+  const { data } = await sb.from('metas_mensais').select('*').eq('mes', mes).eq('ano', ano).maybeSingle();
+  const valorEl = document.getElementById('meta-valor');
+  const msgEl   = document.getElementById('meta-msg');
+  if (data) {
+    if (valorEl) valorEl.value = data.meta || '';
+    if (msgEl)   { msgEl.textContent = '✅ Meta carregada — resultado atual: R$ ' + Number(data.resultado||0).toLocaleString('pt-BR'); msgEl.style.color = '#065f46'; msgEl.classList.remove('hidden'); }
+  } else {
+    if (valorEl) valorEl.value = '';
+    if (msgEl)   { msgEl.textContent = 'Nenhuma meta cadastrada para este mês.'; msgEl.style.color = 'var(--gray3)'; msgEl.classList.remove('hidden'); }
+  }
+  atualizarPreviewMeta();
+}
+
+async function salvarMeta() {
+  const mes    = parseInt(document.getElementById('meta-mes')?.value);
+  const ano    = parseInt(document.getElementById('meta-ano')?.value);
+  const valor  = parseFloat(document.getElementById('meta-valor')?.value);
+  const msgEl  = document.getElementById('meta-msg');
+  if (!mes || !ano)     { if (msgEl) { msgEl.textContent = 'Selecione mês e ano.'; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
+  if (!valor || valor <= 0) { if (msgEl) { msgEl.textContent = 'Informe um valor válido para a meta.'; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
+
+  const { data: ex } = await sb.from('metas_mensais').select('id').eq('mes', mes).eq('ano', ano).maybeSingle();
+  let error;
+  if (ex) {
+    ({ error } = await sb.from('metas_mensais').update({ meta: valor }).eq('id', ex.id));
+  } else {
+    ({ error } = await sb.from('metas_mensais').insert({ mes, ano, meta: valor, resultado: 0 }));
+  }
+  if (error) { if (msgEl) { msgEl.textContent = 'Erro: ' + error.message; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
+  if (msgEl) { msgEl.textContent = '✅ Meta salva com sucesso!'; msgEl.style.color = '#065f46'; msgEl.classList.remove('hidden'); setTimeout(() => msgEl.classList.add('hidden'), 3000); }
+  await loadMetaMensal();
+  atualizarPreviewMeta();
+}
+
+async function carregarMetaIndividual() {
+  const { data } = await sb.from('config_portal').select('valor').eq('chave', 'meta_individual').maybeSingle();
+  const val = data?.valor ? parseFloat(data.valor) : 12000;
+  const el = document.getElementById('meta-ind-valor');
+  if (el) el.value = val;
+  atualizarPreviewMetaInd();
+}
+
+function atualizarPreviewMetaInd() {
+  const meta = parseFloat(document.getElementById('meta-ind-valor')?.value) || 12000;
+  const exemplo = meta * 0.7;
+  const pct = Math.round((exemplo / meta) * 100);
+  const cor = '#f59e0b';
+  const labelEl = document.getElementById('meta-ind-prev-label');
+  const barraEl = document.getElementById('meta-ind-prev-barra');
+  const subEl   = document.getElementById('meta-ind-prev-sub');
+  if (labelEl) labelEl.textContent = 'Exemplo: vendedor com R$ ' + exemplo.toLocaleString('pt-BR', {maximumFractionDigits:0}) + ' fechado';
+  if (barraEl) { barraEl.style.width = pct + '%'; }
+  if (subEl)   subEl.textContent = pct + '% da meta individual';
+}
+
+async function salvarMetaIndividual() {
+  const valor  = parseFloat(document.getElementById('meta-ind-valor')?.value);
+  const msgEl  = document.getElementById('meta-ind-msg');
+  if (!valor || valor <= 0) { if (msgEl) { msgEl.textContent = 'Informe um valor válido.'; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
+
+  const { data: ex } = await sb.from('config_portal').select('id').eq('chave', 'meta_individual').maybeSingle();
+  let error;
+  if (ex) {
+    ({ error } = await sb.from('config_portal').update({ valor: String(valor) }).eq('chave', 'meta_individual'));
+  } else {
+    ({ error } = await sb.from('config_portal').insert({ chave: 'meta_individual', valor: String(valor) }));
+  }
+  if (error) { if (msgEl) { msgEl.textContent = 'Erro: ' + error.message; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
+  if (msgEl) { msgEl.textContent = '✅ Meta individual salva!'; msgEl.style.color = '#065f46'; msgEl.classList.remove('hidden'); setTimeout(() => msgEl.classList.add('hidden'), 3000); }
+}
+
 function renderMetaTopbar() {
   const wrapper = document.getElementById('topbar-metas-wrapper');
   if (!wrapper) return;
@@ -3853,6 +3979,10 @@ async function renderMetaIndividual() {
   if (currentUser.role === 'admin') { indEl.style.display = 'none'; return; }
   indEl.style.display = 'flex';
 
+  // Busca meta individual do banco (config_portal), fallback 12000
+  const { data: cfgMeta } = await sb.from('config_portal').select('valor').eq('chave','meta_individual').maybeSingle();
+  const META_IND_DIN = cfgMeta?.valor ? parseFloat(cfgMeta.valor) : META_INDIVIDUAL;
+
   const agora  = new Date();
   const inicio = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString().split('T')[0];
   const fim    = new Date(agora.getFullYear(), agora.getMonth()+1, 0).toISOString().split('T')[0];
@@ -3878,7 +4008,7 @@ async function renderMetaIndividual() {
     totalMRR = (data||[]).reduce((s,e) => s + Number(e.valor_fechado||0), 0);
   }
 
-  const pct  = Math.min(Math.round((totalMRR / META_INDIVIDUAL) * 100), 100);
+  const pct  = Math.min(Math.round((totalMRR / META_IND_DIN) * 100), 100);
   const cor  = pct >= 100 ? '#059669' : pct >= 70 ? '#f59e0b' : '#10b981';
   const grad = pct >= 100 ? 'linear-gradient(90deg,#059669,#047857)'
              : pct >= 70  ? 'linear-gradient(90deg,#f59e0b,#d97706)'
@@ -5389,6 +5519,22 @@ async function renderDashboard() {
   const vendas   = todos.filter(e => e.status_nome === 'Fechada');
   const mrrTotal = vendas.reduce((s,e) => s + Number(e.valor_fechado||0), 0);
 
+  // ── Chamadas do mês atual (sempre mês atual) ──────────────
+  let totalChamadas = 0;
+  {
+    let qC = sb.from('ext_chamadas').select('id', { count: 'exact', head: true })
+      .eq('status', 'ATENDIDA')
+      .gte('data_hora', inicioMes + 'T00:00:00')
+      .lte('data_hora', fimMes   + 'T23:59:59');
+    if (!isAdmin) {
+      // BDR e Exec filtram pelo próprio profile_id
+      qC = qC.eq('profile_id', currentUser.id);
+    }
+    const { count } = await qC;
+    totalChamadas = count || 0;
+    window._dashChamadas = totalChamadas;
+  }
+
   // ── KPIs ─────────────────────────────────────────────────
   const kpiEl = document.getElementById('dash-kpis');
   if (kpiEl) {
@@ -5416,6 +5562,11 @@ async function renderDashboard() {
     const tComp = (compData||[]).length;
 
     kpiEl.innerHTML = `
+      <div class="metric-card" style="border-top-color:#7c3aed">
+        <div class="label">Chamadas Atendidas</div>
+        <div class="value" style="color:#7c3aed">${totalChamadas}</div>
+        <div class="sub">${new Date().toLocaleString('pt-BR',{month:'long',year:'numeric'})}</div>
+      </div>
       <div class="metric-card" style="border-top-color:#2563c2">
         <div class="label">Agendamentos</div>
         <div class="value" style="color:#2563c2">${tA}</div>
@@ -5633,11 +5784,27 @@ async function renderChart() {
     mrr         : todos.filter(r => r.status_nome === 'Fechada').reduce((s,r) => s + Number(r.valor_fechado||0), 0),
   };
 
+  // Chamadas atendidas no período do gráfico
+  let chamadasPeriodo = 0;
+  {
+    let qC = sb.from('ext_chamadas').select('id', { count: 'exact', head: true })
+      .eq('status', 'ATENDIDA')
+      .gte('data_hora', from + 'T00:00:00')
+      .lte('data_hora', to   + 'T23:59:59');
+    if (!isAdmin) qC = qC.eq('profile_id', currentUser.id);
+    const { count } = await qC;
+    chamadasPeriodo = count || 0;
+  }
+
   // Cards de resumo
   const sumEl = document.getElementById('chart-summary');
   if (sumEl) {
-    sumEl.style.gridTemplateColumns = '1fr 1fr 1fr';
+    sumEl.style.gridTemplateColumns = '1fr 1fr 1fr 1fr';
     sumEl.innerHTML = `
+      <div style="background:#f5f3ff;border-radius:10px;padding:12px 16px;text-align:center;border-left:3px solid #7c3aed">
+        <div style="font-size:10.5px;color:#5b21b6;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.5px;margin-bottom:4px">CHAMADAS</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:22px;color:#5b21b6">${chamadasPeriodo}</div>
+      </div>
       <div style="background:#eff6ff;border-radius:10px;padding:12px 16px;text-align:center;border-left:3px solid #93c5fd">
         <div style="font-size:10.5px;color:#1d4ed8;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.5px;margin-bottom:4px">${agendLabel.toUpperCase()}</div>
         <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:900;font-size:22px;color:#1d4ed8">${isExec ? totais.reunioes : totais.agendamentos}</div>
@@ -6071,7 +6238,8 @@ async function renderAcompanhamento() {
   const { data: metaData } = await sb.from('metas_mensais')
     .select('meta').eq('mes', mesS).eq('ano', anoS).maybeSingle();
   const META_GERAL = metaData?.meta || 40000;
-  const META_IND   = 12000;
+  const { data: cfgInd } = await sb.from('config_portal').select('valor').eq('chave','meta_individual').maybeSingle();
+  const META_IND = cfgInd?.valor ? parseFloat(cfgInd.valor) : 12000;
 
   // Filtra por tipo — gerente entra como executivo
   let filteredUsers = (users || []).filter(u => u.mysql_id); // só com mysql_id vinculado
@@ -6149,7 +6317,16 @@ async function renderAcompanhamento() {
       realizadas = (rd||[]).length;
     }
 
-    return { ...u, agTotal, realizadas, vendas, mrr };
+    // Chamadas atendidas (BDR, por profile_id)
+    let chamadas = 0;
+    if (isBDR) {
+      const { count } = await sb.from('ext_chamadas').select('id', { count:'exact', head:true })
+        .eq('status','ATENDIDA').eq('profile_id', u.id)
+        .gte('data_hora', inicioMes+'T00:00:00').lte('data_hora', fimMes+'T23:59:59');
+      chamadas = count || 0;
+    }
+
+    return { ...u, agTotal, realizadas, vendas, mrr, chamadas };
   }));
 
   // Renderiza cards
@@ -6192,7 +6369,11 @@ async function renderAcompanhamento() {
         </div>
 
         <!-- KPIs -->
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.8rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr ${isBDR ? '1fr' : ''};gap:8px;margin-bottom:.8rem">
+          ${isBDR ? `<div style="background:#f5f3ff;border-radius:8px;padding:8px;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:#5b21b6;letter-spacing:.4px">CHAMADAS</div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#5b21b6">${u.chamadas||0}</div>
+          </div>` : ''}
           <div style="background:#eff6ff;border-radius:8px;padding:8px;text-align:center">
             <div style="font-size:10px;font-weight:700;color:#1d4ed8;letter-spacing:.4px">${isBDR?'AGEND.':'REUNIÕES'}</div>
             <div style="font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:20px;color:#1d4ed8">${u.agTotal}</div>
@@ -6875,7 +7056,7 @@ function aTab(tab) {
   document.getElementById('atab-' + tab).classList.add('active');
   if (tab === 'denuncias') renderAdminDen();
   if (tab === 'usuarios')  renderAdminUsers();
-  if (tab === 'metas')     initMetaAdmin();
+  if (tab === 'metas')     initMetaAdminForm();
   if (tab === 'ori')       loadOriConhecimento();
   if (tab === 'novidades') renderAdminNews();
 }
@@ -8465,12 +8646,18 @@ async function renderAcompGeral(role) {
           .eq('status_nome','Fechada').not('responsavel','is','null').gte('data',ini).lte('data',fim));
         const valMrr = (vd||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0);
 
-        vals.push({ ag: val, real: valReal, mrr: valMrr });
+        // Chamadas atendidas (BDR)
+        const { count: cCount } = await sb.from('ext_chamadas').select('id',{count:'exact',head:true})
+          .eq('status','ATENDIDA').eq('profile_id', u.id)
+          .gte('data_hora', ini+'T00:00:00').lte('data_hora', fim+'T23:59:59');
+        const valCham = cCount || 0;
+
+        vals.push({ ag: val, real: valReal, mrr: valMrr, cham: valCham });
       } else {
         // MRR executivo
-        const { data: vd } = await applyU(sb.from('ext_agendamentos').select('valor_fechado')
+        const { data: vdExec } = await applyU(sb.from('ext_agendamentos').select('valor_fechado')
           .eq('status_nome','Fechada').not('responsavel','is','null').gte('data',ini).lte('data',fim));
-        val = (vd||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0);
+        val = (vdExec||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0);
         vals.push(val);
       }
     }
@@ -8535,7 +8722,7 @@ async function renderAcompGeral(role) {
       const tAg   = u.vals[2].ag   > mediaTime ? '<span style="color:#10b981;font-weight:700">↑</span>' : u.vals[2].ag   < mediaTime ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
       const tReal = u.vals[2].real > (dadosUsers.reduce((s,x)=>s+x.vals[2].real,0)/dadosUsers.length) ? '<span style="color:#10b981;font-weight:700">↑</span>' : u.vals[2].real < (dadosUsers.reduce((s,x)=>s+x.vals[2].real,0)/dadosUsers.length) ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
       const tMrr  = u.vals[2].mrr  > (dadosUsers.reduce((s,x)=>s+x.vals[2].mrr,0)/dadosUsers.length)  ? '<span style="color:#10b981;font-weight:700">↑</span>' : u.vals[2].mrr  < (dadosUsers.reduce((s,x)=>s+x.vals[2].mrr,0)/dadosUsers.length)  ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
-      return { nameTd, bg, bgAvg, ag: u.vals.map(v=>v.ag), real: u.vals.map(v=>v.real), mrr: u.vals.map(v=>v.mrr), agAvg, realAvg, mrrAvg, tAg, tReal, tMrr };
+      return { nameTd, bg, bgAvg, ag: u.vals.map(v=>v.ag), real: u.vals.map(v=>v.real), mrr: u.vals.map(v=>v.mrr), cham: u.vals.map(v=>v.cham||0), agAvg, realAvg, mrrAvg, tAg, tReal, tMrr };
     } else {
       const tMrr = u.vals[2] > mediaTime ? '<span style="color:#10b981;font-weight:700">↑</span>' : u.vals[2] < mediaTime ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
       return { nameTd, bg, bgAvg, vals: u.vals, media: u.media, tMrr };
@@ -8557,10 +8744,17 @@ async function renderAcompGeral(role) {
 
   let html;
   if (isBDR) {
+    const mediaCham = dadosUsers.reduce((s,u)=>s+(u.vals[2]?.cham||0),0) / (dadosUsers.length||1);
     const tAg   = buildTable('Agendamentos', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.ag.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+v+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+r.agAvg.toFixed(1)+' '+r.tAg+'</td></tr>');
     const tReal = buildTable('Reuniões Realizadas', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.real.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+v+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+r.realAvg.toFixed(1)+' '+r.tReal+'</td></tr>');
     const tMrrT = buildTable('MRR Gerado', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.mrr.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+(v>0?'R$'+(v/1000).toFixed(1)+'k':'—')+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+(r.mrrAvg>0?'R$'+(r.mrrAvg/1000).toFixed(1)+'k':'—')+' '+r.tMrr+'</td></tr>');
-    html = tAg + tReal + tMrrT;
+    const tCham = buildTable('Chamadas Atendidas', r => {
+      const chamVals = r.cham || [0,0,0];
+      const chamAvg  = chamVals.reduce((s,v)=>s+v,0)/3;
+      const tC = chamVals[2] > mediaCham ? '<span style="color:#10b981;font-weight:700">↑</span>' : chamVals[2] < mediaCham ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
+      return '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+chamVals.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:#5b21b6;':'color:var(--gray3);')+r.bg+'">'+v+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+chamAvg.toFixed(1)+' '+tC+'</td></tr>';
+    });
+    html = tAg + tReal + tMrrT + tCham;
   } else {
     html = buildTable('MRR Fechado', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.vals.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+(v>0?'R$'+(v/1000).toFixed(1)+'k':'—')+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+(r.media>0?'R$'+(r.media/1000).toFixed(1)+'k':'—')+' '+r.tMrr+'</td></tr>');
   }
