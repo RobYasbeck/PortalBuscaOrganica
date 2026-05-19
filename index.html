@@ -5408,9 +5408,9 @@ async function renderDashboard() {
       applyUserKpi(sb.from('ext_agendamentos').select('id')
         .eq('status_nome', 'Reagendada')
         .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')),
-      sb.from('ext_agendamentos').select('id')
+      applyUserKpi(sb.from('ext_agendamentos').select('id')
         .is('responsavel', null)
-        .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59'),
+        .gte('created', inicioMes+'T00:00:00').lte('created', fimMes+'T23:59:59')),
     ]);
     const tReag = (reagData||[]).length;
     const tComp = (compData||[]).length;
