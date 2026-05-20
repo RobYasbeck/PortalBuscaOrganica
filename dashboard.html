@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard TV — Busca Orgânica</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d1b2e;font-family:'DM Sans',sans-serif;color:white;-webkit-font-smoothing:antialiased}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:#0a1628;display:flex;align-items:center;justify-content:center;z-index:100}
+.login-box{background:#0d1b2e;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:40px;width:360px}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center}
+.login-logo-badge{background:#2563c2;border-radius:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+.login-logo-text{font-size:18px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif}
+.login-logo-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+.login-field{margin-bottom:14px}
+.login-field label{display:block;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:6px}
+.login-field input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px 14px;font-size:14px;color:white;outline:none;font-family:'DM Sans',sans-serif}
+.login-field input:focus{border-color:#2563c2}
+.login-btn{width:100%;background:#2563c2;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;color:white;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:6px}
+.login-btn:hover{background:#1d4ed8}
+.login-err{font-size:12px;color:#f87171;text-align:center;margin-top:10px;min-height:18px}
+
+/* DASHBOARD */
+#dash-screen{display:none;width:100vw;height:100vh;flex-direction:column}
+.topbar{background:#0a1628;border-bottom:1px solid rgba(255,255,255,.08);padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.logo-area{display:flex;align-items:center;gap:12px}
+.logo-badge{background:#2563c2;border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.logo-text{font-size:15px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,.9)}
+.logo-sub{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.5px;text-transform:uppercase}
+.toggle-wrap{display:flex;background:rgba(255,255,255,.07);border-radius:8px;padding:3px;gap:2px}
+.tb-btn{padding:6px 20px;border-radius:6px;border:none;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.3px;font-family:'Plus Jakarta Sans',sans-serif;transition:all .2s}
+.tb-btn.on{background:#2563c2;color:white}
+.tb-btn:not(.on){background:transparent;color:rgba(255,255,255,.5)}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.clock{font-size:13px;color:rgba(255,255,255,.5);font-weight:500}
+.logout-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:5px 12px;font-size:11px;color:rgba(255,255,255,.5);cursor:pointer;font-family:'DM Sans',sans-serif}
+.logout-btn:hover{background:rgba(255,255,255,.12)}
+
+/* KPI BAR */
+.kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding:14px 32px;flex-shrink:0}
+.kpi-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-top:2px solid;border-radius:10px;padding:12px 16px}
+.kpi-label{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:4px}
+.kpi-val{font-size:clamp(22px,2.2vw,32px);font-weight:800;line-height:1;margin-bottom:3px;font-family:'Plus Jakarta Sans',sans-serif}
+.kpi-sub{font-size:10px;color:rgba(255,255,255,.4)}
+
+/* CONTENT */
+.content{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 32px 16px;min-height:0}
+.panel{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;overflow:hidden}
+.panel-title{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-shrink:0}
+.panel-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.panel-title span{font-size:13px;font-weight:700;color:rgba(255,255,255,.8);font-family:'Plus Jakarta Sans',sans-serif}
+.cards-list{flex:1;overflow:hidden;display:flex;flex-direction:column;gap:6px}
+
+/* COLLAB CARD */
+.cc{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:rgba(255,255,255,.04);flex-shrink:0}
+.cc.green{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3)}
+.cc.red{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.2)}
+.cc-rank{font-size:clamp(11px,1.1vw,15px);width:24px;text-align:center;flex-shrink:0}
+.cc-av{width:clamp(28px,2.8vw,36px);height:clamp(28px,2.8vw,36px);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0;overflow:hidden}
+.cc-av img{width:100%;height:100%;object-fit:cover}
+.cc-body{flex:1;min-width:0}
+.cc-name{font-size:clamp(11px,1.1vw,13px);font-weight:700;color:rgba(255,255,255,.85);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.bar-row:last-child{margin-bottom:0}
+.bar-lbl{font-size:9px;color:rgba(255,255,255,.4);font-weight:600;width:50px;flex-shrink:0}
+.bar-track{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .6s}
+.bar-num{font-size:10px;font-weight:800;width:38px;text-align:right;flex-shrink:0}
+
+/* MONTH CARDS */
+.mc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:rgba(255,255,255,.04);flex-shrink:0}
+.mc-row.red{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.2)}
+.mc-left{display:flex;align-items:center;gap:10px}
+.mc-kpis{display:flex;gap:16px}
+.mc-kpi{text-align:center}
+.mc-kpi-val{font-size:clamp(13px,1.4vw,18px);font-weight:800;font-family:'Plus Jakarta Sans',sans-serif}
+.mc-kpi-lbl{font-size:9px;color:rgba(255,255,255,.4);font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+
+.loading{text-align:center;padding:20px;color:rgba(255,255,255,.4);font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-badge">BO</div>
+      <div>
+        <div class="login-logo-text">Busca Orgânica</div>
+        <div class="login-logo-sub">Dashboard TV</div>
+      </div>
+    </div>
+    <div class="login-field">
+      <label>E-mail</label>
+      <input type="email" id="l-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>Senha</label>
+      <input type="password" id="l-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-err" id="l-err"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash-screen">
+  <div class="topbar">
+    <div class="logo-area">
+      <div class="logo-badge">BO</div>
+      <div>
+        <div class="logo-text">Busca Orgânica</div>
+        <div class="logo-sub">Dashboard · STD Group</div>
+      </div>
+    </div>
+    <div class="toggle-wrap">
+      <button class="tb-btn on" id="btn-dia" onclick="setVis('dia')">⚡ Visão Dia</button>
+      <button class="tb-btn" id="btn-mes" onclick="setVis('mes')">📅 Visão Mês</button>
+    </div>
+    <div class="topbar-right">
+      <div class="clock" id="clock-el">--:--</div>
+      <button class="logout-btn" onclick="doLogout()">Sair</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-bar" id="kpi-bar">
+    <div class="kpi-card" style="border-top-color:#7c3aed"><div class="kpi-label" id="k0-lbl">Chamadas</div><div class="kpi-val" style="color:#a78bfa" id="k0-val">—</div><div class="kpi-sub" id="k0-sub"></div></div>
+    <div class="kpi-card" style="border-top-color:#2563c2"><div class="kpi-label" id="k1-lbl">Agendamentos</div><div class="kpi-val" style="color:#60a5fa" id="k1-val">—</div><div class="kpi-sub" id="k1-sub"></div></div>
+    <div class="kpi-card" style="border-top-color:#3b82f6"><div class="kpi-label" id="k2-lbl">Realizadas</div><div class="kpi-val" style="color:#93c5fd" id="k2-val">—</div><div class="kpi-sub" id="k2-sub"></div></div>
+    <div class="kpi-card" style="border-top-color:#eab308"><div class="kpi-label" id="k3-lbl">Em Negociação</div><div class="kpi-val" style="color:#fde047" id="k3-val">—</div><div class="kpi-sub" id="k3-sub"></div></div>
+    <div class="kpi-card" style="border-top-color:#10b981"><div class="kpi-label" id="k4-lbl">Vendas</div><div class="kpi-val" style="color:#6ee7b7" id="k4-val">—</div><div class="kpi-sub" id="k4-sub"></div></div>
+  </div>
+
+  <!-- PANELS -->
+  <div class="content">
+    <div class="panel">
+      <div class="panel-title"><div class="panel-dot" style="background:#a78bfa"></div><span id="panel-bdr-title">BDRs — Hoje</span></div>
+      <div class="cards-list" id="panel-bdr"><div class="loading">Carregando...</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><div class="panel-dot" style="background:#6ee7b7"></div><span id="panel-exec-title">Executivos — Hoje</span></div>
+      <div class="cards-list" id="panel-exec"><div class="loading">Carregando...</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SURL = 'https://spkrdxqtbysatgsvvomb.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwa3JkeHF0YnlzYXRnc3Z2b21iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5MTE0NDUsImV4cCI6MjA5MjQ4NzQ0NX0.y4tNc9-LEuSpPpWYXlUvK6sdRGkwdJcph2cQOPc2Eh4';
+const sb = supabase.createClient(SURL, SKEY, {auth:{persistSession:true,storageKey:'bo_tv_session'}});
+
+let visao = 'dia';
+let currentUser = null;
+let refreshTimer = null;
+
+// ── CLOCK ──────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock-el').textContent =
+    dias[now.getDay()] + ', ' + now.getDate() + ' ' + meses[now.getMonth()] + ' · ' + h + ':' + m;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── LOGIN ──────────────────────────────────────────────────
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const pass  = document.getElementById('l-pass').value;
+  const errEl = document.getElementById('l-err');
+  errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Preencha e-mail e senha.'; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  if (error) { errEl.textContent = 'E-mail ou senha incorretos.'; return; }
+  const { data: prof } = await sb.from('profiles').select('role,name').eq('id', data.user.id).single();
+  if (!prof || !['admin','gerente'].includes(prof.role)) {
+    await sb.auth.signOut();
+    errEl.textContent = 'Acesso restrito a admins e gerentes.';
+    return;
+  }
+  currentUser = { ...data.user, ...prof };
+  showDash();
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  clearInterval(refreshTimer);
+  document.getElementById('dash-screen').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ── INIT ───────────────────────────────────────────────────
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: prof } = await sb.from('profiles').select('role,name').eq('id', session.user.id).single();
+    if (prof && ['admin','gerente'].includes(prof.role)) {
+      currentUser = { ...session.user, ...prof };
+      showDash();
+      return;
+    }
+  }
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function showDash() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dash-screen').style.display = 'flex';
+  loadData();
+  refreshTimer = setInterval(loadData, 120000); // atualiza a cada 2 min
+}
+
+// ── VIS TOGGLE ─────────────────────────────────────────────
+function setVis(v) {
+  visao = v;
+  document.getElementById('btn-dia').classList.toggle('on', v==='dia');
+  document.getElementById('btn-mes').classList.toggle('on', v==='mes');
+  loadData();
+}
+
+// ── HELPERS ────────────────────────────────────────────────
+function gradFor(p) { return p>=100?'#059669':p>=50?'#f59e0b':'#2563c2'; }
+function colFor(p)  { return p>=100?'#6ee7b7':p>=50?'#fde047':'#93c5fd'; }
+const medals = ['🥇','🥈','🥉','#4','#5','#6','#7','#8'];
+
+function avatarHtml(u, size) {
+  const s = size || 32;
+  if (u.avatar_url) return `<img src="${u.avatar_url}" style="width:${s}px;height:${s}px;border-radius:50%;object-fit:cover">`;
+  const ini = u.name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+  return `<div style="width:${s}px;height:${s}px;border-radius:50%;background:${u.color||'#2563c2'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;flex-shrink:0">${ini}</div>`;
+}
+
+function barRow(label, val, meta, extraStyle) {
+  const pct = Math.min(Math.round((val/meta)*100),100);
+  return `<div class="bar-row" ${extraStyle||''}>
+    <span class="bar-lbl">${label}</span>
+    <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${gradFor(pct)}"></div></div>
+    <span class="bar-num" style="color:${colFor(pct)}">${val}/${meta}</span>
+  </div>`;
+}
+
+// ── LOAD DATA ──────────────────────────────────────────────
+async function loadData() {
+  if (visao === 'dia') await loadDia();
+  else await loadMes();
+}
+
+// ─── VISÃO DIA ────────────────────────────────────────────
+async function loadDia() {
+  const hoje = new Date().toISOString().split('T')[0];
+  const ini  = hoje + 'T00:00:00';
+  const fim  = hoje + 'T23:59:59';
+
+  // Busca usuários
+  const { data: users } = await sb.from('profiles').select('id,name,role,color,avatar_url,mysql_id,ramal_ifix')
+    .eq('active',true).order('name');
+  const bdrs  = (users||[]).filter(u => u.role==='agendamento');
+  const execs = (users||[]).filter(u => ['vendas','gerente'].includes(u.role) && u.mysql_id);
+
+  // KPIs totais do dia
+  const { count: totalCham } = await sb.from('ext_chamadas').select('id',{count:'exact',head:true})
+    .eq('status','ATENDIDA').gte('data_hora',ini).lte('data_hora',fim);
+
+  const { data: agDia } = await sb.from('ext_agendamentos').select('id,status_nome')
+    .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada')
+    .gte('created',ini).lte('created',fim);
+
+  const agHoje   = (agDia||[]).length;
+  const realHoje = (agDia||[]).filter(r=>r.status_nome==='Realizada').length;
+  const negHoje  = (agDia||[]).filter(r=>r.status_nome==='Em negociação').length;
+  const vendHoje = (agDia||[]).filter(r=>r.status_nome==='Fechada').length;
+
+  // KPIs
+  document.getElementById('k0-lbl').textContent='Chamadas hoje';
+  document.getElementById('k0-val').textContent=totalCham||0;
+  document.getElementById('k0-sub').textContent='meta: 60/BDR';
+  document.getElementById('k1-lbl').textContent='Agendamentos hoje';
+  document.getElementById('k1-val').textContent=agHoje;
+  document.getElementById('k1-sub').textContent='meta: 4/BDR';
+  document.getElementById('k2-lbl').textContent='Realizadas hoje';
+  document.getElementById('k2-val').textContent=realHoje;
+  document.getElementById('k2-sub').textContent='meta: 3/exec';
+  document.getElementById('k3-lbl').textContent='Vendas hoje';
+  document.getElementById('k3-val').textContent=vendHoje;
+  document.getElementById('k3-sub').textContent='meta: 1/exec';
+  document.getElementById('k4-lbl').textContent='Em negociação';
+  document.getElementById('k4-val').textContent=negHoje;
+  document.getElementById('k4-sub').textContent='em andamento';
+
+  // Painéis
+  document.getElementById('panel-bdr-title').textContent  = 'BDRs — Hoje';
+  document.getElementById('panel-exec-title').textContent = 'Executivos — Hoje';
+
+  // BDRs
+  const bdrDados = await Promise.all(bdrs.map(async u => {
+    const mid = u.mysql_id ? parseInt(u.mysql_id) : null;
+    const n1  = u.name.split(' ')[0];
+    const { count: cham } = await sb.from('ext_chamadas').select('id',{count:'exact',head:true})
+      .eq('status','ATENDIDA').eq('profile_id',u.id).gte('data_hora',ini).lte('data_hora',fim);
+    let qA = sb.from('ext_agendamentos').select('id')
+      .not('responsavel','is',null).neq('status_nome','Cancelada').neq('status_nome','Reagendada')
+      .gte('created',ini).lte('created',fim);
+    if (mid) qA = qA.eq('criador_id',mid); else qA = qA.ilike('acompanhante_nome',`%${n1}%`);
+    const { data: ag } = await qA;
+    return { ...u, cham: cham||0, ag: (ag||[]).length };
+  }));
+  bdrDados.sort((a,b) => ((b.cham/60+b.ag/4)/2) - ((a.cham/60+a.ag/4)/2));
+
+  document.getElementById('panel-bdr').innerHTML = bdrDados.map((u,i) => {
+    const bateu = u.cham>=60 && u.ag>=4;
+    const tudo0 = u.cham===0 && u.ag===0;
+    return `<div class="cc ${bateu?'green':tudo0?'red':''}">
+      <span class="cc-rank">${bateu?'🎉':medals[i]}</span>
+      <div class="cc-av">${avatarHtml(u,32)}</div>
+      <div class="cc-body">
+        <div class="cc-name">${u.name.split(' ').slice(0,2).join(' ')}${bateu?' 🏆':''}</div>
+        ${barRow('Lig.',u.cham,60)}
+        ${barRow('Agend.',u.ag,4,'style="margin-bottom:0"')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Executivos
+  const execDados = await Promise.all(execs.map(async u => {
+    const mid = parseInt(u.mysql_id);
+    const { data: r } = await sb.from('ext_agendamentos').select('id')
+      .eq('status_nome','Realizada').not('responsavel','is',null).eq('representante_id',mid)
+      .gte('data',hoje).lte('data',hoje);
+    const { data: v } = await sb.from('ext_agendamentos').select('id')
+      .eq('status_nome','Fechada').not('responsavel','is',null).eq('representante_id',mid)
+      .gte('data',hoje).lte('data',hoje);
+    return { ...u, reunioes: (r||[]).length, vendas: (v||[]).length };
+  }));
+  execDados.sort((a,b) => ((b.reunioes/3+b.vendas)/2) - ((a.reunioes/3+a.vendas)/2));
+
+  document.getElementById('panel-exec').innerHTML = execDados.map((u,i) => {
+    const bateu = u.reunioes>=3 && u.vendas>=1;
+    const tudo0 = u.reunioes===0 && u.vendas===0;
+    const isGer = u.role==='gerente';
+    return `<div class="cc ${bateu?'green':tudo0?'red':''}">
+      <span class="cc-rank">${bateu?'🎉':medals[i]}</span>
+      <div class="cc-av">${avatarHtml(u,32)}</div>
+      <div class="cc-body">
+        <div class="cc-name">${u.name.split(' ').slice(0,2).join(' ')}${bateu?' 🏆':''}${isGer?' <span style="font-size:9px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:99px">Ger.</span>':''}</div>
+        ${barRow('Reuniões',u.reunioes,3)}
+        ${barRow('Vendas',u.vendas,1,'style="margin-bottom:0"')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── VISÃO MÊS ────────────────────────────────────────────
+async function loadMes() {
+  const now   = new Date();
+  const ano   = now.getFullYear();
+  const mes   = now.getMonth()+1;
+  const ini   = `${ano}-${String(mes).padStart(2,'0')}-01`;
+  const fim   = new Date(ano,mes,0).toISOString().split('T')[0];
+  const mNome = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mes-1];
+
+  // KPIs
+  const { count: chamMes } = await sb.from('ext_chamadas').select('id',{count:'exact',head:true})
+    .eq('status','ATENDIDA').gte('data_hora',ini+'T00:00:00').lte('data_hora',fim+'T23:59:59');
+
+  const [{ data: ag1 },{ data: ag2 }] = await Promise.all([
+    sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
+      .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada')
+      .gte('created',ini+'T00:00:00').lte('created',fim+'T23:59:59').limit(500),
+    sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
+      .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada')
+      .gte('data',ini).lte('data',fim)
+      .or(`created.lt.${ini}T00:00:00,created.gt.${fim}T23:59:59`).limit(500),
+  ]);
+  const mapa = new Map();
+  [...(ag1||[]),...(ag2||[])].forEach(r => mapa.set(r.id,r));
+  const todos = [...mapa.values()];
+  const tA = todos.length;
+  const tR = todos.filter(r=>r.status_nome==='Realizada').length;
+  const tN = todos.filter(r=>r.status_nome==='Em negociação').length;
+  const tV = todos.filter(r=>r.status_nome==='Fechada').length;
+  const mrr = todos.filter(r=>r.status_nome==='Fechada').reduce((s,r)=>s+Number(r.valor_fechado||0),0);
+
+  document.getElementById('k0-lbl').textContent='Chamadas';
+  document.getElementById('k0-val').textContent=chamMes||0;
+  document.getElementById('k0-sub').textContent=mNome+' '+ano;
+  document.getElementById('k1-lbl').textContent='Agendamentos';
+  document.getElementById('k1-val').textContent=tA;
+  document.getElementById('k1-sub').textContent=mNome+' '+ano;
+  document.getElementById('k2-lbl').textContent='Realizadas';
+  document.getElementById('k2-val').textContent=tR;
+  document.getElementById('k2-sub').textContent='reuniões concluídas';
+  document.getElementById('k3-lbl').textContent='Em Negociação';
+  document.getElementById('k3-val').textContent=tN;
+  document.getElementById('k3-sub').textContent='em andamento';
+  document.getElementById('k4-lbl').textContent='Vendas Fechadas';
+  document.getElementById('k4-val').textContent=tV;
+  document.getElementById('k4-sub').textContent='R$ '+( mrr>=1000?(mrr/1000).toFixed(1)+'k':mrr)+' MRR';
+
+  document.getElementById('panel-bdr-title').textContent  = 'BDRs — '+mNome+' '+ano;
+  document.getElementById('panel-exec-title').textContent = 'Executivos — '+mNome+' '+ano;
+
+  const { data: users } = await sb.from('profiles').select('id,name,role,color,avatar_url,mysql_id')
+    .eq('active',true).order('name');
+  const bdrs  = (users||[]).filter(u => u.role==='agendamento' && u.mysql_id);
+  const execs = (users||[]).filter(u => ['vendas','gerente'].includes(u.role) && u.mysql_id);
+
+  const bdrDados = await Promise.all(bdrs.map(async u => {
+    const mid = parseInt(u.mysql_id);
+    const { data: ag } = await sb.from('ext_agendamentos').select('id')
+      .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada')
+      .not('responsavel','is',null).eq('criador_id',mid).gte('created',ini+'T00:00:00').lte('created',fim+'T23:59:59');
+    const { data: re } = await sb.from('ext_agendamentos').select('id')
+      .eq('status_nome','Realizada').not('responsavel','is',null).eq('criador_id',mid).gte('data',ini).lte('data',fim);
+    const { data: ve } = await sb.from('ext_agendamentos').select('valor_fechado')
+      .eq('status_nome','Fechada').not('responsavel','is',null).eq('criador_id',mid).gte('data',ini).lte('data',fim);
+    const { count: cham } = await sb.from('ext_chamadas').select('id',{count:'exact',head:true})
+      .eq('status','ATENDIDA').eq('profile_id',u.id).gte('data_hora',ini+'T00:00:00').lte('data_hora',fim+'T23:59:59');
+    const mrr = (ve||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0);
+    return { ...u, ag:(ag||[]).length, real:(re||[]).length, cham:cham||0, mrr };
+  }));
+  bdrDados.sort((a,b) => b.ag - a.ag);
+
+  document.getElementById('panel-bdr').innerHTML = bdrDados.map((u,i) => {
+    const tudo0 = u.ag===0 && u.real===0;
+    return `<div class="mc-row ${tudo0?'red':''}">
+      <div class="mc-left">
+        <span class="cc-rank" style="font-size:14px;width:24px">${medals[i]}</span>
+        <div class="cc-av">${avatarHtml(u,30)}</div>
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85);margin-left:6px">${u.name.split(' ').slice(0,2).join(' ')}</div>
+      </div>
+      <div class="mc-kpis">
+        <div class="mc-kpi"><div class="mc-kpi-val" style="color:#60a5fa">${u.ag}</div><div class="mc-kpi-lbl">Agend.</div></div>
+        <div class="mc-kpi"><div class="mc-kpi-val" style="color:#93c5fd">${u.real}</div><div class="mc-kpi-lbl">Realiz.</div></div>
+        <div class="mc-kpi"><div class="mc-kpi-val" style="color:#a78bfa">${u.cham}</div><div class="mc-kpi-lbl">Lig.</div></div>
+        <div class="mc-kpi"><div class="mc-kpi-val" style="color:#6ee7b7">${u.mrr>=1000?(u.mrr/1000).toFixed(1)+'k':'R$'+u.mrr}</div><div class="mc-kpi-lbl">MRR</div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const execDados = await Promise.all(execs.map(async u => {
+    const mid = parseInt(u.mysql_id);
+    const { data: re } = await sb.from('ext_agendamentos').select('id')
+      .eq('status_nome','Realizada').not('responsavel','is',null).eq('representante_id',mid).gte('data',ini).lte('data',fim);
+    const { data: ve } = await sb.from('ext_agendamentos').select('valor_fechado')
+      .eq('status_nome','Fechada').not('responsavel','is',null).eq('representante_id',mid).gte('data',ini).lte('data',fim);
+    const mrr = (ve||[]).reduce((s,r)=>s+Number(r.valor_fechado||0),0);
+    const vCount = (ve||[]).length;
+    return { ...u, real:(re||[]).length, vendas:vCount, mrr };
+  }));
+  execDados.sort((a,b) => b.mrr - a.mrr);
+
+  document.getElementById('panel-exec').innerHTML = execDados.map((u,i) => {
+    const tudo0 = u.real===0 && u.vendas===0;
+    const isGer = u.role==='gerente';
+    return `<div class="mc-row ${tudo0?'red':''}">
+      <div class="mc-left">
+        <span class="cc-rank" style="font-size:14px;width:24px">${medals[i]}</span>
+        <div class="cc-av">${avatarHtml(u,30)}</div>
+        <div style="margin-left:6px">
+          <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.85)">${u.name.split(' ').slice(0,2).join(' ')}${isGer?' <span style="font-size:9px;background:#fef3c7;color:#92400e;padding:1px 5px;border-radius:99px">Ger.</span>':''}</div>
+        </div>
+      </div>
+      <div class="mc-kpis">
+        <div class="mc-kpi"><div class="mc-kpi-val" style="color:#93c5fd">${u.real}</div><div class="mc-kpi-lbl">Realiz.</div></div>
+        <div class="mc-kpi"><div class="mc-kpi-val" style="color:#6ee7b7">${u.vendas}</div><div class="mc-kpi-lbl">Vendas</div></div>
+        <div class="mc-kpi"><div class="mc-kpi-val" style="color:#fde047">${u.mrr>=1000?'R$'+(u.mrr/1000).toFixed(1)+'k':'R$'+u.mrr}</div><div class="mc-kpi-lbl">MRR</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+init();
+</script>
+</body>
+</html>
