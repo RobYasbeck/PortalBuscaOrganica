@@ -718,6 +718,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       <div class="nav-section-label">Menu Principal</div>
       <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
       <div class="nav-item" data-page="acompanhamento" onclick="showPage('acompanhamento')" style="display:none"><span class="nav-icon">📈</span>Acompanhamento</div>
+      <div class="nav-item" data-page="kpi-diario" onclick="showPage('kpi-diario')" style="display:none"><span class="nav-icon">⚡</span>Gestão KPIs Diário</div>
       <div class="nav-item active" data-page="novidades" onclick="showPage('novidades')"><span class="nav-icon">📢</span>Novidades</div>
       <div class="nav-item" data-page="faq" onclick="showPage('faq')"><span class="nav-icon">❓</span>FAQ</div>
       <div class="nav-item" data-page="book" onclick="showPage('book')"><span class="nav-icon">📖</span>Book de Argumentação</div>
@@ -826,7 +827,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-top:1px">
                   <span id="tb-dia-chamadas-val" style="font-size:9.5px;color:#5b21b6;font-family:'DM Sans',sans-serif;font-weight:600">0</span>
-                  <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">meta: 100</span>
+                  <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">meta: 60</span>
                 </div>
               </div>
             </div>
@@ -1215,6 +1216,38 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
             </div>
           </div>
           <div id="acomp-geral-tabela" style="overflow-x:auto"></div>
+        </div>
+      </div>
+
+      <!-- ⚡ META DIÁRIA removida daqui — agora é página própria -->
+    </div>
+
+    <!-- ===== KPI DIÁRIO ===== -->
+    <div class="page" id="page-kpi-diario">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>⚡ Gestão KPIs Diário</h2>
+          <p>Acompanhamento de metas do dia por colaborador</p>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.2rem">
+            <div style="width:8px;height:8px;border-radius:50%;background:#7c3aed"></div>
+            <div class="card-title" style="margin:0">BDRs — Hoje</div>
+          </div>
+          <div id="diaria-bdr-lista" style="display:flex;flex-direction:column;gap:8px">
+            <div class="alert-info">Carregando...</div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.2rem">
+            <div style="width:8px;height:8px;border-radius:50%;background:#10b981"></div>
+            <div class="card-title" style="margin:0">Executivos — Hoje</div>
+          </div>
+          <div id="diaria-exec-lista" style="display:flex;flex-direction:column;gap:8px">
+            <div class="alert-info">Carregando...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -3964,35 +3997,44 @@ async function renderMetaDiaria() {
   if (!currentUser) return;
   const role = currentUser.role;
 
-  // Admin não tem guia diária
-  const elCham    = document.getElementById('tb-dia-chamadas');
-  const elAgend   = document.getElementById('tb-dia-agend');
+  const elCham     = document.getElementById('tb-dia-chamadas');
+  const elAgend    = document.getElementById('tb-dia-agend');
   const elReunioes = document.getElementById('tb-dia-reunioes');
   elCham.style.display = 'none'; elAgend.style.display = 'none'; elReunioes.style.display = 'none';
   if (role === 'admin') return;
 
-  const agora  = new Date();
-  const hoje   = agora.toISOString().split('T')[0];
+  const agora   = new Date();
+  const hoje    = agora.toISOString().split('T')[0];
   const mysqlId = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
   const nome1   = currentUser.name.split(' ')[0];
 
+  // Função de cor: vermelho < 50%, laranja 50-99%, verde 100%
+  function tbCor(pct) {
+    if (pct >= 100) return { txt: '#059669', grad: 'linear-gradient(90deg,#059669,#047857)', bg: '#f0fdf4', border: '#86efac' };
+    if (pct >= 50)  return { txt: '#d97706', grad: 'linear-gradient(90deg,#f59e0b,#d97706)', bg: '#fffbeb', border: '#fde68a' };
+    return              { txt: '#dc2626', grad: 'linear-gradient(90deg,#ef4444,#dc2626)', bg: '#fef2f2', border: '#fca5a5' };
+  }
+
   if (role === 'agendamento') {
-    // ── BDR: Chamadas do dia ────────────────────────────────
+    // Chamadas
     const { count: chamHoje } = await sb.from('ext_chamadas')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'ATENDIDA').eq('profile_id', currentUser.id)
       .gte('data_hora', hoje + 'T00:00:00').lte('data_hora', hoje + 'T23:59:59');
     const cVal = chamHoje || 0;
-    const cPct = Math.min(Math.round((cVal / 100) * 100), 100);
-    const cCor = cPct >= 100 ? '#059669' : cPct >= 70 ? '#f59e0b' : '#7c3aed';
-    document.getElementById('tb-dia-chamadas-val').textContent  = cVal;
-    document.getElementById('tb-dia-chamadas-pct').textContent  = cPct + '%';
-    document.getElementById('tb-dia-chamadas-pct').style.color  = cCor;
-    document.getElementById('tb-dia-chamadas-barra').style.width = cPct + '%';
-    document.getElementById('tb-dia-chamadas-barra').style.background = cPct >= 100 ? 'linear-gradient(90deg,#059669,#047857)' : cPct >= 70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#7c3aed,#5b21b6)';
+    const cPct = Math.min(Math.round((cVal / 60) * 100), 100);
+    const cC   = tbCor(cPct);
+    elCham.style.background   = cC.bg;
+    elCham.style.borderColor  = cC.border;
+    document.getElementById('tb-dia-chamadas-val').textContent             = cVal;
+    document.getElementById('tb-dia-chamadas-val').style.color             = cC.txt;
+    document.getElementById('tb-dia-chamadas-pct').textContent             = cPct + '%';
+    document.getElementById('tb-dia-chamadas-pct').style.color             = cC.txt;
+    document.getElementById('tb-dia-chamadas-barra').style.width           = cPct + '%';
+    document.getElementById('tb-dia-chamadas-barra').style.background      = cC.grad;
     elCham.style.display = 'flex';
 
-    // ── BDR: Agendamentos do dia ────────────────────────────
+    // Agendamentos
     let qA = sb.from('ext_agendamentos').select('id')
       .not('responsavel','is',null).neq('status_nome','Cancelada').neq('status_nome','Reagendada')
       .gte('created', hoje + 'T00:00:00').lte('created', hoje + 'T23:59:59');
@@ -4000,16 +4042,19 @@ async function renderMetaDiaria() {
     const { data: agHoje } = await qA;
     const aVal = (agHoje||[]).length;
     const aPct = Math.min(Math.round((aVal / 4) * 100), 100);
-    const aCor = aPct >= 100 ? '#059669' : aPct >= 70 ? '#f59e0b' : '#2563c2';
-    document.getElementById('tb-dia-agend-val').textContent   = aVal;
-    document.getElementById('tb-dia-agend-pct').textContent   = aPct + '%';
-    document.getElementById('tb-dia-agend-pct').style.color   = aCor;
-    document.getElementById('tb-dia-agend-barra').style.width = aPct + '%';
-    document.getElementById('tb-dia-agend-barra').style.background = aPct >= 100 ? 'linear-gradient(90deg,#059669,#047857)' : aPct >= 70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#2563c2,#1d4ed8)';
+    const aC   = tbCor(aPct);
+    elAgend.style.background  = aC.bg;
+    elAgend.style.borderColor = aC.border;
+    document.getElementById('tb-dia-agend-val').textContent                = aVal;
+    document.getElementById('tb-dia-agend-val').style.color                = aC.txt;
+    document.getElementById('tb-dia-agend-pct').textContent                = aPct + '%';
+    document.getElementById('tb-dia-agend-pct').style.color                = aC.txt;
+    document.getElementById('tb-dia-agend-barra').style.width              = aPct + '%';
+    document.getElementById('tb-dia-agend-barra').style.background         = aC.grad;
     elAgend.style.display = 'flex';
 
   } else if (['vendas','gerente'].includes(role)) {
-    // ── Exec/Gerente: Reuniões realizadas hoje ──────────────
+    // Reuniões
     let qR = sb.from('ext_agendamentos').select('id')
       .eq('status_nome','Realizada').not('responsavel','is',null)
       .gte('data', hoje).lte('data', hoje);
@@ -4017,12 +4062,15 @@ async function renderMetaDiaria() {
     const { data: rHoje } = await qR;
     const rVal = (rHoje||[]).length;
     const rPct = Math.min(Math.round((rVal / 3) * 100), 100);
-    const rCor = rPct >= 100 ? '#059669' : rPct >= 70 ? '#f59e0b' : '#10b981';
-    document.getElementById('tb-dia-reunioes-val').textContent   = rVal;
-    document.getElementById('tb-dia-reunioes-pct').textContent   = rPct + '%';
-    document.getElementById('tb-dia-reunioes-pct').style.color   = rCor;
-    document.getElementById('tb-dia-reunioes-barra').style.width = rPct + '%';
-    document.getElementById('tb-dia-reunioes-barra').style.background = rPct >= 100 ? 'linear-gradient(90deg,#059669,#047857)' : rPct >= 70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#10b981,#059669)';
+    const rC   = tbCor(rPct);
+    elReunioes.style.background  = rC.bg;
+    elReunioes.style.borderColor = rC.border;
+    document.getElementById('tb-dia-reunioes-val').textContent             = rVal;
+    document.getElementById('tb-dia-reunioes-val').style.color             = rC.txt;
+    document.getElementById('tb-dia-reunioes-pct').textContent             = rPct + '%';
+    document.getElementById('tb-dia-reunioes-pct').style.color             = rC.txt;
+    document.getElementById('tb-dia-reunioes-barra').style.width           = rPct + '%';
+    document.getElementById('tb-dia-reunioes-barra').style.background      = rC.grad;
     elReunioes.style.display = 'flex';
   }
 }
@@ -5279,6 +5327,7 @@ function renderNav() {
     if (page === 'admin')           return; // admin controlado separadamente
     if (page === 'configuracoes')   return; // sempre visível para todos
     if (page === 'acompanhamento') { el.style.display = (isAdmin || isGerente) ? '' : 'none'; return; }
+    if (page === 'kpi-diario')    { el.style.display = (isAdmin || isGerente) ? '' : 'none'; return; }
     el.style.display = (isAdmin || liberadas.includes(page)) ? '' : 'none';
   });
 
@@ -5300,11 +5349,15 @@ function showPage(id) {
   const liberadas = currentUser?.paginas_liberadas || ['novidades'];
   const isAdmin   = currentUser?.role === 'admin';
   const isGerente = currentUser?.role === 'gerente';
-  if (id !== 'admin' && id !== 'configuracoes' && id !== 'acompanhamento' && !isAdmin && !liberadas.includes(id)) {
+  if (id !== 'admin' && id !== 'configuracoes' && id !== 'acompanhamento' && id !== 'kpi-diario' && !isAdmin && !liberadas.includes(id)) {
     alert('Você não tem permissão para acessar esta página.');
     return;
   }
   if (id === 'acompanhamento' && !isAdmin && !isGerente) {
+    alert('Você não tem permissão para acessar esta página.');
+    return;
+  }
+  if (id === 'kpi-diario' && !isAdmin && !isGerente) {
     alert('Você não tem permissão para acessar esta página.');
     return;
   }
@@ -5317,8 +5370,8 @@ function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  const navMap   = { dashboard:'📊 Dashboard', novidades:'📢 Novidades', faq:'❓ FAQ', book:'📖 Book de Argumentação', precos:'💰 Tabela de Valores', campanhas:'📣 Campanhas', sistemas:'🖥️ Sistemas', gamificacao:'🏆 Ranking', loja:'🛍️ Loja', denuncia:'📣 Ouvidoria', suporte:'🎫 Suporte Técnico', configuracoes:'⚙️ Configurações', admin:'⚙️ Administração', leads:'🏢 Leads', agendamentos:'📋 Agendamentos', atividades:'⚡ Atividades', calendario:'📅 Calendário', acompanhamento:'📊 Acompanhamento' };
-  const labels   = { dashboard:'Dashboard', novidades:'Novidades', faq:'FAQ', book:'Book de Argumentação', precos:'Tabela de Valores', campanhas:'Campanhas', sistemas:'Sistemas', gamificacao:'Ranking', loja:'Loja de Prêmios', denuncia:'Ouvidoria', suporte:'Suporte Técnico', configuracoes:'Configurações', admin:'Administração', leads:'Leads', agendamentos:'Agendamentos', atividades:'Atividades', calendario:'Calendário', acompanhamento:'Acompanhamento' };
+  const navMap   = { dashboard:'📊 Dashboard', novidades:'📢 Novidades', faq:'❓ FAQ', book:'📖 Book de Argumentação', precos:'💰 Tabela de Valores', campanhas:'📣 Campanhas', sistemas:'🖥️ Sistemas', gamificacao:'🏆 Ranking', loja:'🛍️ Loja', denuncia:'📣 Ouvidoria', suporte:'🎫 Suporte Técnico', configuracoes:'⚙️ Configurações', admin:'⚙️ Administração', leads:'🏢 Leads', agendamentos:'📋 Agendamentos', atividades:'⚡ Atividades', calendario:'📅 Calendário', acompanhamento:'📊 Acompanhamento', 'kpi-diario':'⚡ Gestão KPIs Diário' };
+  const labels   = { dashboard:'Dashboard', novidades:'Novidades', faq:'FAQ', book:'Book de Argumentação', precos:'Tabela de Valores', campanhas:'Campanhas', sistemas:'Sistemas', gamificacao:'Ranking', loja:'Loja de Prêmios', denuncia:'Ouvidoria', suporte:'Suporte Técnico', configuracoes:'Configurações', admin:'Administração', leads:'Leads', agendamentos:'Agendamentos', atividades:'Atividades', calendario:'Calendário', acompanhamento:'Acompanhamento', 'kpi-diario':'Gestão KPIs Diário' };
   document.getElementById('topbar-page').innerHTML = navMap[id].split(' ')[0] + ' <strong>' + labels[id] + '</strong>';
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.textContent.trim().includes(labels[id])) n.classList.add('active');
@@ -5328,6 +5381,7 @@ function showPage(id) {
   if (id === 'loja')        renderLoja();
   if (id === 'dashboard')     { renderDashboard(); setTimeout(initChartData, 100); }
   if (id === 'acompanhamento') { renderAcompanhamento(); }
+  if (id === 'kpi-diario')    { renderAcompDiaria(); }
   if (id === 'novidades')     { renderNews(); }
   if (id === 'precos')         { loadProdutos(); }
   if (id === 'configuracoes')  { renderConfiguracoes(); }
@@ -5500,8 +5554,7 @@ async function renderDashboard() {
 
   const baseFilter = (q) => q
     .not('status_nome', 'eq', 'Cancelada')
-    .not('status_nome', 'eq', 'Reagendada')
-    .not('responsavel', 'is', 'null');
+    .not('status_nome', 'eq', 'Reagendada');
 
   // AGENDAMENTOS: union de criados em maio + data em maio
   const [{ data: ag1 }, { data: ag2 }] = await Promise.all([
@@ -5617,8 +5670,7 @@ async function renderDashboard() {
     };
     const applyStatusHist = (q) => q
       .not('status_nome', 'eq', 'Cancelada')
-    .not('status_nome', 'eq', 'Reagendada')
-    .not('responsavel', 'is', 'null');
+      .not('status_nome', 'eq', 'Reagendada');
     const selHist = 'id, data, hora, empresa, responsavel, status_nome, valor_fechado, online, representante_nome, acompanhante_nome, criador_id, representante_id, created';
 
     // Union por mês desde Janeiro
@@ -5745,8 +5797,7 @@ async function renderChart() {
   };
   const applyStatus = (q) => q
     .not('status_nome', 'eq', 'Cancelada')
-    .not('status_nome', 'eq', 'Reagendada')
-    .not('responsavel', 'is', 'null');
+    .not('status_nome', 'eq', 'Reagendada');
 
   // AGENDAMENTOS: union criados no período + data no período
   const sel = 'id, data, status_nome, valor_fechado, criador_id, representante_id, created';
@@ -6005,11 +6056,11 @@ async function renderPerfChart() {
       const [{ data: a1 }, { data: a2 }] = await Promise.all([
         sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
           .gte('created', inicioM+'T00:00:00').lte('created', fimM+'T23:59:59')
-          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null').limit(500),
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').limit(500),
         sb.from('ext_agendamentos').select('id,status_nome,valor_fechado')
           .gte('data', inicioM).lte('data', fimM)
           .or(`created.lt.${inicioM}T00:00:00,created.gt.${fimM}T23:59:59`)
-          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').not('responsavel','is','null').limit(500),
+          .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada').limit(500),
       ]);
       const mapaM = new Map();
       [...(a1||[]),...(a2||[])].forEach(r => mapaM.set(r.id, r));
@@ -6196,10 +6247,172 @@ function acompFiltro(tipo) {
     if (btn) btn.classList.toggle('active', t === tipo);
   });
   const isGeral = tipo === 'geral';
-  document.getElementById('acomp-grid').classList.toggle('hidden', isGeral);
+  document.getElementById('acomp-grid').classList.toggle('hidden', !isGeral ? false : true);
   document.getElementById('acomp-geral').classList.toggle('hidden', !isGeral);
   if (isGeral) renderAcompGeral('bdr');
   else renderAcompanhamento();
+}
+
+async function renderAcompDiaria() {
+  const hoje = new Date().toISOString().split('T')[0];
+  const bdrEl  = document.getElementById('diaria-bdr-lista');
+  const execEl = document.getElementById('diaria-exec-lista');
+  if (bdrEl)  bdrEl.innerHTML  = '<div style="text-align:center;padding:1rem;color:var(--gray3)">Carregando...</div>';
+  if (execEl) execEl.innerHTML = '<div style="text-align:center;padding:1rem;color:var(--gray3)">Carregando...</div>';
+
+  // Busca todos os usuários ativos com mysql_id
+  const { data: users } = await sb.from('profiles').select('id,name,role,color,avatar_url,mysql_id,ramal_ifix')
+    .eq('active', true).not('mysql_id','is',null).order('name');
+
+  const bdrs  = (users||[]).filter(u => u.role === 'agendamento');
+  const execs = (users||[]).filter(u => ['vendas','gerente'].includes(u.role));
+
+  // ── BDRs: chamadas + agendamentos de hoje ────────────────
+  const bdrDados = await Promise.all(bdrs.map(async u => {
+    const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
+    const nome1 = u.name.split(' ')[0];
+
+    // Chamadas atendidas hoje
+    const { count: chamadas } = await sb.from('ext_chamadas')
+      .select('id',{count:'exact',head:true}).eq('status','ATENDIDA').eq('profile_id',u.id)
+      .gte('data_hora', hoje+'T00:00:00').lte('data_hora', hoje+'T23:59:59');
+
+    // Agendamentos criados hoje
+    let qA = sb.from('ext_agendamentos').select('id')
+      .not('responsavel','is',null).neq('status_nome','Cancelada').neq('status_nome','Reagendada')
+      .gte('created', hoje+'T00:00:00').lte('created', hoje+'T23:59:59');
+    if (mid) qA = qA.eq('criador_id', mid); else qA = qA.ilike('acompanhante_nome',`%${nome1}%`);
+    const { data: agDs } = await qA;
+
+    return { ...u, chamadas: chamadas||0, agendamentos: (agDs||[]).length };
+  }));
+
+  // Ordena por score: (chamadas/60 + agendamentos/4) / 2
+  bdrDados.sort((a,b) => {
+    const sA = (a.chamadas/60 + a.agendamentos/4)/2;
+    const sB = (b.chamadas/60 + b.agendamentos/4)/2;
+    return sB - sA;
+  });
+
+  // ── Executivos: reuniões realizadas hoje ──────────────────
+  const execDados = await Promise.all(execs.map(async u => {
+    const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
+    const nome1 = u.name.split(' ')[0];
+    let qR = sb.from('ext_agendamentos').select('id')
+      .eq('status_nome','Realizada').not('responsavel','is',null)
+      .gte('data',hoje).lte('data',hoje);
+    if (mid) qR = qR.eq('representante_id',mid); else qR = qR.ilike('representante_nome',`%${nome1}%`);
+    const { data: rDs } = await qR;
+
+    let qV = sb.from('ext_agendamentos').select('id')
+      .eq('status_nome','Fechada').not('responsavel','is',null)
+      .gte('data',hoje).lte('data',hoje);
+    if (mid) qV = qV.eq('representante_id',mid); else qV = qV.ilike('representante_nome',`%${nome1}%`);
+    const { data: vDs } = await qV;
+
+    return { ...u, reunioes: (rDs||[]).length, vendas: (vDs||[]).length };
+  }));
+
+  execDados.sort((a,b) => {
+    const sA = (a.reunioes/3 + a.vendas/1)/2;
+    const sB = (b.reunioes/3 + b.vendas/1)/2;
+    return sB - sA;
+  });
+
+  // ── Renderiza BDRs ────────────────────────────────────────
+  function barDia(val, meta) {
+    const pct = Math.min(Math.round((val/meta)*100),100);
+    const grad = pct>=100 ? 'linear-gradient(90deg,#059669,#047857)' : pct>=70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#2563c2,#3b82f6)';
+    const txtCor = pct>=100 ? '#059669' : pct>=70 ? '#d97706' : '#2563c2';
+    return { pct, grad, txtCor };
+  }
+
+  function avatarHtml(u) {
+    if (u.avatar_url) return `<img src="${u.avatar_url}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0">`;
+    const ini = u.name.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+    return `<div style="width:34px;height:34px;border-radius:50%;background:${u.color||'#2563c2'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif">${ini}</div>`;
+  }
+
+  if (bdrEl) {
+    if (!bdrDados.length) { bdrEl.innerHTML = '<div class="alert-info">Nenhum BDR encontrado.</div>'; }
+    else bdrEl.innerHTML = bdrDados.map((u,i) => {
+      const bC = barDia(u.chamadas, 60);
+      const bA = barDia(u.agendamentos, 4);
+      const posIcon = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : `<span style="font-size:11px;font-weight:700;color:var(--gray3)">#${i+1}</span>`;
+      const bateuTudo = bC.pct >= 100 && bA.pct >= 100;
+      const tudo0     = u.chamadas === 0 && u.agendamentos === 0;
+      const cardBg    = bateuTudo ? '#f0fdf4' : tudo0 ? '#fef2f2' : '#fafbff';
+      const cardBord  = bateuTudo ? '#86efac' : tudo0 ? '#fca5a5' : '#e8edf5';
+      const hoverBg   = bateuTudo ? '#dcfce7' : tudo0 ? '#fee2e2' : '#f0f4ff';
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:${cardBg};border:1px solid ${cardBord};transition:background .15s" onmouseover="this.style.background='${hoverBg}'" onmouseout="this.style.background='${cardBg}'">
+          <div style="width:24px;text-align:center;flex-shrink:0">${bateuTudo ? '🎉' : posIcon}</div>
+          ${avatarHtml(u)}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">${u.name.split(' ').slice(0,2).join(' ')}${bateuTudo ? ' <span style="font-size:11px">🏆</span>' : ''}</div>
+            <!-- Chamadas -->
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <span style="font-size:10px;color:var(--gray3);font-weight:600;width:62px;flex-shrink:0">📞 Lig.</span>
+              <div style="flex:1;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:${bC.pct}%;border-radius:99px;background:${bC.grad};transition:width .5s"></div>
+              </div>
+              <span style="font-size:11px;font-weight:800;color:${bC.txtCor};width:36px;text-align:right;flex-shrink:0">${u.chamadas}<span style="font-weight:400;color:var(--gray3)">/60</span></span>
+            </div>
+            <!-- Agendamentos -->
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:var(--gray3);font-weight:600;width:62px;flex-shrink:0">📅 Agend.</span>
+              <div style="flex:1;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:${bA.pct}%;border-radius:99px;background:${bA.grad};transition:width .5s"></div>
+              </div>
+              <span style="font-size:11px;font-weight:800;color:${bA.txtCor};width:36px;text-align:right;flex-shrink:0">${u.agendamentos}<span style="font-weight:400;color:var(--gray3)">/4</span></span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Renderiza Executivos ──────────────────────────────────
+  if (execEl) {
+    if (!execDados.length) { execEl.innerHTML = '<div class="alert-info">Nenhum executivo encontrado.</div>'; }
+    else execEl.innerHTML = execDados.map((u,i) => {
+      const bR = barDia(u.reunioes, 3);
+      const bV = barDia(u.vendas,   1);
+      const posIcon = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : `<span style="font-size:11px;font-weight:700;color:var(--gray3)">#${i+1}</span>`;
+      const isGer = u.role === 'gerente';
+      const bateuTudo = bR.pct >= 100 && bV.pct >= 100;
+      const tudo0     = u.reunioes === 0 && u.vendas === 0;
+      const cardBg    = bateuTudo ? '#f0fdf4' : tudo0 ? '#fef2f2' : '#fafbff';
+      const cardBord  = bateuTudo ? '#86efac' : tudo0 ? '#fca5a5' : '#e8edf5';
+      const hoverBg   = bateuTudo ? '#dcfce7' : tudo0 ? '#fee2e2' : '#f0fff8';
+      return `
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:${cardBg};border:1px solid ${cardBord};transition:background .15s" onmouseover="this.style.background='${hoverBg}'" onmouseout="this.style.background='${cardBg}'">
+          <div style="width:24px;text-align:center;flex-shrink:0">${bateuTudo ? '🎉' : posIcon}</div>
+          ${avatarHtml(u)}
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+              <span style="font-size:13px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--black);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${u.name.split(' ').slice(0,2).join(' ')}${bateuTudo ? ' <span style="font-size:11px">🏆</span>' : ''}</span>
+              ${isGer ? '<span style="font-size:9px;font-weight:700;background:#fef3c7;color:#92400e;padding:1px 6px;border-radius:99px">Ger.</span>' : ''}
+            </div>
+            <!-- Reuniões -->
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+              <span style="font-size:10px;color:var(--gray3);font-weight:600;width:62px;flex-shrink:0">🤝 Reuniões</span>
+              <div style="flex:1;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:${bR.pct}%;border-radius:99px;background:${bR.grad};transition:width .5s"></div>
+              </div>
+              <span style="font-size:11px;font-weight:800;color:${bR.txtCor};width:36px;text-align:right;flex-shrink:0">${u.reunioes}<span style="font-weight:400;color:var(--gray3)">/3</span></span>
+            </div>
+            <!-- Vendas -->
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:10px;color:var(--gray3);font-weight:600;width:62px;flex-shrink:0">💰 Vendas</span>
+              <div style="flex:1;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+                <div style="height:100%;width:${bV.pct}%;border-radius:99px;background:${bV.grad};transition:width .5s"></div>
+              </div>
+              <span style="font-size:11px;font-weight:800;color:${bV.txtCor};width:36px;text-align:right;flex-shrink:0">${u.vendas}<span style="font-weight:400;color:var(--gray3)">/1</span></span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
 }
 
 async function renderAcompanhamento() {
@@ -8739,8 +8952,8 @@ async function renderAcompGeral(role) {
   const mesLabels = ultimos3.map((m,i) => '<th style="'+thStyle+(i===2?';color:var(--blue2);border-bottom-color:var(--blue2)':'')+'">'+m.label+(i===2?' ←':'')+'</th>').join('');
   const thAvgSingle = '<th style="'+thAvg+'">Média ↕</th>';
 
-  const buildTable = (titulo, rowsFn, colspan) => {
-    const tbody = rows.map(rowsFn).join('');
+  const buildTable = (titulo, rowsFn, customRows) => {
+    const tbody = (customRows || rows).map(rowsFn).join('');
     return '<div style="margin-bottom:1.2rem">'+
       '<div style="font-size:11.5px;font-weight:700;color:var(--gray3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">'+titulo+'</div>'+
       '<table style="width:100%;border-collapse:collapse;font-size:13px">'+
@@ -8751,15 +8964,26 @@ async function renderAcompGeral(role) {
   let html;
   if (isBDR) {
     const mediaCham = dadosUsers.reduce((s,u)=>s+(u.vals[2]?.cham||0),0) / (dadosUsers.length||1);
+    const dadosCham = [...dadosUsers].sort((a,b) => (b.vals.reduce((s,v)=>s+(v.cham||0),0)/3) - (a.vals.reduce((s,v)=>s+(v.cham||0),0)/3));
+    const rowsCham  = dadosCham.map((u, idx) => {
+      const cor   = u.color || '#3b82f6';
+      const av    = u.avatar_url ? '<img src="'+u.avatar_url+'" style="width:28px;height:28px;border-radius:50%;object-fit:cover">' : '<div style="width:28px;height:28px;border-radius:50%;background:'+cor+';display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;flex-shrink:0">'+u.name.charAt(0)+'</div>';
+      const bg    = idx%2===0 ? '' : 'background:#f8fafc;';
+      const bgAvg = idx%2===0 ? 'background:#f0f4ff;' : 'background:#e8eeff;';
+      const medalha = idx===0 ? '🥇' : idx===1 ? '🥈' : idx===2 ? '🥉' : '';
+      const nameTd  = '<td style="padding:8px 14px;'+bg+'"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:13px;min-width:20px">'+medalha+'</span>'+av+'<span style="font-weight:700;font-size:13px;color:var(--black)">'+u.name.split(' ').slice(0,2).join(' ')+'</span></div></td>';
+      return { nameTd, bg, bgAvg, cham: u.vals.map(v=>v.cham||0) };
+    });
     const tAg   = buildTable('Agendamentos', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.ag.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+v+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+r.agAvg.toFixed(1)+' '+r.tAg+'</td></tr>');
     const tReal = buildTable('Reuniões Realizadas', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.real.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+v+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+r.realAvg.toFixed(1)+' '+r.tReal+'</td></tr>');
     const tMrrT = buildTable('MRR Gerado', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.mrr.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+(v>0?'R$'+(v/1000).toFixed(1)+'k':'—')+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+(r.mrrAvg>0?'R$'+(r.mrrAvg/1000).toFixed(1)+'k':'—')+' '+r.tMrr+'</td></tr>');
     const tCham = buildTable('Chamadas Atendidas', r => {
       const chamVals = r.cham || [0,0,0];
       const chamAvg  = chamVals.reduce((s,v)=>s+v,0)/3;
-      const tC = chamVals[2] > mediaCham ? '<span style="color:#10b981;font-weight:700">↑</span>' : chamVals[2] < mediaCham ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
+      const mediaChamTime = dadosUsers.reduce((s,u)=>{const cv=u.vals[2]?.cham||0;return s+cv;},0)/(dadosUsers.length||1);
+      const tC = chamVals[2] > mediaChamTime ? '<span style="color:#10b981;font-weight:700">↑</span>' : chamVals[2] < mediaChamTime ? '<span style="color:#ef4444;font-weight:700">↓</span>' : '<span style="color:#94a3b8">→</span>';
       return '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+chamVals.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:#5b21b6;':'color:var(--gray3);')+r.bg+'">'+v+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+chamAvg.toFixed(1)+' '+tC+'</td></tr>';
-    });
+    }, rowsCham);
     html = tAg + tReal + tMrrT + tCham;
   } else {
     html = buildTable('MRR Fechado', r => '<tr style="border-bottom:1px solid var(--gray2);">'+r.nameTd+r.vals.map((v,i)=>'<td style="padding:8px 14px;text-align:center;font-size:13px;'+(i===2?'font-weight:800;color:var(--blue2);':'color:var(--gray3);')+r.bg+'">'+(v>0?'R$'+(v/1000).toFixed(1)+'k':'—')+'</td>').join('')+'<td style="padding:8px 14px;text-align:center;font-size:13px;font-weight:800;'+r.bgAvg+'">'+(r.media>0?'R$'+(r.media/1000).toFixed(1)+'k':'—')+' '+r.tMrr+'</td></tr>');
