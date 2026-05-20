@@ -757,44 +757,117 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <span class="topbar-crumb" id="topbar-page">📊 <strong>Dashboard</strong></span>
       </div>
       <div class="topbar-right">
-        <!-- Meta Geral + Meta Individual -->
-        <div id="topbar-metas-wrapper" style="display:none;align-items:center;gap:8px">
+        <!-- Metas Topbar -->
+        <div id="topbar-metas-wrapper" style="display:none;align-items:center;gap:6px">
 
-          <!-- Meta Geral -->
-          <div id="topbar-meta" style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px">
-            <div style="display:flex;flex-direction:column;gap:2px;min-width:140px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-                <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gray3);text-transform:uppercase;letter-spacing:.4px">🎯 Meta Geral</span>
-                <span id="topbar-meta-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--blue2)">0%</span>
-              </div>
-              <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
-                <div id="topbar-meta-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#2563c2,#7c3aed)"></div>
-              </div>
-              <div style="display:flex;justify-content:space-between;margin-top:1px">
-                <span id="topbar-meta-resultado" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
-                <span id="topbar-meta-alvo" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
-              </div>
-            </div>
+          <!-- Abas -->
+          <div style="display:flex;gap:3px;background:#f1f5f9;border-radius:8px;padding:3px">
+            <button id="tb-tab-mensal" onclick="tbTab('mensal')"
+              style="font-size:9.5px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;padding:3px 10px;border-radius:6px;border:none;cursor:pointer;background:transparent;color:var(--gray3);transition:all .2s">
+              📅 Mensal
+            </button>
+            <button id="tb-tab-diaria" onclick="tbTab('diaria')"
+              style="font-size:9.5px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;padding:3px 10px;border-radius:6px;border:none;cursor:pointer;background:white;color:var(--blue2);box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .2s">
+              ⚡ Diária
+            </button>
           </div>
 
-          <!-- Meta Individual -->
-          <div id="topbar-meta-ind" style="display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px">
-            <div style="display:flex;flex-direction:column;gap:2px;min-width:140px">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-                <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gray3);text-transform:uppercase;letter-spacing:.4px">👤 Meta Individual</span>
-                <span id="topbar-meta-ind-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#10b981">0%</span>
-              </div>
-              <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
-                <div id="topbar-meta-ind-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#10b981,#059669)"></div>
-              </div>
-              <div style="display:flex;justify-content:space-between;margin-top:1px">
-                <span id="topbar-meta-ind-resultado" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
-                <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 12.000</span>
+          <!-- Painel Mensal -->
+          <div id="tb-painel-mensal" style="display:none;align-items:center;gap:6px">
+
+            <!-- Meta Geral (sempre visível no mensal) -->
+            <div id="topbar-meta" style="display:flex;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px">
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:140px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gray3);text-transform:uppercase;letter-spacing:.4px">🎯 Meta Geral</span>
+                  <span id="topbar-meta-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:var(--blue2)">0%</span>
+                </div>
+                <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+                  <div id="topbar-meta-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#2563c2,#7c3aed)"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:1px">
+                  <span id="topbar-meta-resultado" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+                  <span id="topbar-meta-alvo" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+                </div>
               </div>
             </div>
-          </div>
 
-        </div>
+            <!-- Meta Individual (oculto para admin) -->
+            <div id="topbar-meta-ind" style="display:none;align-items:center;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:5px 12px">
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:140px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--gray3);text-transform:uppercase;letter-spacing:.4px">👤 Meta Individual</span>
+                  <span id="topbar-meta-ind-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#10b981">0%</span>
+                </div>
+                <div style="height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
+                  <div id="topbar-meta-ind-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,#10b981,#059669)"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:1px">
+                  <span id="topbar-meta-ind-resultado" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+                  <span id="topbar-meta-ind-alvo" style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">R$ 0</span>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /tb-painel-mensal -->
+
+          <!-- Painel Diário (oculto por padrão) -->
+          <div id="tb-painel-diaria" style="display:flex;align-items:center;gap:6px">
+
+            <!-- BDR: Chamadas do dia -->
+            <div id="tb-dia-chamadas" style="display:none;align-items:center;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:5px 12px">
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:130px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:#5b21b6;text-transform:uppercase;letter-spacing:.4px">📞 Chamadas/dia</span>
+                  <span id="tb-dia-chamadas-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#7c3aed">0%</span>
+                </div>
+                <div style="height:5px;background:#ede9fe;border-radius:99px;overflow:hidden">
+                  <div id="tb-dia-chamadas-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s;background:linear-gradient(90deg,#7c3aed,#5b21b6)"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:1px">
+                  <span id="tb-dia-chamadas-val" style="font-size:9.5px;color:#5b21b6;font-family:'DM Sans',sans-serif;font-weight:600">0</span>
+                  <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">meta: 100</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- BDR: Agendamentos do dia -->
+            <div id="tb-dia-agend" style="display:none;align-items:center;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:5px 12px">
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:130px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:#1d4ed8;text-transform:uppercase;letter-spacing:.4px">📅 Agend./dia</span>
+                  <span id="tb-dia-agend-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#2563c2">0%</span>
+                </div>
+                <div style="height:5px;background:#dbeafe;border-radius:99px;overflow:hidden">
+                  <div id="tb-dia-agend-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s;background:linear-gradient(90deg,#2563c2,#1d4ed8)"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:1px">
+                  <span id="tb-dia-agend-val" style="font-size:9.5px;color:#1d4ed8;font-family:'DM Sans',sans-serif;font-weight:600">0</span>
+                  <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">meta: 4</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Exec/Gerente: Reuniões do dia -->
+            <div id="tb-dia-reunioes" style="display:none;align-items:center;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:5px 12px">
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:130px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:#065f46;text-transform:uppercase;letter-spacing:.4px">🤝 Reuniões/dia</span>
+                  <span id="tb-dia-reunioes-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#10b981">0%</span>
+                </div>
+                <div style="height:5px;background:#d1fae5;border-radius:99px;overflow:hidden">
+                  <div id="tb-dia-reunioes-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s;background:linear-gradient(90deg,#10b981,#059669)"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-top:1px">
+                  <span id="tb-dia-reunioes-val" style="font-size:9.5px;color:#065f46;font-family:'DM Sans',sans-serif;font-weight:600">0</span>
+                  <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">meta: 3</span>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /tb-painel-diaria -->
+
+        </div><!-- /topbar-metas-wrapper -->
         <div class="topbar-pts">⭐ <span id="topbar-pts">0</span> pts</div>
         <div style="font-size:12px;color:var(--gray3);font-family:Plus Jakarta Sans,sans-serif" id="topbar-date"></div>
       </div>
@@ -1347,7 +1420,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.2rem">
             <div class="form-group" style="margin:0">
               <label>MÊS</label>
-              <select id="meta-mes" onchange="carregarMetaExistente()">
+              <select id="meta-mes">
                 <option value="1">Janeiro</option><option value="2">Fevereiro</option>
                 <option value="3">Março</option><option value="4">Abril</option>
                 <option value="5">Maio</option><option value="6">Junho</option>
@@ -1358,14 +1431,14 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
             </div>
             <div class="form-group" style="margin:0">
               <label>ANO</label>
-              <input type="number" id="meta-ano" value="2026" min="2024" max="2030" onchange="carregarMetaExistente()">
+              <input type="number" id="meta-ano" value="2026" min="2024" max="2030">
             </div>
           </div>
 
           <div style="margin-bottom:1rem">
             <div class="form-group" style="margin:0">
               <label>META DO MÊS (R$) *</label>
-              <input type="number" id="meta-valor" placeholder="Ex: 50000" min="0" step="0.01" oninput="atualizarPreviewMeta()">
+              <input type="number" id="meta-valor" placeholder="Ex: 50000" min="0" step="0.01">
               <div style="font-size:11.5px;color:var(--gray3);margin-top:4px">O resultado é atualizado automaticamente pelo sync do MySQL</div>
             </div>
           </div>
@@ -1387,29 +1460,6 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
             <button class="btn-primary" style="flex:1;justify-content:center" onclick="salvarMeta()">💾 Salvar Meta</button>
             <button class="btn-secondary" onclick="carregarMetaExistente()">🔄 Carregar mês</button>
           </div>
-        </div>
-
-        <!-- Meta Individual -->
-        <div class="card" style="max-width:520px;margin-top:1.2rem">
-          <div class="card-title" style="margin-bottom:1.2rem">👤 Meta Individual (BDRs e Executivos)</div>
-          <div style="font-size:13px;color:var(--gray3);margin-bottom:1rem">Define a meta mensal de MRR para todos os BDRs e Executivos. Exibida na barra de progresso individual de cada usuário.</div>
-          <div class="form-group">
-            <label>META INDIVIDUAL (R$) *</label>
-            <input type="number" id="meta-ind-valor" placeholder="Ex: 12000" min="0" step="100"
-              value="12000" oninput="atualizarPreviewMetaInd()">
-          </div>
-          <div style="background:#f8fafc;border-radius:10px;padding:1rem;margin-bottom:1rem">
-            <div style="font-size:11px;color:var(--gray3);font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Preview</div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-              <span id="meta-ind-prev-label" style="font-size:12.5px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:var(--black)">Exemplo: vendedor com R$ 8.400 fechado</span>
-            </div>
-            <div style="height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden">
-              <div id="meta-ind-prev-barra" style="height:100%;width:70%;border-radius:99px;background:linear-gradient(90deg,#f59e0b,#d97706);transition:width .4s"></div>
-            </div>
-            <div style="font-size:11px;color:var(--gray3);margin-top:4px" id="meta-ind-prev-sub">70% da meta individual</div>
-          </div>
-          <div id="meta-ind-msg" class="hidden" style="font-size:12.5px;font-weight:600;margin-bottom:.8rem"></div>
-          <button class="btn-primary" style="width:100%;justify-content:center" onclick="salvarMetaIndividual()">💾 Salvar Meta Individual</button>
         </div>
       </div>
 
@@ -3838,128 +3888,28 @@ async function loadMetaMensal() {
   renderMetaTopbar();
 }
 
-// ── Preenche o select de mês com o mês atual ao abrir admin ──
-function initMetaAdminForm() {
-  const mes = document.getElementById('meta-mes');
-  const ano = document.getElementById('meta-ano');
-  if (mes) mes.value = new Date().getMonth() + 1;
-  if (ano) ano.value = new Date().getFullYear();
-  atualizarPreviewMeta();
-  carregarMetaExistente();
-  carregarMetaIndividual();
-}
-
-function atualizarPreviewMeta() {
-  const valorInput = parseFloat(document.getElementById('meta-valor')?.value) || 0;
-  const resultado  = metaAtual?.resultado || 0;
-  const pct = valorInput > 0 ? Math.min(Math.round((resultado / valorInput) * 100), 100) : 0;
-  const cor = pct >= 100 ? '#10b981' : pct >= 70 ? '#f59e0b' : '#2563c2';
-  const grad = pct >= 100 ? 'linear-gradient(90deg,#10b981,#059669)'
-             : pct >= 70  ? 'linear-gradient(90deg,#f59e0b,#d97706)'
-             : 'linear-gradient(90deg,#2563c2,#7c3aed)';
-  const labelEl  = document.getElementById('meta-prev-label');
-  const valEl    = document.getElementById('meta-prev-valores');
-  const barraEl  = document.getElementById('meta-prev-barra');
-  if (labelEl)  labelEl.textContent = pct + '% da meta';
-  if (labelEl)  labelEl.style.color = cor;
-  if (valEl)    valEl.textContent   = 'R$ ' + resultado.toLocaleString('pt-BR') + ' / R$ ' + valorInput.toLocaleString('pt-BR');
-  if (barraEl)  { barraEl.style.width = pct + '%'; barraEl.style.background = grad; }
-}
-
-async function carregarMetaExistente() {
-  const mes = parseInt(document.getElementById('meta-mes')?.value);
-  const ano = parseInt(document.getElementById('meta-ano')?.value);
-  if (!mes || !ano) return;
-  const { data } = await sb.from('metas_mensais').select('*').eq('mes', mes).eq('ano', ano).maybeSingle();
-  const valorEl = document.getElementById('meta-valor');
-  const msgEl   = document.getElementById('meta-msg');
-  if (data) {
-    if (valorEl) valorEl.value = data.meta || '';
-    if (msgEl)   { msgEl.textContent = '✅ Meta carregada — resultado atual: R$ ' + Number(data.resultado||0).toLocaleString('pt-BR'); msgEl.style.color = '#065f46'; msgEl.classList.remove('hidden'); }
-  } else {
-    if (valorEl) valorEl.value = '';
-    if (msgEl)   { msgEl.textContent = 'Nenhuma meta cadastrada para este mês.'; msgEl.style.color = 'var(--gray3)'; msgEl.classList.remove('hidden'); }
-  }
-  atualizarPreviewMeta();
-}
-
-async function salvarMeta() {
-  const mes    = parseInt(document.getElementById('meta-mes')?.value);
-  const ano    = parseInt(document.getElementById('meta-ano')?.value);
-  const valor  = parseFloat(document.getElementById('meta-valor')?.value);
-  const msgEl  = document.getElementById('meta-msg');
-  if (!mes || !ano)     { if (msgEl) { msgEl.textContent = 'Selecione mês e ano.'; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
-  if (!valor || valor <= 0) { if (msgEl) { msgEl.textContent = 'Informe um valor válido para a meta.'; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
-
-  const { data: ex } = await sb.from('metas_mensais').select('id').eq('mes', mes).eq('ano', ano).maybeSingle();
-  let error;
-  if (ex) {
-    ({ error } = await sb.from('metas_mensais').update({ meta: valor }).eq('id', ex.id));
-  } else {
-    ({ error } = await sb.from('metas_mensais').insert({ mes, ano, meta: valor, resultado: 0 }));
-  }
-  if (error) { if (msgEl) { msgEl.textContent = 'Erro: ' + error.message; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
-  if (msgEl) { msgEl.textContent = '✅ Meta salva com sucesso!'; msgEl.style.color = '#065f46'; msgEl.classList.remove('hidden'); setTimeout(() => msgEl.classList.add('hidden'), 3000); }
-  await loadMetaMensal();
-  atualizarPreviewMeta();
-}
-
-async function carregarMetaIndividual() {
-  const { data } = await sb.from('config_portal').select('valor').eq('chave', 'meta_individual').maybeSingle();
-  const val = data?.valor ? parseFloat(data.valor) : 12000;
-  const el = document.getElementById('meta-ind-valor');
-  if (el) el.value = val;
-  atualizarPreviewMetaInd();
-}
-
-function atualizarPreviewMetaInd() {
-  const meta = parseFloat(document.getElementById('meta-ind-valor')?.value) || 12000;
-  const exemplo = meta * 0.7;
-  const pct = Math.round((exemplo / meta) * 100);
-  const cor = '#f59e0b';
-  const labelEl = document.getElementById('meta-ind-prev-label');
-  const barraEl = document.getElementById('meta-ind-prev-barra');
-  const subEl   = document.getElementById('meta-ind-prev-sub');
-  if (labelEl) labelEl.textContent = 'Exemplo: vendedor com R$ ' + exemplo.toLocaleString('pt-BR', {maximumFractionDigits:0}) + ' fechado';
-  if (barraEl) { barraEl.style.width = pct + '%'; }
-  if (subEl)   subEl.textContent = pct + '% da meta individual';
-}
-
-async function salvarMetaIndividual() {
-  const valor  = parseFloat(document.getElementById('meta-ind-valor')?.value);
-  const msgEl  = document.getElementById('meta-ind-msg');
-  if (!valor || valor <= 0) { if (msgEl) { msgEl.textContent = 'Informe um valor válido.'; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
-
-  const { data: ex } = await sb.from('config_portal').select('id').eq('chave', 'meta_individual').maybeSingle();
-  let error;
-  if (ex) {
-    ({ error } = await sb.from('config_portal').update({ valor: String(valor) }).eq('chave', 'meta_individual'));
-  } else {
-    ({ error } = await sb.from('config_portal').insert({ chave: 'meta_individual', valor: String(valor) }));
-  }
-  if (error) { if (msgEl) { msgEl.textContent = 'Erro: ' + error.message; msgEl.style.color = 'var(--red)'; msgEl.classList.remove('hidden'); } return; }
-  if (msgEl) { msgEl.textContent = '✅ Meta individual salva!'; msgEl.style.color = '#065f46'; msgEl.classList.remove('hidden'); setTimeout(() => msgEl.classList.add('hidden'), 3000); }
+function tbTab(aba) {
+  const isMensal = aba === 'mensal';
+  document.getElementById('tb-tab-mensal').style.background    = isMensal ? 'white' : 'transparent';
+  document.getElementById('tb-tab-mensal').style.color         = isMensal ? 'var(--blue2)' : 'var(--gray3)';
+  document.getElementById('tb-tab-mensal').style.boxShadow     = isMensal ? '0 1px 3px rgba(0,0,0,.1)' : 'none';
+  document.getElementById('tb-tab-diaria').style.background    = !isMensal ? 'white' : 'transparent';
+  document.getElementById('tb-tab-diaria').style.color         = !isMensal ? 'var(--blue2)' : 'var(--gray3)';
+  document.getElementById('tb-tab-diaria').style.boxShadow     = !isMensal ? '0 1px 3px rgba(0,0,0,.1)' : 'none';
+  document.getElementById('tb-painel-mensal').style.display    = isMensal ? 'flex' : 'none';
+  document.getElementById('tb-painel-diaria').style.display    = !isMensal ? 'flex' : 'none';
 }
 
 function renderMetaTopbar() {
   const wrapper = document.getElementById('topbar-metas-wrapper');
   if (!wrapper) return;
-
-  // Só mostra wrapper se há meta geral definida
-  if (!metaAtual.meta || metaAtual.meta === 0) {
-    wrapper.style.display = 'none';
-    return;
-  }
-
+  if (!metaAtual.meta || metaAtual.meta === 0) { wrapper.style.display = 'none'; return; }
   wrapper.style.display = 'flex';
 
-  // ── Meta Geral ────────────────────────────────────────────
+  // Meta Geral
   const pct  = Math.min(Math.round((metaAtual.resultado / metaAtual.meta) * 100), 100);
   const cor  = pct >= 100 ? '#10b981' : pct >= 70 ? '#f59e0b' : '#2563c2';
-  const grad = pct >= 100 ? 'linear-gradient(90deg,#10b981,#059669)'
-             : pct >= 70  ? 'linear-gradient(90deg,#f59e0b,#d97706)'
-             : 'linear-gradient(90deg,#2563c2,#7c3aed)';
-
+  const grad = pct >= 100 ? 'linear-gradient(90deg,#10b981,#059669)' : pct >= 70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#2563c2,#7c3aed)';
   document.getElementById('topbar-meta-barra').style.width      = pct + '%';
   document.getElementById('topbar-meta-barra').style.background = grad;
   document.getElementById('topbar-meta-pct').textContent        = pct + '%';
@@ -3967,8 +3917,8 @@ function renderMetaTopbar() {
   document.getElementById('topbar-meta-resultado').textContent  = 'R$ ' + Number(metaAtual.resultado).toLocaleString('pt-BR');
   document.getElementById('topbar-meta-alvo').textContent       = 'R$ ' + Number(metaAtual.meta).toLocaleString('pt-BR');
 
-  // ── Meta Individual ───────────────────────────────────────
   renderMetaIndividual();
+  renderMetaDiaria();
 }
 
 const META_INDIVIDUAL = 12000;
@@ -3979,45 +3929,102 @@ async function renderMetaIndividual() {
   if (currentUser.role === 'admin') { indEl.style.display = 'none'; return; }
   indEl.style.display = 'flex';
 
-  // Busca meta individual do banco (config_portal), fallback 12000
-  const { data: cfgMeta } = await sb.from('config_portal').select('valor').eq('chave','meta_individual').maybeSingle();
-  const META_IND_DIN = cfgMeta?.valor ? parseFloat(cfgMeta.valor) : META_INDIVIDUAL;
-
-  const agora  = new Date();
-  const inicio = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString().split('T')[0];
-  const fim    = new Date(agora.getFullYear(), agora.getMonth()+1, 0).toISOString().split('T')[0];
+  const agora   = new Date();
+  const inicio  = new Date(agora.getFullYear(), agora.getMonth(), 1).toISOString().split('T')[0];
+  const fim     = new Date(agora.getFullYear(), agora.getMonth()+1, 0).toISOString().split('T')[0];
   const mysqlId = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
   const nome1   = currentUser.name.split(' ')[0];
 
+  const { data: cfgMeta } = await sb.from('config_portal').select('valor').eq('chave','meta_individual').maybeSingle();
+  const META_IND_DIN = cfgMeta?.valor ? parseFloat(cfgMeta.valor) : META_INDIVIDUAL;
+
   let totalMRR = 0;
   if (currentUser.role === 'agendamento') {
-    // BDR = criador_id no MySQL
-    let q = sb.from('ext_agendamentos').select('valor_fechado')
-      .eq('status_nome','Fechada').gte('data',inicio).lte('data',fim);
-    if (mysqlId) q = q.eq('criador_id', mysqlId);
-    else q = q.ilike('acompanhante_nome', `%${nome1}%`);
-    const { data } = await q;
-    totalMRR = (data||[]).reduce((s,e) => s + Number(e.valor_fechado||0), 0);
-  } else if (currentUser.role === 'vendas') {
-    // Executivo = representante_id no MySQL
-    let q = sb.from('ext_agendamentos').select('valor_fechado')
-      .eq('status_nome','Fechada').gte('data',inicio).lte('data',fim);
-    if (mysqlId) q = q.eq('representante_id', mysqlId);
-    else q = q.ilike('representante_nome', `%${nome1}%`);
-    const { data } = await q;
-    totalMRR = (data||[]).reduce((s,e) => s + Number(e.valor_fechado||0), 0);
+    let q = sb.from('ext_agendamentos').select('valor_fechado').eq('status_nome','Fechada').gte('data',inicio).lte('data',fim);
+    if (mysqlId) q = q.eq('criador_id', mysqlId); else q = q.ilike('acompanhante_nome',`%${nome1}%`);
+    const { data } = await q; totalMRR = (data||[]).reduce((s,e)=>s+Number(e.valor_fechado||0),0);
+  } else if (['vendas','gerente'].includes(currentUser.role)) {
+    let q = sb.from('ext_agendamentos').select('valor_fechado').eq('status_nome','Fechada').gte('data',inicio).lte('data',fim);
+    if (mysqlId) q = q.eq('representante_id', mysqlId); else q = q.ilike('representante_nome',`%${nome1}%`);
+    const { data } = await q; totalMRR = (data||[]).reduce((s,e)=>s+Number(e.valor_fechado||0),0);
   }
 
   const pct  = Math.min(Math.round((totalMRR / META_IND_DIN) * 100), 100);
   const cor  = pct >= 100 ? '#059669' : pct >= 70 ? '#f59e0b' : '#10b981';
-  const grad = pct >= 100 ? 'linear-gradient(90deg,#059669,#047857)'
-             : pct >= 70  ? 'linear-gradient(90deg,#f59e0b,#d97706)'
-             : 'linear-gradient(90deg,#10b981,#059669)';
+  const grad = pct >= 100 ? 'linear-gradient(90deg,#059669,#047857)' : pct >= 70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#10b981,#059669)';
   document.getElementById('topbar-meta-ind-barra').style.width      = pct + '%';
   document.getElementById('topbar-meta-ind-barra').style.background = grad;
   document.getElementById('topbar-meta-ind-pct').textContent        = pct + '%';
   document.getElementById('topbar-meta-ind-pct').style.color        = cor;
   document.getElementById('topbar-meta-ind-resultado').textContent  = 'R$ ' + totalMRR.toLocaleString('pt-BR');
+  document.getElementById('topbar-meta-ind-alvo').textContent       = 'R$ ' + META_IND_DIN.toLocaleString('pt-BR');
+}
+
+async function renderMetaDiaria() {
+  if (!currentUser) return;
+  const role = currentUser.role;
+
+  // Admin não tem guia diária
+  const elCham    = document.getElementById('tb-dia-chamadas');
+  const elAgend   = document.getElementById('tb-dia-agend');
+  const elReunioes = document.getElementById('tb-dia-reunioes');
+  elCham.style.display = 'none'; elAgend.style.display = 'none'; elReunioes.style.display = 'none';
+  if (role === 'admin') return;
+
+  const agora  = new Date();
+  const hoje   = agora.toISOString().split('T')[0];
+  const mysqlId = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
+  const nome1   = currentUser.name.split(' ')[0];
+
+  if (role === 'agendamento') {
+    // ── BDR: Chamadas do dia ────────────────────────────────
+    const { count: chamHoje } = await sb.from('ext_chamadas')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'ATENDIDA').eq('profile_id', currentUser.id)
+      .gte('data_hora', hoje + 'T00:00:00').lte('data_hora', hoje + 'T23:59:59');
+    const cVal = chamHoje || 0;
+    const cPct = Math.min(Math.round((cVal / 100) * 100), 100);
+    const cCor = cPct >= 100 ? '#059669' : cPct >= 70 ? '#f59e0b' : '#7c3aed';
+    document.getElementById('tb-dia-chamadas-val').textContent  = cVal;
+    document.getElementById('tb-dia-chamadas-pct').textContent  = cPct + '%';
+    document.getElementById('tb-dia-chamadas-pct').style.color  = cCor;
+    document.getElementById('tb-dia-chamadas-barra').style.width = cPct + '%';
+    document.getElementById('tb-dia-chamadas-barra').style.background = cPct >= 100 ? 'linear-gradient(90deg,#059669,#047857)' : cPct >= 70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#7c3aed,#5b21b6)';
+    elCham.style.display = 'flex';
+
+    // ── BDR: Agendamentos do dia ────────────────────────────
+    let qA = sb.from('ext_agendamentos').select('id')
+      .not('responsavel','is',null).neq('status_nome','Cancelada').neq('status_nome','Reagendada')
+      .gte('created', hoje + 'T00:00:00').lte('created', hoje + 'T23:59:59');
+    if (mysqlId) qA = qA.eq('criador_id', mysqlId); else qA = qA.ilike('acompanhante_nome', `%${nome1}%`);
+    const { data: agHoje } = await qA;
+    const aVal = (agHoje||[]).length;
+    const aPct = Math.min(Math.round((aVal / 4) * 100), 100);
+    const aCor = aPct >= 100 ? '#059669' : aPct >= 70 ? '#f59e0b' : '#2563c2';
+    document.getElementById('tb-dia-agend-val').textContent   = aVal;
+    document.getElementById('tb-dia-agend-pct').textContent   = aPct + '%';
+    document.getElementById('tb-dia-agend-pct').style.color   = aCor;
+    document.getElementById('tb-dia-agend-barra').style.width = aPct + '%';
+    document.getElementById('tb-dia-agend-barra').style.background = aPct >= 100 ? 'linear-gradient(90deg,#059669,#047857)' : aPct >= 70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#2563c2,#1d4ed8)';
+    elAgend.style.display = 'flex';
+
+  } else if (['vendas','gerente'].includes(role)) {
+    // ── Exec/Gerente: Reuniões realizadas hoje ──────────────
+    let qR = sb.from('ext_agendamentos').select('id')
+      .eq('status_nome','Realizada').not('responsavel','is',null)
+      .gte('data', hoje).lte('data', hoje);
+    if (mysqlId) qR = qR.eq('representante_id', mysqlId); else qR = qR.ilike('representante_nome', `%${nome1}%`);
+    const { data: rHoje } = await qR;
+    const rVal = (rHoje||[]).length;
+    const rPct = Math.min(Math.round((rVal / 3) * 100), 100);
+    const rCor = rPct >= 100 ? '#059669' : rPct >= 70 ? '#f59e0b' : '#10b981';
+    document.getElementById('tb-dia-reunioes-val').textContent   = rVal;
+    document.getElementById('tb-dia-reunioes-pct').textContent   = rPct + '%';
+    document.getElementById('tb-dia-reunioes-pct').style.color   = rCor;
+    document.getElementById('tb-dia-reunioes-barra').style.width = rPct + '%';
+    document.getElementById('tb-dia-reunioes-barra').style.background = rPct >= 100 ? 'linear-gradient(90deg,#059669,#047857)' : rPct >= 70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#10b981,#059669)';
+    elReunioes.style.display = 'flex';
+  }
 }
 
 
@@ -6238,8 +6245,7 @@ async function renderAcompanhamento() {
   const { data: metaData } = await sb.from('metas_mensais')
     .select('meta').eq('mes', mesS).eq('ano', anoS).maybeSingle();
   const META_GERAL = metaData?.meta || 40000;
-  const { data: cfgInd } = await sb.from('config_portal').select('valor').eq('chave','meta_individual').maybeSingle();
-  const META_IND = cfgInd?.valor ? parseFloat(cfgInd.valor) : 12000;
+  const META_IND   = 12000;
 
   // Filtra por tipo — gerente entra como executivo
   let filteredUsers = (users || []).filter(u => u.mysql_id); // só com mysql_id vinculado
@@ -7056,7 +7062,7 @@ function aTab(tab) {
   document.getElementById('atab-' + tab).classList.add('active');
   if (tab === 'denuncias') renderAdminDen();
   if (tab === 'usuarios')  renderAdminUsers();
-  if (tab === 'metas')     initMetaAdminForm();
+  if (tab === 'metas')     initMetaAdmin();
   if (tab === 'ori')       loadOriConhecimento();
   if (tab === 'novidades') renderAdminNews();
 }
