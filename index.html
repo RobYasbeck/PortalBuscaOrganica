@@ -5552,9 +5552,11 @@ async function renderDashboard() {
     return q;
   };
 
-  const baseFilter = (q) => q
-    .not('status_nome', 'eq', 'Cancelada')
-    .not('status_nome', 'eq', 'Reagendada');
+  const baseFilter = (q) => {
+    q = q.not('status_nome', 'eq', 'Cancelada').not('status_nome', 'eq', 'Reagendada');
+    if (!isAdmin) q = q.not('responsavel', 'is', null);
+    return q;
+  };
 
   // AGENDAMENTOS: union de criados em maio + data em maio
   const [{ data: ag1 }, { data: ag2 }] = await Promise.all([
@@ -5668,9 +5670,11 @@ async function renderDashboard() {
       if (isExec)  return mysqlId ? q.eq('representante_id', mysqlId) : q.ilike('representante_nome', `%${nome1}%`);
       return q;
     };
-    const applyStatusHist = (q) => q
-      .not('status_nome', 'eq', 'Cancelada')
-      .not('status_nome', 'eq', 'Reagendada');
+    const applyStatusHist = (q) => {
+      q = q.not('status_nome', 'eq', 'Cancelada').not('status_nome', 'eq', 'Reagendada');
+      if (!isAdmin) q = q.not('responsavel', 'is', null);
+      return q;
+    };
     const selHist = 'id, data, hora, empresa, responsavel, status_nome, valor_fechado, online, representante_nome, acompanhante_nome, criador_id, representante_id, created';
 
     // Union por mês desde Janeiro
@@ -5795,9 +5799,11 @@ async function renderChart() {
     if (isExec) return mysqlId ? q.eq('representante_id', mysqlId) : q.ilike('representante_nome', `%${nome1}%`);
     return q;
   };
-  const applyStatus = (q) => q
-    .not('status_nome', 'eq', 'Cancelada')
-    .not('status_nome', 'eq', 'Reagendada');
+  const applyStatus = (q) => {
+    q = q.not('status_nome', 'eq', 'Cancelada').not('status_nome', 'eq', 'Reagendada');
+    if (!isAdmin) q = q.not('responsavel', 'is', null);
+    return q;
+  };
 
   // AGENDAMENTOS: union criados no período + data no período
   const sel = 'id, data, status_nome, valor_fechado, criador_id, representante_id, created';
@@ -5931,7 +5937,32 @@ async function filtrarListasDash() {
   if (!mesSel || mesSel === mesAtualK) {
     filtradosAg = window._dashTodos || [];
   } else {
-    filtradosAg = todos.filter(r => (r.data||'').substring(0,7) === mesSel);
+    // Meses anteriores: union igual ao gráfico (criados no mês + data no mês)
+    const [yA, mA] = mesSel.split('-').map(Number);
+    const iniA = `${yA}-${String(mA).padStart(2,'0')}-01`;
+    const fimA = new Date(yA, mA, 0).toISOString().split('T')[0];
+    const applyUserAg = (q) => {
+      if (isAdmin) return q;
+      if (isBDR2)  return mysqlId2 ? q.eq('criador_id', mysqlId2)        : q.ilike('acompanhante_nome', `%${nome12}%`);
+      if (isExec2) return mysqlId2 ? q.eq('representante_id', mysqlId2)  : q.ilike('representante_nome', `%${nome12}%`);
+      return q;
+    };
+    const selAg = 'id, data, hora, empresa, responsavel, status_nome, valor_fechado, online, representante_nome, acompanhante_nome, criador_id, representante_id, created';
+    const applyRespAg = (q) => isAdmin ? q : q.not('responsavel','is',null);
+    const [{ data: agA1 }, { data: agA2 }] = await Promise.all([
+      applyUserAg(applyRespAg(sb.from('ext_agendamentos').select(selAg)
+        .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada')
+        .gte('created', iniA+'T00:00:00').lte('created', fimA+'T23:59:59')))
+        .order('data', {ascending:false}).limit(500),
+      applyUserAg(applyRespAg(sb.from('ext_agendamentos').select(selAg)
+        .not('status_nome','eq','Cancelada').not('status_nome','eq','Reagendada')
+        .gte('data', iniA).lte('data', fimA)
+        .or(`created.lt.${iniA}T00:00:00,created.gt.${fimA}T23:59:59`)))
+        .order('data', {ascending:false}).limit(500),
+    ]);
+    const mapaAg = new Map();
+    [...(agA1||[]), ...(agA2||[])].forEach(r => mapaAg.set(r.id, r));
+    filtradosAg = [...mapaAg.values()].sort((a,b) => new Date(b.data) - new Date(a.data));
   }
 
   const agTotal = document.getElementById('dash-ag-total');
