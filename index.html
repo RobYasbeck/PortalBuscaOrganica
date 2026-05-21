@@ -719,6 +719,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
       <div class="nav-item" data-page="dashboard" onclick="showPage('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
       <div class="nav-item" data-page="acompanhamento" onclick="showPage('acompanhamento')" style="display:none"><span class="nav-icon">📈</span>Acompanhamento</div>
       <div class="nav-item" data-page="kpi-diario" onclick="showPage('kpi-diario')" style="display:none"><span class="nav-icon">⚡</span>Gestão KPIs Diário</div>
+      <div class="nav-item" data-page="confirmacao-agenda" onclick="showPage('confirmacao-agenda')" style="display:none"><span class="nav-icon">✅</span>Confirmação de Agenda</div>
       <div class="nav-item active" data-page="novidades" onclick="showPage('novidades')"><span class="nav-icon">📢</span>Novidades</div>
       <div class="nav-item" data-page="faq" onclick="showPage('faq')"><span class="nav-icon">❓</span>FAQ</div>
       <div class="nav-item" data-page="book" onclick="showPage('book')"><span class="nav-icon">📖</span>Book de Argumentação</div>
@@ -819,15 +820,15 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
             <div id="tb-dia-chamadas" style="display:none;align-items:center;background:#f5f3ff;border:1px solid #ddd6fe;border-radius:10px;padding:5px 12px">
               <div style="display:flex;flex-direction:column;gap:2px;min-width:130px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:#5b21b6;text-transform:uppercase;letter-spacing:.4px">📞 Chamadas/dia</span>
+                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:#5b21b6;letter-spacing:.4px">📞 CHAM./DIA</span>
                   <span id="tb-dia-chamadas-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#7c3aed">0%</span>
                 </div>
                 <div style="height:5px;background:#ede9fe;border-radius:99px;overflow:hidden">
                   <div id="tb-dia-chamadas-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s;background:linear-gradient(90deg,#7c3aed,#5b21b6)"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-top:1px">
-                  <span id="tb-dia-chamadas-val" style="font-size:9.5px;color:#5b21b6;font-family:'DM Sans',sans-serif;font-weight:600">0</span>
-                  <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">meta: 60</span>
+                  <span id="tb-dia-chamadas-val" style="font-size:9.5px;font-family:'DM Sans',sans-serif;font-weight:700">0/60</span>
+                  <span style="font-size:9.5px;color:#94a3b8;font-family:'DM Sans',sans-serif">meta: 60</span>
                 </div>
               </div>
             </div>
@@ -836,15 +837,15 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
             <div id="tb-dia-agend" style="display:none;align-items:center;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:5px 12px">
               <div style="display:flex;flex-direction:column;gap:2px;min-width:130px">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
-                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:#1d4ed8;text-transform:uppercase;letter-spacing:.4px">📅 Agend./dia</span>
+                  <span style="font-size:10px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;color:#1d4ed8;letter-spacing:.4px">📅 AGEND./DIA</span>
                   <span id="tb-dia-agend-pct" style="font-size:10.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#2563c2">0%</span>
                 </div>
                 <div style="height:5px;background:#dbeafe;border-radius:99px;overflow:hidden">
                   <div id="tb-dia-agend-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s;background:linear-gradient(90deg,#2563c2,#1d4ed8)"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-top:1px">
-                  <span id="tb-dia-agend-val" style="font-size:9.5px;color:#1d4ed8;font-family:'DM Sans',sans-serif;font-weight:600">0</span>
-                  <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">meta: 4</span>
+                  <span id="tb-dia-agend-val" style="font-size:9.5px;font-family:'DM Sans',sans-serif;font-weight:700">0/4</span>
+                  <span style="font-size:9.5px;color:#94a3b8;font-family:'DM Sans',sans-serif">meta: 4</span>
                 </div>
               </div>
             </div>
@@ -860,8 +861,8 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
                   <div id="tb-dia-reunioes-barra" style="height:100%;width:0%;border-radius:99px;transition:width .6s;background:linear-gradient(90deg,#10b981,#059669)"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;margin-top:1px">
-                  <span id="tb-dia-reunioes-val" style="font-size:9.5px;color:#065f46;font-family:'DM Sans',sans-serif;font-weight:600">0</span>
-                  <span style="font-size:9.5px;color:var(--gray3);font-family:'DM Sans',sans-serif">meta: 3</span>
+                  <span id="tb-dia-reunioes-val" style="font-size:9.5px;font-family:'DM Sans',sans-serif;font-weight:700">0/3</span>
+                  <span style="font-size:9.5px;color:#94a3b8;font-family:'DM Sans',sans-serif">meta: 3</span>
                 </div>
               </div>
             </div>
@@ -1257,6 +1258,43 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
           <div id="diaria-exec-lista" style="display:flex;flex-direction:column;gap:8px">
             <div class="alert-info">Carregando...</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== CONFIRMAÇÃO DE AGENDA ===== -->
+    <div class="page" id="page-confirmacao-agenda">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h2>✅ Confirmação de Agenda</h2>
+          <p>Confirme as reuniões de hoje agendadas por você</p>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem">
+        <div class="metric-card" style="border-top-color:#2563c2">
+          <div class="label">Reuniões Hoje</div>
+          <div class="value" style="color:#2563c2" id="conf-kpi-total">—</div>
+          <div class="sub">agendadas por você</div>
+        </div>
+        <div class="metric-card" style="border-top-color:#059669">
+          <div class="label">Confirmadas</div>
+          <div class="value" style="color:#059669" id="conf-kpi-confirmadas">—</div>
+          <div class="sub">hoje</div>
+        </div>
+        <div class="metric-card" style="border-top-color:#f59e0b">
+          <div class="label">Reagendadas</div>
+          <div class="value" style="color:#f59e0b" id="conf-kpi-reagendadas">—</div>
+          <div class="sub">hoje</div>
+        </div>
+        <div class="metric-card" style="border-top-color:#ef4444">
+          <div class="label">Não confirmadas</div>
+          <div class="value" style="color:#ef4444" id="conf-kpi-atrasadas">—</div>
+          <div class="sub">hora passou</div>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div id="conf-tabela-wrap">
+          <div style="padding:2rem;text-align:center;color:var(--gray3)">Carregando...</div>
         </div>
       </div>
     </div>
@@ -4020,7 +4058,7 @@ async function renderMetaDiaria() {
   // Função de cor: vermelho < 50%, laranja 50-99%, verde 100%
   function tbCor(pct) {
     if (pct >= 100) return { txt: '#059669', grad: 'linear-gradient(90deg,#059669,#047857)', bg: '#f0fdf4', border: '#86efac' };
-    if (pct >= 50)  return { txt: '#d97706', grad: 'linear-gradient(90deg,#f59e0b,#d97706)', bg: '#fffbeb', border: '#fde68a' };
+    if (pct >= 50)  return { txt: '#10b981', grad: 'linear-gradient(90deg,#34d399,#10b981)', bg: '#f0fdf4', border: '#6ee7b7' };
     return              { txt: '#dc2626', grad: 'linear-gradient(90deg,#ef4444,#dc2626)', bg: '#fef2f2', border: '#fca5a5' };
   }
 
@@ -4031,15 +4069,16 @@ async function renderMetaDiaria() {
       .eq('status', 'ATENDIDA').eq('profile_id', currentUser.id)
       .gte('data_hora', hoje + 'T00:00:00').lte('data_hora', hoje + 'T23:59:59');
     const cVal = chamHoje || 0;
-    const cPct = Math.min(Math.round((cVal / 60) * 100), 100);
-    const cC   = tbCor(cPct);
+    const cPctReal = Math.round((cVal / 60) * 100);
+    const cPctBar  = Math.min(cPctReal, 100);
+    const cC   = tbCor(cPctReal);
     elCham.style.background   = cC.bg;
     elCham.style.borderColor  = cC.border;
-    document.getElementById('tb-dia-chamadas-val').textContent             = cVal;
+    document.getElementById('tb-dia-chamadas-val').textContent             = cVal + '/60';
     document.getElementById('tb-dia-chamadas-val').style.color             = cC.txt;
-    document.getElementById('tb-dia-chamadas-pct').textContent             = cPct + '%';
+    document.getElementById('tb-dia-chamadas-pct').textContent             = cPctReal + '%';
     document.getElementById('tb-dia-chamadas-pct').style.color             = cC.txt;
-    document.getElementById('tb-dia-chamadas-barra').style.width           = cPct + '%';
+    document.getElementById('tb-dia-chamadas-barra').style.width           = cPctBar + '%';
     document.getElementById('tb-dia-chamadas-barra').style.background      = cC.grad;
     elCham.style.display = 'flex';
 
@@ -4050,15 +4089,16 @@ async function renderMetaDiaria() {
     if (mysqlId) qA = qA.eq('criador_id', mysqlId); else qA = qA.ilike('acompanhante_nome', `%${nome1}%`);
     const { data: agHoje } = await qA;
     const aVal = (agHoje||[]).length;
-    const aPct = Math.min(Math.round((aVal / 4) * 100), 100);
-    const aC   = tbCor(aPct);
+    const aPctReal = Math.round((aVal / 4) * 100);
+    const aPctBar  = Math.min(aPctReal, 100);
+    const aC   = tbCor(aPctReal);
     elAgend.style.background  = aC.bg;
     elAgend.style.borderColor = aC.border;
-    document.getElementById('tb-dia-agend-val').textContent                = aVal;
+    document.getElementById('tb-dia-agend-val').textContent                = aVal + '/4';
     document.getElementById('tb-dia-agend-val').style.color                = aC.txt;
-    document.getElementById('tb-dia-agend-pct').textContent                = aPct + '%';
+    document.getElementById('tb-dia-agend-pct').textContent                = aPctReal + '%';
     document.getElementById('tb-dia-agend-pct').style.color                = aC.txt;
-    document.getElementById('tb-dia-agend-barra').style.width              = aPct + '%';
+    document.getElementById('tb-dia-agend-barra').style.width              = aPctBar + '%';
     document.getElementById('tb-dia-agend-barra').style.background         = aC.grad;
     elAgend.style.display = 'flex';
 
@@ -4070,15 +4110,16 @@ async function renderMetaDiaria() {
     if (mysqlId) qR = qR.eq('representante_id', mysqlId); else qR = qR.ilike('representante_nome', `%${nome1}%`);
     const { data: rHoje } = await qR;
     const rVal = (rHoje||[]).length;
-    const rPct = Math.min(Math.round((rVal / 3) * 100), 100);
-    const rC   = tbCor(rPct);
+    const rPctReal = Math.round((rVal / 3) * 100);
+    const rPctBar  = Math.min(rPctReal, 100);
+    const rC   = tbCor(rPctReal);
     elReunioes.style.background  = rC.bg;
     elReunioes.style.borderColor = rC.border;
-    document.getElementById('tb-dia-reunioes-val').textContent             = rVal;
+    document.getElementById('tb-dia-reunioes-val').textContent             = rVal + '/3';
     document.getElementById('tb-dia-reunioes-val').style.color             = rC.txt;
-    document.getElementById('tb-dia-reunioes-pct').textContent             = rPct + '%';
+    document.getElementById('tb-dia-reunioes-pct').textContent             = rPctReal + '%';
     document.getElementById('tb-dia-reunioes-pct').style.color             = rC.txt;
-    document.getElementById('tb-dia-reunioes-barra').style.width           = rPct + '%';
+    document.getElementById('tb-dia-reunioes-barra').style.width           = rPctBar + '%';
     document.getElementById('tb-dia-reunioes-barra').style.background      = rC.grad;
     elReunioes.style.display = 'flex';
   }
@@ -5216,6 +5257,9 @@ const PAGINAS_CONFIG = [
   { id:'assistente',   label:'🔮 Ori — IA',           secao:'Menu Principal' },
   { id:'campanhas',    label:'📣 Campanhas',               secao:'Menu Principal' },
   { id:'sistemas',     label:'🖥️ Sistemas',                secao:'Menu Principal' },
+  { id:'acompanhamento',     label:'📈 Acompanhamento',          secao:'Gestão' },
+  { id:'kpi-diario',         label:'⚡ Gestão KPIs Diário',      secao:'Gestão' },
+  { id:'confirmacao-agenda', label:'✅ Confirmação de Agenda',   secao:'Gestão' },
   { id:'leads',        label:'🏢 Leads',                   secao:'Comercial' },
   { id:'agendamentos', label:'📋 Agendamentos',            secao:'Comercial' },
   { id:'atividades',   label:'⚡ Atividades',              secao:'Comercial' },
@@ -5315,7 +5359,7 @@ async function salvarPermissoes() {
 
 const TODAS_PAGINAS = [
   'dashboard','novidades','faq','book','precos','campanhas','sistemas',
-  'leads','agendamentos','atividades','calendario',
+  'leads','agendamentos','atividades','calendario','confirmacao-agenda',
   'gamificacao','loja','denuncia','admin'
 ];
 
@@ -5337,6 +5381,12 @@ function renderNav() {
     if (page === 'configuracoes')   return; // sempre visível para todos
     if (page === 'acompanhamento') { el.style.display = (isAdmin || isGerente) ? '' : 'none'; return; }
     if (page === 'kpi-diario')    { el.style.display = (isAdmin || isGerente) ? '' : 'none'; return; }
+    if (page === 'confirmacao-agenda') {
+      const isBDR2  = currentUser?.role === 'agendamento';
+      const isExec2 = currentUser?.role === 'vendas';
+      el.style.display = (isAdmin || isGerente || isBDR2 || isExec2 || liberadas.includes('confirmacao-agenda')) ? '' : 'none';
+      return;
+    }
     el.style.display = (isAdmin || liberadas.includes(page)) ? '' : 'none';
   });
 
@@ -5358,7 +5408,7 @@ function showPage(id) {
   const liberadas = currentUser?.paginas_liberadas || ['novidades'];
   const isAdmin   = currentUser?.role === 'admin';
   const isGerente = currentUser?.role === 'gerente';
-  if (id !== 'admin' && id !== 'configuracoes' && id !== 'acompanhamento' && id !== 'kpi-diario' && !isAdmin && !liberadas.includes(id)) {
+  if (id !== 'admin' && id !== 'configuracoes' && id !== 'acompanhamento' && id !== 'kpi-diario' && id !== 'confirmacao-agenda' && !isAdmin && !liberadas.includes(id)) {
     alert('Você não tem permissão para acessar esta página.');
     return;
   }
@@ -5370,6 +5420,12 @@ function showPage(id) {
     alert('Você não tem permissão para acessar esta página.');
     return;
   }
+  if (id === 'confirmacao-agenda') {
+    const role = currentUser?.role;
+    if (role !== 'agendamento' && role !== 'vendas' && role !== 'admin' && role !== 'gerente' && !liberadas.includes('confirmacao-agenda')) {
+      showPage('dashboard'); return;
+    }
+  }
 
   // Oculta topbar apenas na página do Ori
   const mainContent = document.getElementById('main-content');
@@ -5379,8 +5435,8 @@ function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + id).classList.add('active');
-  const navMap   = { dashboard:'📊 Dashboard', novidades:'📢 Novidades', faq:'❓ FAQ', book:'📖 Book de Argumentação', precos:'💰 Tabela de Valores', campanhas:'📣 Campanhas', sistemas:'🖥️ Sistemas', gamificacao:'🏆 Ranking', loja:'🛍️ Loja', denuncia:'📣 Ouvidoria', suporte:'🎫 Suporte Técnico', configuracoes:'⚙️ Configurações', admin:'⚙️ Administração', leads:'🏢 Leads', agendamentos:'📋 Agendamentos', atividades:'⚡ Atividades', calendario:'📅 Calendário', acompanhamento:'📊 Acompanhamento', 'kpi-diario':'⚡ Gestão KPIs Diário' };
-  const labels   = { dashboard:'Dashboard', novidades:'Novidades', faq:'FAQ', book:'Book de Argumentação', precos:'Tabela de Valores', campanhas:'Campanhas', sistemas:'Sistemas', gamificacao:'Ranking', loja:'Loja de Prêmios', denuncia:'Ouvidoria', suporte:'Suporte Técnico', configuracoes:'Configurações', admin:'Administração', leads:'Leads', agendamentos:'Agendamentos', atividades:'Atividades', calendario:'Calendário', acompanhamento:'Acompanhamento', 'kpi-diario':'Gestão KPIs Diário' };
+  const navMap   = { dashboard:'📊 Dashboard', novidades:'📢 Novidades', faq:'❓ FAQ', book:'📖 Book de Argumentação', precos:'💰 Tabela de Valores', campanhas:'📣 Campanhas', sistemas:'🖥️ Sistemas', gamificacao:'🏆 Ranking', loja:'🛍️ Loja', denuncia:'📣 Ouvidoria', suporte:'🎫 Suporte Técnico', configuracoes:'⚙️ Configurações', admin:'⚙️ Administração', leads:'🏢 Leads', agendamentos:'📋 Agendamentos', atividades:'⚡ Atividades', calendario:'📅 Calendário', acompanhamento:'📊 Acompanhamento', 'kpi-diario':'⚡ Gestão KPIs Diário', 'confirmacao-agenda':'✅ Confirmação de Agenda' };
+  const labels   = { dashboard:'Dashboard', novidades:'Novidades', faq:'FAQ', book:'Book de Argumentação', precos:'Tabela de Valores', campanhas:'Campanhas', sistemas:'Sistemas', gamificacao:'Ranking', loja:'Loja de Prêmios', denuncia:'Ouvidoria', suporte:'Suporte Técnico', configuracoes:'Configurações', admin:'Administração', leads:'Leads', agendamentos:'Agendamentos', atividades:'Atividades', calendario:'Calendário', acompanhamento:'Acompanhamento', 'kpi-diario':'Gestão KPIs Diário', 'confirmacao-agenda':'Confirmação de Agenda' };
   document.getElementById('topbar-page').innerHTML = navMap[id].split(' ')[0] + ' <strong>' + labels[id] + '</strong>';
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.textContent.trim().includes(labels[id])) n.classList.add('active');
@@ -5395,6 +5451,7 @@ function showPage(id) {
     if (filtroEl && !filtroEl.value) filtroEl.value = new Date().toISOString().split('T')[0];
     renderAcompDiaria();
   }
+  if (id === 'confirmacao-agenda') { renderConfirmacaoAgenda(); }
   if (id === 'novidades')     { renderNews(); }
   if (id === 'precos')         { loadProdutos(); }
   if (id === 'configuracoes')  { renderConfiguracoes(); }
@@ -5440,7 +5497,7 @@ async function initApp() {
   document.querySelector('.nav-item[data-page="dashboard"]')?.classList.add('active');
   renderDashboard();
   setTimeout(initChartData, 100);
-  document.getElementById('topbar-page').innerHTML = '📢 <strong>Novidades</strong>';
+  document.getElementById('topbar-page').innerHTML = '📊 <strong>Dashboard</strong>';
 }
 
 // ── Carrega novidades do Supabase ────────────────────────
@@ -6384,10 +6441,11 @@ async function renderAcompDiaria() {
 
   // ── Renderiza BDRs ────────────────────────────────────────
   function barDia(val, meta) {
-    const pct = Math.min(Math.round((val/meta)*100),100);
-    const grad = pct>=100 ? 'linear-gradient(90deg,#059669,#047857)' : pct>=70 ? 'linear-gradient(90deg,#f59e0b,#d97706)' : 'linear-gradient(90deg,#2563c2,#3b82f6)';
-    const txtCor = pct>=100 ? '#059669' : pct>=70 ? '#d97706' : '#2563c2';
-    return { pct, grad, txtCor };
+    const pctReal = Math.round((val/meta)*100);
+    const pctBar  = Math.min(pctReal, 100); // barra não passa de 100% visualmente
+    const grad = pctReal>=100 ? 'linear-gradient(90deg,#059669,#047857)' : pctReal>=50 ? 'linear-gradient(90deg,#34d399,#10b981)' : 'linear-gradient(90deg,#2563c2,#3b82f6)';
+    const txtCor = pctReal>=100 ? '#059669' : pctReal>=50 ? '#10b981' : '#2563c2';
+    return { pct: pctBar, pctReal, grad, txtCor };
   }
 
   function avatarHtml(u) {
@@ -6419,7 +6477,7 @@ async function renderAcompDiaria() {
               <div style="flex:1;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
                 <div style="height:100%;width:${bC.pct}%;border-radius:99px;background:${bC.grad};transition:width .5s"></div>
               </div>
-              <span style="font-size:11px;font-weight:800;color:${bC.txtCor};width:36px;text-align:right;flex-shrink:0">${u.chamadas}<span style="font-weight:400;color:var(--gray3)">/60</span></span>
+              <span style="font-size:11px;font-weight:800;color:${bC.txtCor};width:36px;text-align:right;flex-shrink:0">${u.chamadas}/60</span>
             </div>
             <!-- Agendamentos -->
             <div style="display:flex;align-items:center;gap:6px">
@@ -6427,7 +6485,7 @@ async function renderAcompDiaria() {
               <div style="flex:1;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
                 <div style="height:100%;width:${bA.pct}%;border-radius:99px;background:${bA.grad};transition:width .5s"></div>
               </div>
-              <span style="font-size:11px;font-weight:800;color:${bA.txtCor};width:36px;text-align:right;flex-shrink:0">${u.agendamentos}<span style="font-weight:400;color:var(--gray3)">/4</span></span>
+              <span style="font-size:11px;font-weight:800;color:${bA.txtCor};width:36px;text-align:right;flex-shrink:0">${u.agendamentos}/4</span>
             </div>
           </div>
         </div>`;
@@ -6462,7 +6520,7 @@ async function renderAcompDiaria() {
               <div style="flex:1;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
                 <div style="height:100%;width:${bR.pct}%;border-radius:99px;background:${bR.grad};transition:width .5s"></div>
               </div>
-              <span style="font-size:11px;font-weight:800;color:${bR.txtCor};width:36px;text-align:right;flex-shrink:0">${u.reunioes}<span style="font-weight:400;color:var(--gray3)">/3</span></span>
+              <span style="font-size:11px;font-weight:800;color:${bR.txtCor};width:36px;text-align:right;flex-shrink:0">${u.reunioes}/3</span>
             </div>
             <!-- Vendas -->
             <div style="display:flex;align-items:center;gap:6px">
@@ -6470,12 +6528,187 @@ async function renderAcompDiaria() {
               <div style="flex:1;height:5px;background:#e2e8f0;border-radius:99px;overflow:hidden">
                 <div style="height:100%;width:${bV.pct}%;border-radius:99px;background:${bV.grad};transition:width .5s"></div>
               </div>
-              <span style="font-size:11px;font-weight:800;color:${bV.txtCor};width:36px;text-align:right;flex-shrink:0">${u.vendas}<span style="font-weight:400;color:var(--gray3)">/1</span></span>
+              <span style="font-size:11px;font-weight:800;color:${bV.txtCor};width:36px;text-align:right;flex-shrink:0">${u.vendas}/1</span>
             </div>
           </div>
         </div>`;
     }).join('');
   }
+}
+
+// ══════════════════════════════════════════════════════════
+// CONFIRMAÇÃO DE AGENDA
+// ══════════════════════════════════════════════════════════
+async function renderConfirmacaoAgenda() {
+  const hoje    = new Date().toISOString().split('T')[0];
+  const agoraH  = new Date().toTimeString().slice(0,5);
+  const isAdmin = currentUser?.role === 'admin';
+  const isGer   = currentUser?.role === 'gerente';
+  const isExec  = currentUser?.role === 'vendas';
+  const isGestor = isAdmin || isGer;
+  const mid     = currentUser.mysql_id ? parseInt(currentUser.mysql_id) : null;
+  const nome1   = currentUser.name.split(' ')[0];
+  const wrap    = document.getElementById('conf-tabela-wrap');
+  if (wrap) wrap.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--gray3)">Carregando...</div>';
+
+  let q = sb.from('ext_agendamentos')
+    .select('id,data,hora,empresa,responsavel,status_nome,representante_nome,criador_id,acompanhante_nome,online')
+    .eq('data', hoje)
+    .not('status_nome','eq','Cancelada')
+    .not('status_nome','eq','Reagendada')
+    .not('responsavel','is',null)
+    .order('hora', {ascending: true});
+
+  if (isGestor) {
+    // Admin/gerente vê tudo
+  } else if (isExec) {
+    // Executivo filtra pelos agendamentos onde ele é o representante
+    if (mid) q = q.eq('representante_id', mid);
+    else     q = q.ilike('representante_nome', `%${nome1}%`);
+  } else {
+    // BDR filtra pelos que criou
+    if (mid) q = q.eq('criador_id', mid);
+    else     q = q.ilike('acompanhante_nome', `%${nome1}%`);
+  }
+  const { data: ags } = await q;
+  const lista = ags || [];
+
+  const ids = lista.map(a => a.id);
+  let confs = [];
+  if (ids.length) {
+    // Busca todas as confirmações dos agendamentos (qualquer BDR), não filtra por bdr_id
+    const { data: cd } = await sb.from('confirmacoes_agenda')
+      .select('agendamento_id, status, bdr_id')
+      .in('agendamento_id', ids);
+    confs = cd || [];
+  }
+  const confMap = {};
+  confs.forEach(c => { confMap[c.agendamento_id] = { status: c.status, bdr_id: c.bdr_id }; });
+
+  let bdrNomes = {};
+  if (isGestor || isExec) {
+    const bdrIds = [...new Set(lista.map(a => {
+      const c = confMap[a.id];
+      return c?.bdr_id || null;
+    }).filter(Boolean))];
+    if (bdrIds.length) {
+      const { data: profs } = await sb.from('profiles').select('id,name').in('id', bdrIds);
+      (profs||[]).forEach(p => { bdrNomes[p.id] = p.name.split(' ').slice(0,2).join(' '); });
+    }
+  }
+
+  const total       = lista.length;
+  const confirmadas = confs.filter(c => c.status === 'confirmado').length;
+  const reagendadas = confs.filter(c => c.status === 'reagendado').length;
+  const atrasadas   = lista.filter(a => {
+    const hora = (a.hora||'').slice(0,5);
+    return hora < agoraH && !confMap[a.id];
+  }).length;
+
+  document.getElementById('conf-kpi-total').textContent       = total;
+  document.getElementById('conf-kpi-confirmadas').textContent = confirmadas;
+  document.getElementById('conf-kpi-reagendadas').textContent = reagendadas;
+  document.getElementById('conf-kpi-atrasadas').textContent   = atrasadas;
+
+  if (!wrap) return;
+  if (!lista.length) {
+    wrap.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--gray3)">
+      <div style="font-size:2rem;margin-bottom:.5rem">📭</div>
+      <div style="font-weight:600">Nenhuma reunião hoje</div>
+      <div style="font-size:13px;margin-top:4px">Não há agendamentos com data de hoje${isGestor ? '' : ' criados por você'}.</div>
+    </div>`;
+    return;
+  }
+
+  const linhas = lista.map(a => {
+    const hora     = (a.hora||'').slice(0,5) || '—';
+    const empresa  = a.empresa || '—';
+    const cliente  = a.responsavel || '—';
+    const exec     = a.representante_nome || '—';
+    const online   = a.online ? '🌐 Online' : '🏢 Presencial';
+    const conf     = confMap[a.id];
+    const status   = conf?.status;
+    const atrasada = hora < agoraH && !status;
+    const bdrNome  = (isGestor || isExec)
+      ? (bdrNomes[conf?.bdr_id] || a.acompanhante_nome?.split(' ').slice(0,2).join(' ') || '—')
+      : null;
+
+    let badge = '', btns = '';
+    if (status === 'confirmado') {
+      badge = `<span style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px">✅ Confirmado</span>`;
+      btns  = (!isGestor && !isExec) ? `<button onclick="desfazerConfirmacao(${a.id})" style="border:1px solid var(--gray2);background:white;border-radius:7px;padding:5px 10px;font-size:11px;color:var(--gray3);cursor:pointer;font-family:'DM Sans',sans-serif">Desfazer</button>` : '';
+    } else if (status === 'reagendado') {
+      badge = `<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px">🔄 Reagendado</span>`;
+      btns  = (!isGestor && !isExec) ? `<button onclick="desfazerConfirmacao(${a.id})" style="border:1px solid var(--gray2);background:white;border-radius:7px;padding:5px 10px;font-size:11px;color:var(--gray3);cursor:pointer;font-family:'DM Sans',sans-serif">Desfazer</button>` : '';
+    } else {
+      badge = atrasada
+        ? `<span style="background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px">⚠️ Não confirmada</span>`
+        : `<span style="background:#f1f5f9;color:var(--gray3);font-size:11px;font-weight:600;padding:3px 10px;border-radius:99px">Pendente</span>`;
+      if (!isGestor && !isExec) btns = `
+        <button onclick="salvarConfirmacao(${a.id},'confirmado')" style="background:#059669;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;color:white;cursor:pointer;font-family:'DM Sans',sans-serif">✅ Confirmar</button>
+        <button onclick="salvarConfirmacao(${a.id},'reagendado')" style="background:#f59e0b;border:none;border-radius:7px;padding:6px 14px;font-size:12px;font-weight:700;color:white;cursor:pointer;font-family:'DM Sans',sans-serif">🔄 Reagendar</button>`;
+    }
+
+    const soLeitura = isGestor || isExec;
+    const bdrCol  = (isGestor || isExec) ? `<td style="padding:12px 16px;font-size:12px;color:var(--gray3)">${bdrNome}</td>` : '';
+    const acaoCol = !soLeitura ? `<td style="padding:12px 16px;white-space:nowrap"><div style="display:flex;gap:6px">${btns}</div></td>` : '';
+
+    return `<tr style="border-bottom:1px solid var(--gray2);${atrasada&&!status?'background:#fff8f8':''}">
+      <td style="padding:12px 16px;font-size:13px;font-weight:700;color:var(--blue3);white-space:nowrap">${hora}</td>
+      <td style="padding:12px 16px">
+        <div style="font-size:13px;font-weight:700;color:var(--black)">${empresa}</div>
+        <div style="font-size:12px;color:var(--gray3);margin-top:2px">${cliente}</div>
+      </td>
+      ${bdrCol}
+      <td style="padding:12px 16px;font-size:12px;color:var(--gray3)">${exec}</td>
+      <td style="padding:12px 16px;font-size:12px;color:var(--gray3)">${online}</td>
+      <td style="padding:12px 16px">${badge}</td>
+      ${acaoCol}
+    </tr>`;
+  }).join('');
+
+  const bdrTh  = (isGestor || isExec) ? `<th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray3)">BDR</th>` : '';
+  const acaoTh = (!isGestor && !isExec) ? `<th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray3)">Ação</th>` : '';
+
+  wrap.innerHTML = `<div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr style="border-bottom:2px solid var(--gray2);background:#f8fafc">
+          <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray3)">Horário</th>
+          <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray3)">Empresa / Cliente</th>
+          ${bdrTh}
+          <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray3)">Executivo</th>
+          <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray3)">Formato</th>
+          <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray3)">Status</th>
+          ${acaoTh}
+        </tr>
+      </thead>
+      <tbody>${linhas}</tbody>
+    </table>
+  </div>`;
+}
+
+async function salvarConfirmacao(agendamentoId, status) {
+  const { error } = await sb.from('confirmacoes_agenda').insert({
+    agendamento_id: agendamentoId,
+    bdr_id: currentUser.id,
+    status
+  });
+  if (error) { alert('Erro ao salvar: ' + error.message); return; }
+  if (status === 'reagendado') {
+    document.getElementById('modal-reagendamento').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+  renderConfirmacaoAgenda();
+}
+
+async function desfazerConfirmacao(agendamentoId) {
+  const { error } = await sb.from('confirmacoes_agenda')
+    .delete()
+    .eq('agendamento_id', agendamentoId)
+    .eq('bdr_id', currentUser.id);
+  if (error) { alert('Erro ao desfazer: ' + error.message); return; }
+  renderConfirmacaoAgenda();
 }
 
 async function renderAcompanhamento() {
@@ -9220,5 +9453,23 @@ function renderMadTabela(tab) {
       <div id="mad-tabela" style="overflow-y:auto;flex:1"></div>
     </div>
   </div>
+    <!-- Modal Reagendamento -->
+    <div id="modal-reagendamento" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:400;display:flex;align-items:center;justify-content:center;padding:1rem">
+      <div style="background:white;border-radius:16px;padding:2rem;max-width:400px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.2rem">
+          <div style="width:40px;height:40px;border-radius:10px;background:#fef3c7;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🔄</div>
+          <div>
+            <div style="font-size:15px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;color:#0f172a">Reagendamento registrado!</div>
+            <div style="font-size:12px;color:var(--gray3);margin-top:1px">Ação necessária</div>
+          </div>
+        </div>
+        <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:10px;padding:14px 16px;margin-bottom:1.2rem">
+          <div style="font-size:13px;font-weight:800;color:#92400e;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:6px">⚠️ Automação Desligada</div>
+          <div style="font-size:13px;color:#78350f;line-height:1.5">Acesse o painel da busca orgânica e realize manualmente o reagendamento do cliente para a data desejada.</div>
+        </div>
+        <button onclick="document.getElementById('modal-reagendamento').classList.add('hidden');document.body.style.overflow=''" style="width:100%;background:#0f172a;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:'DM Sans',sans-serif">Entendi</button>
+      </div>
+    </div>
+
 </body>
 </html>
