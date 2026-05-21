@@ -1229,12 +1229,21 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
           <h2>⚡ Gestão KPIs Diário</h2>
           <p>Acompanhamento de metas do dia por colaborador</p>
         </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <label style="font-size:12px;font-weight:600;color:var(--gray3)">📅 Data:</label>
+          <input type="date" id="kpi-data-filtro"
+            style="border:1.5px solid var(--gray2);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--black);background:white;cursor:pointer;outline:none;font-family:'DM Sans',sans-serif"
+            onchange="renderAcompDiaria()">
+          <button onclick="kpiVoltarHoje()"
+            style="border:1.5px solid var(--gray2);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--gray3);background:white;cursor:pointer;font-family:'DM Sans',sans-serif"
+            title="Voltar para hoje">Hoje</button>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">
         <div class="card">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.2rem">
             <div style="width:8px;height:8px;border-radius:50%;background:#7c3aed"></div>
-            <div class="card-title" style="margin:0">BDRs — Hoje</div>
+            <div class="card-title" style="margin:0" id="kpi-title-bdr">BDRs — Hoje</div>
           </div>
           <div id="diaria-bdr-lista" style="display:flex;flex-direction:column;gap:8px">
             <div class="alert-info">Carregando...</div>
@@ -1243,7 +1252,7 @@ h1,h2,h3,h4,h5{font-family:Plus Jakarta Sans,sans-serif}
         <div class="card">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.2rem">
             <div style="width:8px;height:8px;border-radius:50%;background:#10b981"></div>
-            <div class="card-title" style="margin:0">Executivos — Hoje</div>
+            <div class="card-title" style="margin:0" id="kpi-title-exec">Executivos — Hoje</div>
           </div>
           <div id="diaria-exec-lista" style="display:flex;flex-direction:column;gap:8px">
             <div class="alert-info">Carregando...</div>
@@ -5381,7 +5390,11 @@ function showPage(id) {
   if (id === 'loja')        renderLoja();
   if (id === 'dashboard')     { renderDashboard(); setTimeout(initChartData, 100); }
   if (id === 'acompanhamento') { renderAcompanhamento(); }
-  if (id === 'kpi-diario')    { renderAcompDiaria(); }
+  if (id === 'kpi-diario')    {
+    const filtroEl = document.getElementById('kpi-data-filtro');
+    if (filtroEl && !filtroEl.value) filtroEl.value = new Date().toISOString().split('T')[0];
+    renderAcompDiaria();
+  }
   if (id === 'novidades')     { renderNews(); }
   if (id === 'precos')         { loadProdutos(); }
   if (id === 'configuracoes')  { renderConfiguracoes(); }
@@ -6284,8 +6297,27 @@ function acompFiltro(tipo) {
   else renderAcompanhamento();
 }
 
+function kpiVoltarHoje() {
+  const el = document.getElementById('kpi-data-filtro');
+  if (el) { el.value = new Date().toISOString().split('T')[0]; renderAcompDiaria(); }
+}
+
 async function renderAcompDiaria() {
+  // Usa a data do filtro, ou hoje se não estiver definida
+  const filtroEl = document.getElementById('kpi-data-filtro');
   const hoje = new Date().toISOString().split('T')[0];
+  if (filtroEl && !filtroEl.value) filtroEl.value = hoje;
+  const dia = filtroEl?.value || hoje;
+
+  // Atualiza títulos dos cards
+  const isHoje = dia === hoje;
+  const dataFmt = new Date(dia+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'});
+  const labelDia = isHoje ? 'Hoje' : dataFmt;
+  const tBdr  = document.getElementById('kpi-title-bdr');
+  const tExec = document.getElementById('kpi-title-exec');
+  if (tBdr)  tBdr.textContent  = `BDRs — ${labelDia}`;
+  if (tExec) tExec.textContent = `Executivos — ${labelDia}`;
+
   const bdrEl  = document.getElementById('diaria-bdr-lista');
   const execEl = document.getElementById('diaria-exec-lista');
   if (bdrEl)  bdrEl.innerHTML  = '<div style="text-align:center;padding:1rem;color:var(--gray3)">Carregando...</div>';
@@ -6298,20 +6330,20 @@ async function renderAcompDiaria() {
   const bdrs  = (users||[]).filter(u => u.role === 'agendamento');
   const execs = (users||[]).filter(u => ['vendas','gerente'].includes(u.role));
 
-  // ── BDRs: chamadas + agendamentos de hoje ────────────────
+  // ── BDRs: chamadas + agendamentos do dia ────────────────
   const bdrDados = await Promise.all(bdrs.map(async u => {
     const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
     const nome1 = u.name.split(' ')[0];
 
-    // Chamadas atendidas hoje
+    // Chamadas atendidas no dia
     const { count: chamadas } = await sb.from('ext_chamadas')
       .select('id',{count:'exact',head:true}).eq('status','ATENDIDA').eq('profile_id',u.id)
-      .gte('data_hora', hoje+'T00:00:00').lte('data_hora', hoje+'T23:59:59');
+      .gte('data_hora', dia+'T00:00:00').lte('data_hora', dia+'T23:59:59');
 
-    // Agendamentos criados hoje
+    // Agendamentos criados no dia
     let qA = sb.from('ext_agendamentos').select('id')
       .not('responsavel','is',null).neq('status_nome','Cancelada').neq('status_nome','Reagendada')
-      .gte('created', hoje+'T00:00:00').lte('created', hoje+'T23:59:59');
+      .gte('created', dia+'T00:00:00').lte('created', dia+'T23:59:59');
     if (mid) qA = qA.eq('criador_id', mid); else qA = qA.ilike('acompanhante_nome',`%${nome1}%`);
     const { data: agDs } = await qA;
 
@@ -6325,19 +6357,19 @@ async function renderAcompDiaria() {
     return sB - sA;
   });
 
-  // ── Executivos: reuniões realizadas hoje ──────────────────
+  // ── Executivos: reuniões + vendas do dia ──────────────────
   const execDados = await Promise.all(execs.map(async u => {
     const mid   = u.mysql_id ? parseInt(u.mysql_id) : null;
     const nome1 = u.name.split(' ')[0];
     let qR = sb.from('ext_agendamentos').select('id')
       .eq('status_nome','Realizada').not('responsavel','is',null)
-      .gte('data',hoje).lte('data',hoje);
+      .gte('data',dia).lte('data',dia);
     if (mid) qR = qR.eq('representante_id',mid); else qR = qR.ilike('representante_nome',`%${nome1}%`);
     const { data: rDs } = await qR;
 
     let qV = sb.from('ext_agendamentos').select('id')
       .eq('status_nome','Fechada').not('responsavel','is',null)
-      .gte('data',hoje).lte('data',hoje);
+      .gte('data',dia).lte('data',dia);
     if (mid) qV = qV.eq('representante_id',mid); else qV = qV.ilike('representante_nome',`%${nome1}%`);
     const { data: vDs } = await qV;
 
