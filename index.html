@@ -6587,13 +6587,21 @@ async function renderConfirmacaoAgenda() {
 
   let bdrNomes = {};
   if (isGestor || isExec) {
-    const bdrIds = [...new Set(lista.map(a => {
-      const c = confMap[a.id];
-      return c?.bdr_id || null;
-    }).filter(Boolean))];
+    // Busca nomes pelo bdr_id das confirmações
+    const bdrIds = [...new Set(confs.map(c => c.bdr_id).filter(Boolean))];
     if (bdrIds.length) {
-      const { data: profs } = await sb.from('profiles').select('id,name').in('id', bdrIds);
+      const { data: profs } = await sb.from('profiles').select('id,name,mysql_id').in('id', bdrIds);
       (profs||[]).forEach(p => { bdrNomes[p.id] = p.name.split(' ').slice(0,2).join(' '); });
+    }
+    // Busca nomes pelo criador_id (mysql_id) para agendamentos sem confirmação
+    const criadorIds = [...new Set(lista.map(a => a.criador_id).filter(Boolean))];
+    if (criadorIds.length) {
+      const { data: profs2 } = await sb.from('profiles').select('id,name,mysql_id').not('mysql_id','is',null);
+      (profs2||[]).forEach(p => {
+        if (p.mysql_id && criadorIds.includes(parseInt(p.mysql_id))) {
+          bdrNomes['criador_'+parseInt(p.mysql_id)] = p.name.split(' ').slice(0,2).join(' ');
+        }
+      });
     }
   }
 
@@ -6630,7 +6638,7 @@ async function renderConfirmacaoAgenda() {
     const status   = conf?.status;
     const atrasada = hora < agoraH && !status;
     const bdrNome  = (isGestor || isExec)
-      ? (bdrNomes[conf?.bdr_id] || a.acompanhante_nome?.split(' ').slice(0,2).join(' ') || '—')
+      ? (bdrNomes[conf?.bdr_id] || bdrNomes['criador_'+a.criador_id] || '—')
       : null;
 
     let badge = '', btns = '';
